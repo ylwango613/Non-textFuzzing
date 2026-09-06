@@ -1,0 +1,11 @@
+prefix=/data/ylwang/non-textfuzz/target/tool/fmt-install
+exec_prefix=/data/ylwang/non-textfuzz/target/tool/fmt-install
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: fmt
+Description: A modern formatting library
+Version: 12.0.0
+Libs: -L${libdir} -lfmt
+Cflags: -I${includedir}
+
