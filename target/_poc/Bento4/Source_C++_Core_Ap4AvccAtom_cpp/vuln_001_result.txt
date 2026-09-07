@@ -1,0 +1,3 @@
+ERROR: no audio track found
+=== Result ===
+No sanitizer error detected

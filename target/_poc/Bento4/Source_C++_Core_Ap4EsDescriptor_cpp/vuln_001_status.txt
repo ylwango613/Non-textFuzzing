@@ -1,0 +1,39 @@
+UNVERIFIED
+
+The integer underflow at Ap4EsDescriptor.cpp:103 is confirmed by static code analysis:
+  - ES_Descriptor declared payload_size = 3
+  - Bytes consumed from stream = 5 (ES_ID[2] + flags[1] + DependsOn[2] due to STREAM_DEPENDENCY)
+  - AP4_Size(5) - AP4_UI32(3) wraps to 0xFFFFFFFE under unsigned arithmetic
+  - SubStream created with size ~4 GB; loop reads sub-descriptors far beyond esds boundary
+  - Confirmed that mp42aac successfully parsed the audio track from the malicious MP4,
+    meaning the esds box and its crafted ES_Descriptor were fully processed
+
+Reason for UNVERIFIED (no ASAN/UBSAN report):
+1. The unsigned integer underflow (AP4_UI32 wrap-around) is defined behavior in C++ and
+   is NOT checked by -fsanitize=undefined. It would require the additional
+   -fsanitize=unsigned-integer-overflow flag (absent from the build: -fsanitize=address,undefined).
+2. The out-of-bounds stream reads (loop reading beyond the declared descriptor boundary)
+   occur through the AP4_FileByteStream backed by fread(). ASAN only intercepts heap
+   memory accesses (malloc/new), not OS file I/O via fread(). The file stream
+   returns EOF when its data is exhausted, preventing any heap corruption.
+3. Secondary paths investigated:
+   - Huge fake descriptor (0x0FFFFFFF payload) did not cause malloc failure or NULL-ptr
+     dereference because malloc(268MB) succeeded on the 64-bit host
+   - DecoderConfigDescriptor path not triggered (secondary underflow there also requires
+     payload_size < 13, which would need carefully crafted bytes after the boundary)
+
+Evidence that the vulnerability code path is reached:
+  - Binary output: "Audio Track: duration: 0 ms, sample count: 1"
+  - The audio track parsed successfully, meaning AP4_File parsed moov -> trak -> mdia ->
+    minf -> stbl -> stsd -> mp4a -> esds -> AP4_EsDescriptor constructor ran
+  - The flags byte 0x20 correctly sets AP4_ES_DESCRIPTOR_FLAG_STREAM_DEPENDENCY in Bento4
+    (verified: m_Flags = (0x20>>5)&7 = 1 = AP4_ES_DESCRIPTOR_FLAG_STREAM_DEPENDENCY)
+  - The underflow must have occurred (static analysis confirms) but produced no observable
+    crash because the SubStream's reads are bounded by file EOF via the file stream
+
+Correction to task description:
+  The task specifies flags byte = 0x80. However, Bento4 parses:
+    m_Flags = (bits>>5)&7; then checks m_Flags & AP4_ES_DESCRIPTOR_FLAG_STREAM_DEPENDENCY (=1)
+  With 0x80: m_Flags = (0x80>>5)&7 = 4 → m_Flags & 1 = 0 → NO STREAM_DEPENDENCY (no underflow)
+  With 0x20: m_Flags = (0x20>>5)&7 = 1 → m_Flags & 1 = 1 → STREAM_DEPENDENCY set (underflow!)
+  The PoC uses 0x20 which actually triggers the vulnerability in Bento4's implementation.

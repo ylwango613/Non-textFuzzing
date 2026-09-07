@@ -1,0 +1,19 @@
+All 3 subagents complete. Here's the final summary:
+
+---
+
+## PoC Generation Results — mp42aac (Bento4)
+
+| # | Vulnerability | Status | ASAN Finding |
+|---|---|---|---|
+| 001 | `AP4_CttsAtom` integer overflow `entry_count*8` → heap OOB read | **VERIFIED_CRASH** | `heap-buffer-overflow` READ in `AP4_CttsAtom::AP4_CttsAtom`, 0 bytes past 1-byte allocation |
+| 002 | `AP4_Stz2Atom` integer overflow `sample_count*field_size` → heap OOB read | **VERIFIED_CRASH** | `heap-buffer-overflow` READ in `AP4_Stz2Atom::AP4_Stz2Atom`, `new[0]` → 1-byte region |
+| 003 | `AP4_StcoAtom` integer underflow in bounds check → giant allocation DoS | **VERIFIED_CRASH** | `mmap_limit_mb` exhaustion from `new AP4_UI32[0x3FFFFFFF]` (~4 GB allocation) |
+
+All PoC files are in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Apps_Mp42Aac_Mp42Aac_cpp/`. Each set includes:
+- `vuln_NNN_gen.py` — Python struct-based malicious MP4 generator
+- `vuln_NNN_run.sh` — Shell runner with ASAN options
+- `vuln_NNN_notes.md` — Rationale and expected behavior
+- `vuln_NNN_status.txt` — First line: `VERIFIED_CRASH`
+
+Notable: VULN-003 required `ASAN_OPTIONS=mmap_limit_mb=3072` because the test machine has ~968 GB free memory, so Linux overcommit allows the ~4 GB virtual allocation to succeed silently. Capping ASAN's mmap budget forces the crash to manifest.

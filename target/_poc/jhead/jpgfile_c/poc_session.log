@@ -1,0 +1,12 @@
+---
+
+**PoC 생성 완료 — 전체 결과 요약:**
+
+| VULN | 상태 | 세부 |
+|------|------|------|
+| 001 — GPS Lat/Long OOB Read via Under-counted Components | **VERIFIED_CRASH** | UBSAN `runtime error: left shift of negative value -66` at `exif.c:344` (`Get32s()`), triggered via `ProcessGpsInfo()` OOB read of uninitialized heap padding bytes |
+
+**핵심 내용:**
+- `TAG_GPS_LAT` 의 `Components=1`(정상값 3)로 설정 → 경계 검사는 8바이트만 확인하지만 루프는 24바이트 읽음
+- `malloc(itemlen+20)` 패딩 영역 내 미초기화 메모리를 읽음 → ASAN heap-buffer-overflow 대신 **UBSAN shift-of-negative** 발화
+- 모든 파일이 `/data/ylwang/non-textfuzz/target/_poc/jhead/jpgfile_c/` 에 생성됨

@@ -1,0 +1,1 @@
+/usr/bin/gcc -fsanitize=address,undefined -g0 -fno-omit-frame-pointer -O3  -fsanitize=address,undefined CMakeFiles/imginfo.dir/imginfo.c.o -o imginfo  ../libjasper/libjasper.a /usr/lib/x86_64-linux-gnu/libjpeg.so -lm

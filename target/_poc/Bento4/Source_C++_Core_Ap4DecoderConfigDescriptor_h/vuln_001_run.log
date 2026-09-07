@@ -1,0 +1,10 @@
+[+] Written 527 bytes to /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4DecoderConfigDescriptor_h/vuln_001.mp4
+[+] DecoderConfigDescriptor directly in esds (no ES_Descriptor wrapper)
+[+] Declared payload_size=5 (< 13) => underflow: 5-13 = 0xFFFFFFF3 (~4 GB)
+[+] Line 92: new AP4_SubStream(file_stream, start+13, 0xFFFFFFF3)
+[+] While loop reads adjacent MP4 box data as DecoderConfig sub-descriptors
+Audio Track:
+  duration: 0 ms
+  sample count: 0
+[*] Exit code: 0
+[-] Binary exited cleanly (exit code 0, no sanitizer error)

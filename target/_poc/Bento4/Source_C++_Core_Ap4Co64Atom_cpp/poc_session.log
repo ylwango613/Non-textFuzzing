@@ -1,0 +1,19 @@
+**VULN 001 — VERIFIED_CRASH**
+
+Here's a summary of what was done:
+
+| File | Description |
+|---|---|
+| `vuln_001_gen.py` | Builds a 365-byte MP4 with a `co64` box declaring `size=12` (header-only) followed immediately by 4 bytes encoding `entry_count=0x1FFFFFFF` |
+| `vuln_001.mp4` | The 365-byte malicious payload |
+| `vuln_001_run.sh` | Runs gen.py, invokes `mp42aac` with `mmap_limit_mb=512`, collects ASAN log |
+| `vuln_001_status.txt` | **VERIFIED_CRASH** |
+
+**How the crash triggers:**
+
+1. The `co64` box declares `size=12` (= `AP4_FULL_ATOM_HEADER_SIZE`). After the 12-byte header is consumed, there are 0 payload bytes inside the box.
+2. The guard `(size - 12 - 4) / 8` underflows unsigned to `0xFFFFFFFC / 8 = 0x1FFFFFFF`.
+3. The constructor reads `entry_count` from the stream OOB (the 4 bytes immediately following the box), getting `0x1FFFFFFF`.
+4. Guard check `0x1FFFFFFF > 0x1FFFFFFF` is **false** (strict `>`), so no clamping.
+5. `new AP4_UI64[0x1FFFFFFF]` attempts to allocate ~4 GB.
+6. Under `ASAN_OPTIONS=mmap_limit_mb=512`, ASAN's internal allocator refuses the allocation and aborts with CHECK failure: `(total_mmaped >> 20) < common_flags()->mmap_limit_mb`.

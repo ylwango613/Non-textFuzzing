@@ -1,0 +1,7 @@
+=== VULN 001: Integer Underflow in AP4_DrefAtom ===
+=== mp42aac exit code: 1 ===
+
+--- STDOUT ---
+
+--- STDERR (ASAN/UBSAN output) ---
+ERROR: unable to parse sample description

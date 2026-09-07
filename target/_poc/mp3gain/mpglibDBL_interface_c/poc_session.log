@@ -1,0 +1,11 @@
+---
+
+## 결과 요약
+
+| VULN | 제목 | 상태 |
+|------|------|------|
+| 001 | Stack Buffer Overflow via inflated `part2_3_length` in `decodeMP3()` | **UNVERIFIED** |
+
+**UNVERIFIED 이유**: 취약점의 오버플로우(288바이트)는 실제 코드 분석상 발생이 확인됩니다. `copy_mp(2048, wordpointer)`가 `bsspace[bsnum]` 배열의 경계를 288바이트 넘어 `hybrid_block` 필드를 덮어씁니다. 그러나 두 필드 모두 동일한 스택 구조체 `MPSTR mp` 내부에 존재하므로, ASAN은 구조체 필드 사이에 레드존을 삽입하지 않아 인트라-구조체 오버플로우를 감지하지 못합니다. 결과적으로 ASAN/UBSAN 에러가 출력되지 않아 `UNVERIFIED`로 기록됩니다.
+
+(관측된 UBSAN `left shift` 에러들은 `apetag.c`에서 발생하는 무관한 기존 버그입니다.)

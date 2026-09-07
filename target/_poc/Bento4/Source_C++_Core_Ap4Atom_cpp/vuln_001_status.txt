@@ -1,0 +1,2 @@
+VERIFIED_CRASH
+ASAN reported SEGV (WRITE) in AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom when parsing a moov-contained 8id  atom (type=0x38696420) with size==8 (header-only). str_size underflows to 0xFFFFFFFF triggering a write 4GB past the heap allocation.

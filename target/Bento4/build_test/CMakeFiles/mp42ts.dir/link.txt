@@ -1,0 +1,1 @@
+/usr/bin/g++ -fsanitize=address,undefined -g0 -fno-omit-frame-pointer -Wall -O3 -DNDEBUG -fsanitize=address,undefined CMakeFiles/mp42ts.dir/Source/C++/Apps/Mp42Ts/Mp42Ts.cpp.o -o mp42ts  libap4.a

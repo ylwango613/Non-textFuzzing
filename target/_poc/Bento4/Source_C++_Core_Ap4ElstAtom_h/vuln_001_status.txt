@@ -1,0 +1,7 @@
+VERIFIED_CRASH
+The binary aborted with an ASAN allocation failure when processing the crafted elst box.
+ASAN reported: "ERROR: AddressSanitizer failed to allocate 0xdfff0001000 (15392894357504) bytes" (errno: 12, ENOMEM).
+The root cause is AP4_ElstAtom reading entry_count=0xFFFFFF00 from the stream without bounds checking,
+then calling EnsureCapacity(0xFFFFFF00) which attempts ::operator new(0xFFFFFF00 * 20 ~= 80GB).
+With ASAN shadow memory overhead, this becomes ~15TB, causing the allocation to fail and the process to abort.
+This confirms the DoS vulnerability: a crafted elst box can crash the parser unconditionally.

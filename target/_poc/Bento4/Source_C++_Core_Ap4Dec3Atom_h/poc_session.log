@@ -1,0 +1,25 @@
+The PoC for VULN-001 has been verified. Here's the summary:
+
+## Result: VERIFIED_CRASH
+
+**Vulnerability:** Heap Over-Read in `AP4_Dec3Atom::AP4_Dec3Atom()` (Ap4Dec3Atom.cpp:97)
+
+**ASAN finding:**
+```
+heap-buffer-overflow: READ of size 1
+0 bytes past end of 5-byte region
+In: AP4_Dec3Atom::AP4_Dec3Atom(unsigned int, unsigned char const*)
+```
+
+**Files created in** `_poc/Bento4/Source_C++_Core_Ap4Dec3Atom_h/`:
+
+| File | Purpose |
+|------|---------|
+| `vuln_001_gen.py` | Python script constructing a 655-byte malicious MP4 |
+| `vuln_001.mp4` | Generated malicious input file |
+| `vuln_001_run.sh` | Shell script that generates MP4 and runs mp42aac under ASAN |
+| `vuln_001_notes.md` | Root cause analysis and trigger conditions |
+| `vuln_001_status.txt` | `VERIFIED_CRASH` + ASAN details |
+| `vuln_001_result.txt` | Full ASAN output log |
+
+**Trigger mechanism:** The `dec3` box is crafted with `payload[1]=0x07` (sets `substream_count=8`) and `payload[4]=0x02` (sets `num_dep_sub=1`). After the constructor skips 2 DataRate bytes, only 3 bytes remain valid, but the `num_dep_sub != 0` branch reads `payload[3]` — 1 byte past the end. The subsequent `payload_size -= 4` unsigned wrap to `0xFFFFFFFC` then bypasses the `< 3` loop guard, enabling 7 more OOB read iterations.

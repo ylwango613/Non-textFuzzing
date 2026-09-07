@@ -1,0 +1,10 @@
+vuln_001.mp3
+Recommended "Track" dB change: 64.820000
+Recommended "Track" mp3 gain change: 43
+Max PCM sample at current gain: 1.245184
+Max mp3 global gain field: 127
+Min mp3 global gain field: 127
+
+
+Recommended "Album" dB change for all files: 64.820000
+Recommended "Album" mp3 gain change for all files: 43

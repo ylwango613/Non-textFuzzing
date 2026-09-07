@@ -1,0 +1,20 @@
+UNVERIFIED
+Tool: mp42aac (Bento4, ASAN+UBSAN build)
+Input: vuln_002.mp4 (549 bytes)
+Observed: mp42aac ran to completion with output "Audio Track: duration: 0 ms, sample count: 0"
+ASAN/UBSAN: no crash or sanitizer error reported
+
+Integer underflow DOES occur at Ap4DecoderConfigDescriptor.cpp:92:
+  payload_size - 13 = 5 - 13 = 0xFFFFFFF8 (uint32_t wraparound, CWE-191)
+  AP4_SubStream created with size=4294967288 bytes
+
+No ASAN crash: AP4_SubStream::ReadPartial and Seek clamp reads to the parent
+ES SubStream's declared boundary (27 bytes), preventing the 4 GB phantom range
+from causing actual heap OOB access in this test configuration.
+
+The bait bytes cause AP4_DecoderSpecificInfoDescriptor to allocate ~256 MB
+(new AP4_Byte[0x0FFFFFFF]), which succeeds on this system. Under memory
+pressure, this allocation would throw std::bad_alloc (DoS).
+
+Vulnerability confirmed at code level (CWE-191 trigger reproduced);
+runtime ASAN crash not produced due to SubStream bounds enforcement.

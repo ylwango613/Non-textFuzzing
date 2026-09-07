@@ -1,0 +1,45 @@
+UNVERIFIED
+
+--- Run output ---
+Audio Track:
+  duration: 0 ms
+  sample count: 0
+
+--- Analysis ---
+The vulnerability was exercised but did not produce a detectable ASAN/UBSAN error.
+
+Key findings:
+1. The integer underflow IS triggered:
+     payload_size=4, 4-13 = 0xFFFFFFF7 (unsigned underflow)
+     AP4_SubStream created with m_Size = 0xFFFFFFF7 (~4GB declared size)
+
+2. The DC SubStream reads beyond the declared DecoderConfig boundary:
+     DC SubStream starts at ES SubStream position 15 (= start + 13 = 2 + 13)
+     Fake DecoderSpecificInfo tag (0x05) placed at ES SubStream position 15
+     64 bytes read from positions 17-80 -- far beyond the declared 4-byte payload
+
+3. Binary parsed the malformed file successfully:
+     'esds' was processed, audio track was identified, sample count=0
+
+4. No ASAN/UBSAN detection because:
+     - The build uses -fsanitize=address,undefined (NOT unsigned-integer-overflow)
+     - Unsigned arithmetic 4-13 = 0xFFFFFFF7 is not flagged by UBSAN default flags
+     - File reads go through AP4_BufferedInputStream (4096-byte buffer)
+     - All OOB reads stay within the 615-byte file content in the buffer
+     - No heap buffer overflow occurs: SetDataSize(64) allocates 64 bytes,
+       stream.Read writes exactly 64 bytes from the buffer -- no write past allocation
+
+--- Vulnerability details ---
+File: Source/C++/Core/Ap4DecoderConfigDescriptor.cpp, line 92
+    AP4_SubStream* substream = new AP4_SubStream(stream, start+13, payload_size-13);
+
+Trigger: DecoderConfig descriptor with payload_size=4 (< 13)
+    payload_size - 13 = 4 - 13 = 0xFFFFFFF7 (uint32 underflow)
+    SubStream created with 4GB declared size, bypassing boundary checks
+    Reads from 9 bytes past the declared descriptor end, reaching the fake DSI
+    at ES SubStream position 15 (file offset 465)
+
+To get VERIFIED_CRASH, would need one of:
+    - -fsanitize=unsigned-integer-overflow in UBSAN flags
+    - MemorySanitizer (-fsanitize=memory) to catch uninitialized reads
+    - Fake DSI with very large payload_size to trigger OOM (needs hundreds of GB)

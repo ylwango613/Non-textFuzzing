@@ -1,0 +1,181 @@
+==========================================
+ Bento4 (mp42aac) Full Security Audit
+ Mode: resume  (audit=1, poc=1, audit_parallel=1, poc_parallel=1)
+ Files to audit: 238 (skipped 0 missing)
+ Results: /data/ylwang/non-textfuzz/target/_audit_result/Bento4/   PoCs: /data/ylwang/non-textfuzz/target/_poc/Bento4/
+ Log: /data/ylwang/non-textfuzz/target/_audit_result/Bento4/audit.log
+==========================================
+
+[1/238] Auditing: Source/C++/Apps/Mp42Aac/Mp42Aac.cpp
+[2/238] Auditing: Source/C++/Core/Ap48bdlAtom.cpp
+  -> [Source/C++/Apps/Mp42Aac/Mp42Aac.cpp] FOUND 3 vulnerability(ies)!
+  -> launched PoC (bg pid=102495, running=1/1)
+[3/238] Auditing: Source/C++/Core/Ap48bdlAtom.h
+  -> [Source/C++/Core/Ap48bdlAtom.cpp] Clean.
+[4/238] Auditing: Source/C++/Core/Ap4AinfAtom.cpp
+  -> [Source/C++/Core/Ap48bdlAtom.h] Clean.
+[5/238] Auditing: Source/C++/Core/Ap4AinfAtom.h
+  -> [Source/C++/Core/Ap4AinfAtom.cpp] Clean.
+[6/238] Auditing: Source/C++/Core/Ap4Array.h
+  -> [Source/C++/Core/Ap4AinfAtom.h] Clean.
+[7/238] Auditing: Source/C++/Core/Ap4Atom.cpp
+  -> [Source/C++/Core/Ap4Array.h] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=313937, running=1/1)
+[8/238] Auditing: Source/C++/Core/Ap4AtomFactory.cpp
+  -> [Source/C++/Core/Ap4Atom.cpp] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=411571, running=1/1)
+[9/238] Auditing: Source/C++/Core/Ap4AtomFactory.h
+  -> [Source/C++/Core/Ap4AtomFactory.cpp] FOUND 5 vulnerability(ies)!
+  -> launched PoC (bg pid=567854, running=1/1)
+[10/238] Auditing: Source/C++/Core/Ap4Atom.h
+  -> [Source/C++/Core/Ap4AtomFactory.h] FOUND 6 vulnerability(ies)!
+  -> launched PoC (bg pid=699858, running=1/1)
+[11/238] Auditing: Source/C++/Core/Ap4AtomSampleTable.cpp
+  -> [Source/C++/Core/Ap4Atom.h] FOUND 2 vulnerability(ies)!
+  -> launched PoC (bg pid=881141, running=1/1)
+[12/238] Auditing: Source/C++/Core/Ap4AtomSampleTable.h
+  -> [Source/C++/Core/Ap4AtomSampleTable.cpp] FOUND 2 vulnerability(ies)!
+  -> launched PoC (bg pid=1010656, running=1/1)
+[13/238] Auditing: Source/C++/Core/Ap4AvccAtom.cpp
+  -> [Source/C++/Core/Ap4AtomSampleTable.h] FOUND 2 vulnerability(ies)!
+  -> launched PoC (bg pid=1095783, running=1/1)
+[14/238] Auditing: Source/C++/Core/Ap4AvccAtom.h
+  -> [Source/C++/Core/Ap4AvccAtom.cpp] FOUND 2 vulnerability(ies)!
+  -> launched PoC (bg pid=1154981, running=1/1)
+[15/238] Auditing: Source/C++/Core/Ap4BlocAtom.cpp
+  -> [Source/C++/Core/Ap4AvccAtom.h] FOUND 2 vulnerability(ies)!
+  -> launched PoC (bg pid=1235009, running=1/1)
+[16/238] Auditing: Source/C++/Core/Ap4BlocAtom.h
+  -> [Source/C++/Core/Ap4BlocAtom.cpp] Clean.
+[17/238] Auditing: Source/C++/Core/Ap4ByteStream.cpp
+  -> [Source/C++/Core/Ap4BlocAtom.h] Clean.
+[18/238] Auditing: Source/C++/Core/Ap4ByteStream.h
+  -> [Source/C++/Core/Ap4ByteStream.cpp] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=1312325, running=1/1)
+[19/238] Auditing: Source/C++/Core/Ap4Co64Atom.cpp
+  -> [Source/C++/Core/Ap4ByteStream.h] Clean.
+[20/238] Auditing: Source/C++/Core/Ap4Co64Atom.h
+  -> [Source/C++/Core/Ap4Co64Atom.cpp] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=1471799, running=1/1)
+[21/238] Auditing: Source/C++/Core/Ap4Command.cpp
+  -> [Source/C++/Core/Ap4Co64Atom.h] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=1636239, running=1/1)
+[22/238] Auditing: Source/C++/Core/Ap4CommandFactory.cpp
+  -> [Source/C++/Core/Ap4Command.cpp] Clean.
+[23/238] Auditing: Source/C++/Core/Ap4CommandFactory.h
+  -> [Source/C++/Core/Ap4CommandFactory.cpp] Clean.
+[24/238] Auditing: Source/C++/Core/Ap4Command.h
+  -> [Source/C++/Core/Ap4CommandFactory.h] FOUND 2 vulnerability(ies)!
+  -> launched PoC (bg pid=1819792, running=1/1)
+[25/238] Auditing: Source/C++/Core/Ap4CommonEncryption.cpp
+  -> [Source/C++/Core/Ap4Command.h] FOUND 5 vulnerability(ies)!
+  -> launched PoC (bg pid=1977921, running=1/1)
+[26/238] Auditing: Source/C++/Core/Ap4CommonEncryption.h
+  -> [Source/C++/Core/Ap4CommonEncryption.cpp] FOUND 2 vulnerability(ies)!
+  -> launched PoC (bg pid=2212659, running=1/1)
+[27/238] Auditing: Source/C++/Core/Ap4Config.h
+  -> [Source/C++/Core/Ap4CommonEncryption.h] FOUND 2 vulnerability(ies)!
+  -> launched PoC (bg pid=2426379, running=1/1)
+[28/238] Auditing: Source/C++/Core/Ap4Constants.h
+  -> [Source/C++/Core/Ap4Config.h] FOUND 3 vulnerability(ies)!
+  -> launched PoC (bg pid=2526263, running=1/1)
+[29/238] Auditing: Source/C++/Core/Ap4ContainerAtom.cpp
+  -> [Source/C++/Core/Ap4Constants.h] FOUND 3 vulnerability(ies)!
+  -> launched PoC (bg pid=2663468, running=1/1)
+[30/238] Auditing: Source/C++/Core/Ap4ContainerAtom.h
+  -> [Source/C++/Core/Ap4ContainerAtom.cpp] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=2746675, running=1/1)
+[31/238] Auditing: Source/C++/Core/Ap4.cpp
+  -> [Source/C++/Core/Ap4ContainerAtom.h] FOUND 3 vulnerability(ies)!
+  -> launched PoC (bg pid=2951388, running=1/1)
+[32/238] Auditing: Source/C++/Core/Ap4CttsAtom.cpp
+  -> [Source/C++/Core/Ap4.cpp] FOUND 6 vulnerability(ies)!
+  -> launched PoC (bg pid=3224915, running=1/1)
+[33/238] Auditing: Source/C++/Core/Ap4CttsAtom.h
+  -> [Source/C++/Core/Ap4CttsAtom.cpp] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=3272595, running=1/1)
+[34/238] Auditing: Source/C++/Core/Ap4Dac4Atom.cpp
+  -> [Source/C++/Core/Ap4CttsAtom.h] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=3310456, running=1/1)
+[35/238] Auditing: Source/C++/Core/Ap4Dac4Atom.h
+  -> [Source/C++/Core/Ap4Dac4Atom.cpp] FOUND 2 vulnerability(ies)!
+  -> launched PoC (bg pid=3340285, running=1/1)
+[36/238] Auditing: Source/C++/Core/Ap4DataBuffer.cpp
+  -> [Source/C++/Core/Ap4Dac4Atom.h] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=3419228, running=1/1)
+[37/238] Auditing: Source/C++/Core/Ap4DataBuffer.h
+  -> [Source/C++/Core/Ap4DataBuffer.cpp] Clean.
+[38/238] Auditing: Source/C++/Core/Ap4Debug.cpp
+  -> [Source/C++/Core/Ap4DataBuffer.h] Clean.
+[39/238] Auditing: Source/C++/Core/Ap4Debug.h
+  -> [Source/C++/Core/Ap4Debug.cpp] Clean.
+[40/238] Auditing: Source/C++/Core/Ap4Dec3Atom.cpp
+  -> [Source/C++/Core/Ap4Debug.h] Clean.
+[41/238] Auditing: Source/C++/Core/Ap4Dec3Atom.h
+  -> [Source/C++/Core/Ap4Dec3Atom.cpp] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=3602393, running=1/1)
+[42/238] Auditing: Source/C++/Core/Ap4DecoderConfigDescriptor.cpp
+  -> [Source/C++/Core/Ap4Dec3Atom.h] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=3658477, running=1/1)
+[43/238] Auditing: Source/C++/Core/Ap4DecoderConfigDescriptor.h
+  -> [Source/C++/Core/Ap4DecoderConfigDescriptor.cpp] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=3702877, running=1/1)
+[44/238] Auditing: Source/C++/Core/Ap4DecoderSpecificInfoDescriptor.cpp
+  -> [Source/C++/Core/Ap4DecoderConfigDescriptor.h] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=3839105, running=1/1)
+[45/238] Auditing: Source/C++/Core/Ap4DecoderSpecificInfoDescriptor.h
+  -> [Source/C++/Core/Ap4DecoderSpecificInfoDescriptor.cpp] Clean.
+[46/238] Auditing: Source/C++/Core/Ap4Descriptor.cpp
+  -> [Source/C++/Core/Ap4DecoderSpecificInfoDescriptor.h] Clean.
+[47/238] Auditing: Source/C++/Core/Ap4DescriptorFactory.cpp
+  -> [Source/C++/Core/Ap4Descriptor.cpp] Clean.
+[48/238] Auditing: Source/C++/Core/Ap4DescriptorFactory.h
+  -> [Source/C++/Core/Ap4DescriptorFactory.cpp] Clean.
+[49/238] Auditing: Source/C++/Core/Ap4Descriptor.h
+  -> [Source/C++/Core/Ap4DescriptorFactory.h] FOUND 3 vulnerability(ies)!
+  -> launched PoC (bg pid=4189085, running=1/1)
+[50/238] Auditing: Source/C++/Core/Ap4DrefAtom.cpp
+  -> [Source/C++/Core/Ap4Descriptor.h] FOUND 2 vulnerability(ies)!
+  -> launched PoC (bg pid=165710, running=1/1)
+[51/238] Auditing: Source/C++/Core/Ap4DrefAtom.h
+  -> [Source/C++/Core/Ap4DrefAtom.cpp] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=381870, running=1/1)
+[52/238] Auditing: Source/C++/Core/Ap4DvccAtom.cpp
+  -> [Source/C++/Core/Ap4DrefAtom.h] Clean.
+[53/238] Auditing: Source/C++/Core/Ap4DvccAtom.h
+  -> [Source/C++/Core/Ap4DvccAtom.cpp] Clean.
+[54/238] Auditing: Source/C++/Core/Ap4DynamicCast.h
+  -> [Source/C++/Core/Ap4DvccAtom.h] Clean.
+[55/238] Auditing: Source/C++/Core/Ap4ElstAtom.cpp
+  -> [Source/C++/Core/Ap4DynamicCast.h] Clean.
+[56/238] Auditing: Source/C++/Core/Ap4ElstAtom.h
+  -> [Source/C++/Core/Ap4ElstAtom.cpp] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=625409, running=1/1)
+[57/238] Auditing: Source/C++/Core/Ap4EsDescriptor.cpp
+  -> [Source/C++/Core/Ap4ElstAtom.h] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=704765, running=1/1)
+[58/238] Auditing: Source/C++/Core/Ap4EsDescriptor.h
+  -> [Source/C++/Core/Ap4EsDescriptor.cpp] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=793494, running=1/1)
+[59/238] Auditing: Source/C++/Core/Ap4EsdsAtom.cpp
+  -> [Source/C++/Core/Ap4EsDescriptor.h] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=976610, running=1/1)
+[60/238] Auditing: Source/C++/Core/Ap4EsdsAtom.h
+  -> [Source/C++/Core/Ap4EsdsAtom.cpp] FOUND 2 vulnerability(ies)!
+  -> launched PoC (bg pid=1105808, running=1/1)
+[61/238] Auditing: Source/C++/Core/Ap4Expandable.cpp
+  -> [Source/C++/Core/Ap4EsdsAtom.h] FOUND 2 vulnerability(ies)!
+  -> launched PoC (bg pid=1319332, running=1/1)
+[62/238] Auditing: Source/C++/Core/Ap4Expandable.h
+  -> [Source/C++/Core/Ap4Expandable.cpp] Clean.
+[63/238] Auditing: Source/C++/Core/Ap4FileByteStream.h
+  -> [Source/C++/Core/Ap4Expandable.h] FOUND 3 vulnerability(ies)!
+  -> launched PoC (bg pid=1538295, running=1/1)
+[64/238] Auditing: Source/C++/Core/Ap4FileCopier.cpp
+  -> [Source/C++/Core/Ap4FileByteStream.h] Clean.
+[65/238] Auditing: Source/C++/Core/Ap4FileCopier.h
+  -> [Source/C++/Core/Ap4FileCopier.cpp] Clean.
+[67/238] Auditing: Source/C++/Core/Ap4File.h
+  -> [Source/C++/Core/Ap4FileCopier.h] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=2051760, running=1/1)
+[68/238] Auditing: Source/C++/Core/Ap4FileWriter.cpp

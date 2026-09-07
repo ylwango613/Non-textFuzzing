@@ -1,0 +1,25 @@
+Both subagents have finished. Here's the complete summary:
+
+---
+
+## Results: Bento4/Source_C++_Core_Ap4CommandFactory_h PoC Generation
+
+| VULN | Descriptor | Status | Explanation |
+|------|-----------|--------|-------------|
+| 001 | `AP4_ObjectDescriptor` (tag 0x01) | **UNVERIFIED** | Underflow confirmed in code path; no ASAN crash |
+| 002 | `AP4_InitialObjectDescriptor` (tag 0x02) | **UNVERIFIED** | Same root cause; both url_flag=0 and url_flag=1 paths tried |
+
+### Why neither crashes under ASAN/UBSAN
+
+Both vulnerabilities share the same limiting factor:
+
+1. **Unsigned wrap-around is defined behavior** — `AP4_UI32` subtraction underflow is not flagged by UBSAN (it would be for signed integer overflow, not unsigned).
+2. **File-backed stream is EOF-bounded** — `AP4_FileByteStream` wraps normal OS file I/O. When the ~4 GB substream tries to read past the file end, the OS returns EOF cleanly. No heap buffer is overrun, so ASAN has nothing to report.
+
+### What the PoCs do demonstrate
+
+The logic OOB read is real and confirmed:
+- VULN 001: `payload_size(5) - consumed(203) = 0xFFFFFF38` → ~4 GB `AP4_SubStream` → descriptor loop reads `moov/iods` boundaries into `mdat` data
+- VULN 002 (url_flag=0): `payload_size(3) - consumed(7) = 0xFFFFFFFC` → same; (url_flag=1): `payload_size(4) - consumed(258) = 0xFFFFFEFE` → same
+
+All generated files are in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4CommandFactory_h/`.

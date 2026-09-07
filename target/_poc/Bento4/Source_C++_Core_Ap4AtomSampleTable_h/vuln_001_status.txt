@@ -1,0 +1,4 @@
+VERIFIED_CRASH
+AddressSanitizer: heap-buffer-overflow in AP4_CttsAtom::AP4_CttsAtom (READ of size 1 at buffer[8])
+Triggered by ctts box with entry_count=0x20000001; new unsigned char[entry_count*8] overflows to 8 bytes, loop at i=1 reads beyond allocation.
+ASAN log: asan.log.1136035

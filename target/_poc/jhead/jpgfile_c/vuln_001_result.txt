@@ -1,0 +1,17 @@
+exif.c:344:37: runtime error: left shift of negative value -66
+    #0 0x55be7d6914a0 in Get32s (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x674a0)
+    #1 0x55be7d69f3e4 in ProcessGpsInfo (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x753e4)
+    #2 0x55be7d695ea5 in ProcessExifDir (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x6bea5)
+    #3 0x55be7d6970a8 in process_EXIF (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x6d0a8)
+    #4 0x55be7d67fe8b in ReadJpegSections (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x55e8b)
+    #5 0x55be7d6805e6 in ReadJpegFile (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x565e6)
+    #6 0x55be7d67aaf2 in ReadImgFile (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x50af2)
+    #7 0x55be7d67616a in ProcessFile (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x4c16a)
+    #8 0x55be7d67a4e7 in main (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x504e7)
+    #9 0x7fbfb1c24d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #10 0x7fbfb1c24e3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #11 0x55be7d672ba4 in _start (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x48ba4)
+
+
+Error : Unexpected end of file
+in file 'vuln_001_input.jpg'

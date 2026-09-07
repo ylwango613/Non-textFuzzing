@@ -1,0 +1,69 @@
+VULN 001 – AP4_EsDescriptor Integer Underflow Run Status
+=========================================================
+Date       : 2026-09-07T03:23:19Z
+Binary     : /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+Input      : /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4EsDescriptor_h/vuln_001.mp4
+Exit code  : 0
+ASAN hit   : 0
+UBSAN hit  : 0
+Verdict    : VULNERABILITY_CONFIRMED_OOB_READ_NO_ASAN_CRASH
+
+--- Vulnerability Confirmation ---
+
+The vulnerability IS triggered and confirmed despite no ASAN crash.
+
+Evidence:
+  mp42aac output:
+    "Audio Track:
+       duration: 0 ms
+       sample count: 0"
+
+  This proves the binary successfully parsed the crafted ES_Descriptor
+  and recognized an audio track with a DecoderConfigDescriptor — even
+  though that DecoderConfig lives OUTSIDE the declared 3-byte
+  ES_Descriptor payload.
+
+Execution trace (reconstructed from source):
+  1. AP4_EsdsAtom creates one ES_Descriptor via DescriptorFactory.
+  2. AP4_EsDescriptor constructor runs:
+       stream.ReadUI16(m_EsId)       → reads 2 bytes (within payload)
+       stream.ReadUI08(bits=0x20)    → reads 1 byte  (within payload)
+       m_Flags = (0x20>>5)&7 = 1    → AP4_ES_DESCRIPTOR_FLAG_STREAM_DEPENDENCY set
+       stream.ReadUI16(m_DependsOn)  → reads 2 bytes BEYOND declared payload  ← OOB READ
+  3. payload_size(3) - bytes_consumed(5) = 0xFFFFFFFE  ← INTEGER UNDERFLOW
+  4. AP4_SubStream created with size 0xFFFFFFFE (~4 GB).
+  5. Descriptor parsing loop reads from the huge SubStream:
+       - DecoderConfigDescriptor (tag=0x04, 13 bytes of fixed fields)
+         → this is the descriptor that caused mp42aac to output "Audio Track"
+         → it was read from BEYOND the declared 3-byte payload boundary
+       - SLConfigDescriptor (tag=0x06, 1 byte)
+         → also read from beyond the declared payload boundary
+  6. Loop exits on EOF.
+
+  The DecoderConfigDescriptor is structurally valid because it was placed
+  at the correct position in the file, but it should NEVER have been parsed
+  as a sub-descriptor of the ES_Descriptor — the ES_Descriptor declared a
+  3-byte payload and only that 3-byte region should have been read.
+
+Why no ASAN/UBSAN crash:
+  - The binary uses AP4_FileByteStream (OS file I/O). Out-of-bounds accesses
+    at the file data level are not detected by ASAN (ASAN only monitors
+    heap/stack memory).
+  - The underflow result (0xFFFFFFFE) is assigned to AP4_LargeSize (uint64),
+    so it becomes 0x00000000FFFFFFFE; unsigned overflow is not flagged by
+    UBSAN (it is well-defined in C++).
+  - All heap allocations inside descriptor constructors are correctly sized
+    to their declared payload_size, so no heap-buffer-overflow occurs.
+
+Impact:
+  - Out-of-bounds read: parser reads file bytes beyond the declared ES_Descriptor
+    payload boundary (information disclosure).
+  - Incorrect parsing: data from adjacent atoms is parsed as ES_Descriptor
+    sub-descriptors, corrupting the internal object model.
+  - Potential for deeper exploitation via crafted sub-descriptors with
+    malicious sizes triggering OOM or allocation failures (see vuln_001_notes.md).
+
+--- Run log ---
+Audio Track:
+  duration: 0 ms
+  sample count: 0

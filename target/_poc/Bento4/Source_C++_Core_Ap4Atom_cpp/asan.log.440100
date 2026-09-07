@@ -1,0 +1,21 @@
+=================================================================
+==440100==ERROR: AddressSanitizer: SEGV on unknown address 0x50210000008f (pc 0x557fa377dd94 bp 0x7ffcd5e85ce0 sp 0x7ffcd5e85ca0 T0)
+==440100==The signal is caused by a WRITE memory access.
+    #0 0x557fa377dd94 in AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom(unsigned int, unsigned long long, AP4_ByteStream&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9c7d94)
+    #1 0x557fa3788292 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d2292)
+    #2 0x557fa3791f8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #3 0x557fa384f33a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #4 0x557fa38503f3 in AP4_ContainerAtom::AP4_ContainerAtom(unsigned int, unsigned long long, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9a3f3)
+    #5 0x557fa361204d in AP4_MoovAtom::AP4_MoovAtom(unsigned int, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x85c04d)
+    #6 0x557fa3787cf5 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d1cf5)
+    #7 0x557fa3790050 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9da050)
+    #8 0x557fa36065de in AP4_File::ParseStream(AP4_ByteStream&, AP4_AtomFactory&, bool) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x8505de)
+    #9 0x557fa3607bb2 in AP4_File::AP4_File(AP4_ByteStream&, bool) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x851bb2)
+    #10 0x557fa35e6016 in main (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x830016)
+    #11 0x7efcdb8dfd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #12 0x7efcdb8dfe3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #13 0x557fa35ea834 in _start (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x834834)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9c7d94) in AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom(unsigned int, unsigned long long, AP4_ByteStream&)
+==440100==ABORTING

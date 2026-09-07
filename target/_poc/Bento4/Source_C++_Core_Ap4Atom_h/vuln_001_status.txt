@@ -1,0 +1,13 @@
+VERIFIED_CRASH
+Type: AddressSanitizer SEGV (WRITE) — heap OOB write via integer underflow
+Function: AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom(unsigned int, unsigned long long, AP4_ByteStream&)
+Address: 0x50210000008f (write at str + 0xFFFFFFFF due to uint32 underflow of str_size=0)
+Input: vuln_001.mp4 — 24-byte MP4 with ftyp + 8id  box (size=8, no payload)
+ASAN summary: AddressSanitizer: SEGV in AP4_NullTerminatedStringAtom constructor
+Call stack:
+  #0 AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom (Ap4Atom.cpp:474)
+  #1 AP4_AtomFactory::CreateAtomFromStream
+  #2 AP4_AtomFactory::CreateAtomFromStream
+  #3 AP4_File::ParseStream
+  #4 AP4_File::AP4_File
+  #5 main

@@ -1,0 +1,19 @@
+The subagent has finished. Here's the result:
+
+## PoC 001 — Status: `UNVERIFIED`
+
+**What was done**: Generated 7 MP4 variants (meta/odrm/odkm/marl atoms with size_64 ∈ [12,19]) and ran each against the ASAN+UBSAN binary.
+
+**Why no crash was triggered**:
+1. **UBSAN**: Unsigned integer underflow (`14 - 20` wrapping to `0xFFFFFFFFFFFFFFFA`) is **defined behavior** in C++ — UBSAN only instruments *signed* overflow, so it silently passes.
+2. **ASAN**: The underflowed `bytes_available` value is huge, but the parser reads from a stdio-backed stream (`fread`), which caps naturally at EOF — no heap buffer is accessed beyond its allocation.
+3. **Application exit**: All variants exit with code 1 ("no movie in file" / "no audio track found") — the parser bails out at the application level before any memory violation occurs.
+
+**Files in** `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4ContainerAtom_cpp/`:
+- `vuln_001_gen.py` — generates 7 crafted MP4 variants
+- `vuln_001_run.sh` — runs all variants with ASAN logging
+- `vuln_001_notes.md` — technical explanation
+- `vuln_001_result.txt` — captured output
+- `vuln_001_status.txt` — **UNVERIFIED**
+
+**Bottom line**: The logical underflow is real (code path confirmed), but the runtime safety net (EOF on stream reads) prevents ASAN/UBSAN from flagging it with the `mp42aac` entry point alone. Triggering a visible memory safety violation would require the parser to reach a downstream code path that allocates based on the underflowed count — a deeper input structure (e.g., a valid stbl/stsz following the corrupted meta) would be needed.

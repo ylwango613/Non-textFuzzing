@@ -1,0 +1,8 @@
+VERIFIED_CRASH
+Type: heap-buffer-overflow
+Location: AP4_Stz2Atom::AP4_Stz2Atom (Ap4Stz2Atom.cpp)
+ASAN: READ of size 1 at 0x502000000111 (0 bytes to the right of 1-byte region)
+Trigger: stz2 box with field_size=16, sample_count=0x10000000
+Overflow: 0x10000000 * 16 = 0x100000000 wraps to 0 in 32-bit -> table_size=0
+Result: new unsigned char[0] (1-byte ASAN region), then AP4_BytesToUInt16BE(&buffer[0]) reads 2 bytes -> OOB at buffer[1]
+Call path: main -> AP4_File -> AP4_AtomFactory::CreateAtomFromStream -> AP4_Stz2Atom::Create -> AP4_Stz2Atom::AP4_Stz2Atom

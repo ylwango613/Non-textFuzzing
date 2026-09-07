@@ -1,0 +1,23 @@
+PoC 生成完成，结果如下：
+
+---
+
+## 漏洞 001 — AP4_DecoderConfigDescriptor 整数下溢
+
+**状态**: `UNVERIFIED`
+
+**文件位置**: `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4DecoderConfigDescriptor_h/`
+
+| 文件 | 说明 |
+|------|------|
+| `vuln_001_gen.py` | 构造恶意 MP4 的 Python 脚本（仅用 struct/bytes） |
+| `vuln_001.mp4` | 生成的恶意输入文件（527 字节） |
+| `vuln_001_run.sh` | 调用 mp42aac + ASAN 选项的 shell 脚本 |
+| `vuln_001_notes.md` | PoC 思路与技术分析 |
+| `vuln_001_status.txt` | `UNVERIFIED` + 详细说明 |
+
+**漏洞确认**:
+整数下溢在代码层面 **确实发生**：`payload_size=5` → `5-13 = 0xFFFFFFF3`（约 4 GB），`AP4_SubStream` 被创建后 while 循环会跨越 DecoderConfig 描述符边界，读取相邻 MP4 box（stts、stsc 等）的字节当作子描述符解析。
+
+**为何未触发 ASAN crash**:
+该漏洞属于**逻辑越界读（Logical OOB Read）**，而非堆内存越界：`mp42aac` 使用文件流（`AP4_FileByteStream`，底层是 `fread/fseek`），`AP4_SubStream::ReadPartial` 在文件末尾会收到 `AP4_ERROR_EOS` 并干净退出。ASAN 仅对堆/栈内存插桩，不拦截文件 I/O 越界。因此该漏洞在当前二进制（文件流模式）下无法通过 ASAN 产生 crash，但**越界读行为在逻辑上是真实的**。

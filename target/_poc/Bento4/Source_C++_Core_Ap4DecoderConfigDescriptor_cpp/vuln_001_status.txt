@@ -1,0 +1,20 @@
+VERIFIED_CRASH
+Tool: UBSAN (null pointer nonnull violation)
+Binary: /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+Input: vuln_001.mp4 (DecoderConfigDescriptor payload_size=3, triggers 3-13=0xFFFFFFF6 underflow)
+Error: runtime error: null pointer passed as argument 1, which is declared to never be null
+  at AP4_DataBuffer::SetData (Ap4DataBuffer.cpp:175)
+  called from AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription
+  called from AP4_MpegAudioSampleEntry::ToSampleDescription()
+  called from AP4_StsdAtom::GetSampleDescription(0)
+  called from main
+
+Root cause:
+  AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor (line 92):
+    new AP4_SubStream(stream, start+13, payload_size-13)
+  payload_size=3 (AP4_UI32): 3-13 = 0xFFFFFFF6 (unsigned underflow)
+  inflated DC substream size disables its own bounds check
+  DC substream seeks to position start+13=15 in ES substream (within ES bounds)
+  reads fake DecoderSpecificInfo (tag=0x05, size=0) as DC sub-descriptor
+  creates AP4_DecoderSpecificInfoDescriptor with null data buffer
+  later AP4_MpegAudioSampleDescription calls SetData(nullptr, 0) → UBSAN nonnull

@@ -1,0 +1,38 @@
+vuln_id    : VULN-001
+title      : Heap OOB Read via Unbounded AP4_BitReader in AC4 DSI
+target     : /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+input      : vuln_001.mp4  (521 bytes)
+exit_code  : 1 (ASan abort)
+status     : CRASH – AddressSanitizer: heap-buffer-overflow (READ of size 1, 0 bytes past a 12-byte heap region)
+verdict    : CONFIRMED
+
+asan_summary:
+  ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50200000013c
+  READ of size 1 at 0x50200000013c
+  0x50200000013c is located 0 bytes to the right of 12-byte region
+    [0x502000000130, 0x50200000013c)  ← AP4_BitReader internal buffer (payload_size=11, padded to 12)
+
+crash_stack (top frames):
+  #0  AP4_BitReader::ReadBits(unsigned int)
+  #1  AP4_Dac4Atom::AP4_Dac4Atom(unsigned int, unsigned char const*)
+  #2  AP4_Dac4Atom::Create(unsigned int, AP4_ByteStream&)
+  #3  AP4_AtomFactory::CreateAtomFromStream(...)
+  ...
+  #6  AP4_AudioSampleEntry::AP4_AudioSampleEntry(...)  ← 'ac-4' sample entry context
+  ...
+  #37 main
+
+allocation_site:
+  AP4_DataBuffer::SetBufferSize(unsigned int)
+    └─ AP4_BitReader::AP4_BitReader(unsigned char const*, unsigned int)
+         └─ AP4_Dac4Atom::AP4_Dac4Atom(...)
+
+trigger_analysis:
+  payload_size = 11  (passes guard: payload_size < 11 → return)
+  bits_consumed = 3+7+1+4+9+2+32+32 = 90 bits
+  byte_align_skip = 6 bits  (90 % 8 = 2 → skip 8-2 = 6)
+  total_after_align = 96 bits = 12 bytes = m_Position
+  buffer_size = ceil(11/4)*4 = 12 bytes (indices 0–11)
+  OOB_at = m_Position 12 → reads bytes [12..15], past end of 12-byte buffer
+
+timestamp  : 2026-09-07T00:00:00Z

@@ -1,0 +1,2 @@
+VERIFIED_CRASH
+ASAN: heap-buffer-overflow READ in AP4_Stz2Atom::AP4_Stz2Atom (field_size=16, sample_count=0x10000000, table_size overflows to 0, 1-byte alloc, OOB at offset +1)

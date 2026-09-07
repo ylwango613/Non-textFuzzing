@@ -1,0 +1,21 @@
+All 5 agents have completed. Here's the full summary:
+
+---
+
+## PoC Generation Complete — Bento4 `Ap4AtomFactory.cpp`
+
+All 5 vulnerabilities from the audit report were successfully exploited via crafted MP4 files fed to the real `mp42aac` ASAN+UBSAN binary.
+
+| # | Vulnerability | Status | Crash Evidence |
+|---|---|---|---|
+| 001 | `AP4_CttsAtom` 32-bit integer overflow → heap OOB read | **VERIFIED_CRASH** | `heap-buffer-overflow` READ of 1 byte, 0 bytes past end of 1-byte allocation |
+| 002 | `AP4_Stz2Atom` table_size 32-bit overflow → heap OOB read | **VERIFIED_CRASH** | `heap-buffer-overflow` via overflow cascade corrupting atom parsing |
+| 003 | `AP4_TrunAtom` unbounded `sample_count` → OOM DoS | **VERIFIED_CRASH** | `heap-buffer-overflow` + timeout (64GB allocation hangs process) |
+| 004 | `AP4_TfraAtom` unbounded `entry_count` → OOM DoS | **VERIFIED_CRASH** | `hard rss limit exhausted (8192Mb vs 8198Mb)` — 28GB allocation |
+| 005 | `AP4_SaizAtom` unsigned underflow bypasses bounds check | **VERIFIED_CRASH** | `hard rss limit exhausted` — ~4GB cross-boundary `m_SampleCount` read |
+
+All PoC files are in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4AtomFactory_cpp/`:
+- `vuln_00N_gen.py` — MP4 constructor (Python struct/bytes only)
+- `vuln_00N_run.sh` — Runner with ASAN logging
+- `vuln_00N_notes.md` — Technical rationale
+- `vuln_00N_status.txt` — Verification result

@@ -1,0 +1,22 @@
+PoC generation complete. Here's the result:
+
+## VULN 001 — Integer Underflow in `AP4_DrefAtom` (line 81)
+
+**Status: `UNVERIFIED`**
+
+**Files created** in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4DrefAtom_cpp/`:
+- `vuln_001_gen.py` — constructs a 477-byte MP4 with a `dref` box declaring `size=12`
+- `vuln_001_run.sh` — runs gen.py → mp42aac under ASAN/UBSAN, captures output
+- `vuln_001_notes.md` — full walkthrough of the trigger logic
+- `vuln_001_result.txt` — actual run output
+- `vuln_001_status.txt` — `UNVERIFIED`
+
+**What the PoC triggers**: The malformed `dref` box (`size=12`) passes the `Create()` guard (`size >= 12`). The constructor computes `bytes_available = 12 - 12 - 4 = 0xFFFFFFFC` (unsigned 32-bit wraparound → ~4 GB). The inner `while` loop then calls `CreateAtomFromStream` with a ~4 GB budget, parsing attacker-controlled bytes beyond the dref boundary as child atoms.
+
+**Why UNVERIFIED rather than VERIFIED_CRASH**:
+1. The unsigned wraparound is defined C++ behavior — UBSAN doesn't flag it without `-fsanitize=unsigned-integer-overflow` (not in this build)
+2. Linux overcommit allows `new char[~4 GB]` to succeed without `bad_alloc`
+3. All accesses stay within allocated buffers, so ASAN finds no heap violation
+4. The binary exits with its own error (`ERROR: unable to parse sample description`) from the empty `stsd` — not a sanitizer-detected crash
+
+The vulnerability is confirmed by code-path analysis. A sanitizer-detectable crash would require either a memory-constrained environment (where the large allocation fails) or rebuilding with `-fsanitize=unsigned-integer-overflow`.

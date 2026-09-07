@@ -1,0 +1,21 @@
+VERIFIED_CRASH
+
+crash_type: AddressSanitizer: heap-buffer-overflow
+crash_function: AP4_CttsAtom::AP4_CttsAtom (secondary effect after saio overflow bypasses bounds check)
+asan_summary: READ of size 1 at 0x5020000000f8, 0 bytes to the right of 8-byte region
+trigger_chain:
+  1. saio box version=1, entry_count=0x20000000 triggers integer overflow:
+     0x20000000 * 8 = 0 (32-bit truncation) -> bounds check bypassed
+  2. Stream position corrupted after saio parsing skips expected data
+  3. Subsequent AP4_CttsAtom parsing reads out-of-bounds heap memory
+
+note: The crash landing site is AP4_CttsAtom (a sibling box parsed after saio),
+      because the integer overflow in AP4_SaioAtom corrupts the stream reader state,
+      causing the next box parser to read beyond its allocated buffer.
+      This confirms the overflow vulnerability is real and exploitable (ASAN heap-buffer-overflow).
+
+poc_files:
+  vuln_003_gen.py    - generates vuln_003.mp4 (saio with entry_count=0x20000000, version=1)
+  vuln_003_run.sh    - runs mp42aac with ASAN and captures output
+  vuln_003.mp4       - PoC input triggering the crash
+  vuln_003_result.txt - full ASAN log

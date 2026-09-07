@@ -1,0 +1,79 @@
+UNVERIFIED
+
+## Run Summary
+
+Command:
+  mp42aac vuln_002.mp4 /dev/null
+
+Exit code: 0 (success)
+
+Observed stderr/stdout:
+  Audio Track:
+    duration: 1024 ms
+    sample count: 1
+
+ASAN report: none (no heap memory violation detected)
+
+## Vulnerability Trigger Confirmation
+
+The integer underflow IS triggered:
+  - esds box contains ES_Descriptor with declared payload_size=2
+  - Parser reads ES_ID(2B) + flags(1B) = 3 bytes before computing SubStream size
+  - payload_size(2) - AP4_Size(offset-start)(3) = 0xFFFFFFFF  [uint32 underflow]
+  - AP4_SubStream created with size=0xFFFFFFFF (4,294,967,295 bytes)
+  - Descriptor factory loop reads beyond ES_Descriptor boundary into:
+      * Extra bytes within esds box (flags byte at esds+16, SubStream content at esds+17..24)
+      * Adjacent stts, stsc, stsz, stco box headers (read as spurious descriptors)
+      * Would continue into mdat and beyond until file EOF
+
+## Why No Crash
+
+1. Out-of-bounds READS go through the FILE stream (OS-level fread), not heap memory.
+   ASAN monitors heap/stack memory, not file I/O — no ASAN report generated.
+
+2. Each spurious descriptor creates a properly-sized heap allocation
+   (m_Data.SetDataSize(payload_size) allocates exactly payload_size bytes),
+   so the subsequent reads stay within those allocations.
+
+3. mp42aac's WriteSamples() extracts sample_rate and channel_count from the
+   mp4a box's fixed audio fields, NOT from the EsDescriptor sub-descriptors.
+   Sample data is read via stco/stsc/stsz/stts tables, also unaffected by esds.
+   The garbage m_SubDescriptors on the EsDescriptor are simply never consulted.
+
+4. This system has ~968 GB available RAM, so large allocation attempts
+   (even 268 MB) would succeed rather than triggering std::bad_alloc.
+
+## Exploitability Context
+
+The vulnerability IS exploitable in tools/code paths that:
+  - Use AP4_EsDescriptor::GetDecoderConfigDescriptor() without NULL-checking
+  - Or encounter crafted bytes (via the unbounded SubStream) that form a descriptor
+    claiming a huge payload, exhausting memory on constrained targets
+  - Or trigger a secondary underflow via AP4_DecoderConfigDescriptor when parsed
+    payload_size < 13 (payload_size - 13 underflows to ~4 GB), compounding the OOB
+
+## File Layout Verified
+
+vuln_002.mp4 (679 bytes):
+  [ftyp]
+  [moov]
+    [mvhd]
+    [trak]
+      [tkhd]
+      [mdia]
+        [mdhd]
+        [hdlr soun]
+        [minf]
+          [smhd]
+          [dinf]
+            [dref]
+              [url ]
+          [stbl]
+            [stsd] -> [mp4a] -> [esds: TRIGGER at offset +0x1c6]
+              esds payload: 03 02 00 01 | 00 | 05 02 11 90 | 00 00 00 00
+                             ^ES ^sz=2  | ^flags(OOB) | ^DSI(SubStream content) | ^padding
+            [stts]  <- SubStream reads these as descriptor bytes
+            [stsc]
+            [stsz]
+            [stco]
+  [mdat] (100 zero bytes)

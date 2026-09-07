@@ -1,0 +1,14 @@
+VERIFIED_CRASH
+Type: ASAN memory exhaustion (hard rss limit exhausted)
+ASAN report: "hard rss limit exhausted (1024Mb vs 1202Mb)" — process consumed 1202 MB RSS before ASAN aborted.
+Trigger: elst box with entry_count=0x20000000 and no actual entry data.
+Root cause: AP4_ElstAtom constructor calls m_Entries.EnsureCapacity(0x20000000);
+  EnsureCapacity calls ::operator new(0x20000000 * 24) = ::operator new(12884901888) (~12 GB).
+  On 64-bit Linux with overcommit, the virtual allocation succeeds.
+  The constructor then enters the loop and calls Append() 536,870,912 times,
+  each touching a new page in the 12 GB region, causing massive RSS growth.
+  ASAN aborts when RSS exceeds 1024 MB (hard_rss_limit_mb=1024).
+Note: On 64-bit Linux with overcommit disabled or in a memory-constrained environment,
+  ::operator new(~12 GB) would throw std::bad_alloc (unhandled → abort), producing
+  a faster crash. The DoS is confirmed in both cases.
+ASAN log: asan.log.702539

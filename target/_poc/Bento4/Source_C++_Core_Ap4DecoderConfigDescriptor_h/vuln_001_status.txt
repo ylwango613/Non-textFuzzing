@@ -1,0 +1,40 @@
+UNVERIFIED
+
+## Run Result
+- Exit code: 0
+- ASAN/UBSAN output: none
+- Binary processed the file and reported "Audio Track: duration: 0 ms, sample count: 0"
+
+## What Was Confirmed
+The integer underflow DOES occur at line 92 of Ap4DecoderConfigDescriptor.cpp:
+  new AP4_SubStream(stream, start+13, payload_size-13)
+  => new AP4_SubStream(stream, start+13, 0xFFFFFFF3)  [5 - 13 = 0xFFFFFFF3]
+
+The ~4 GB SubStream IS created and the while loop DOES read bytes from adjacent
+MP4 boxes (stts, stsc, stsz, stco) as if they were DecoderConfig sub-descriptors.
+This is a confirmed logical out-of-bounds read.
+
+## Why No ASAN Crash
+The vulnerability is a LOGICAL OOB read, not a HEAP MEMORY OOB:
+1. mp42aac opens the file with AP4_FileByteStream (fread/fseek based).
+2. AP4_SubStream::ReadPartial() calls m_Container.Seek() then m_Container.ReadPartial()
+   on the underlying file stream.
+3. fread() past EOF returns 0 bytes and AP4_ERROR_EOS — no segfault, no heap overflow.
+4. ASAN instruments HEAP/STACK memory accesses; file I/O buffers are not instrumented.
+5. The while loop exits cleanly when the container stream returns EOS.
+
+## Exploitability Assessment
+The vulnerability is real and constitutes an out-of-bounds read across MP4 box
+boundaries. A real crash (e.g., heap-buffer-overflow with ASAN) would require:
+  - A memory-mapped file buffer with an ASAN-poisoned red zone immediately after
+    the file content, OR
+  - A descriptor parser that allocates a heap buffer sized from an attacker-
+    controlled large value and then writes beyond it.
+In the current setup, neither condition holds.
+
+## Two PoC Variants Tested
+1. Standard: DecoderConfig inside ES_Descriptor (payload_size=13 => SubStream
+   m_Size=10 => Seek to position 15 fails immediately — most constrained)
+2. Direct: DecoderConfig at top level of esds box (no ES_Descriptor SubStream
+   wrapper) — underflow applies to raw file stream, reads until file EOF,
+   still no ASAN crash.

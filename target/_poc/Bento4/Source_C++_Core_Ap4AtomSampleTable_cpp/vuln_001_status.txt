@@ -1,0 +1,20 @@
+VERIFIED_CRASH
+
+ASAN reported: heap-buffer-overflow in AP4_CttsAtom::AP4_CttsAtom()
+  READ of size 1 at address 0x502000000178 (0 bytes past end of 8-byte heap buffer)
+
+Crash confirmed at:
+  Ap4CttsAtom.cpp — AP4_CttsAtom::AP4_CttsAtom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&)
+  called from AP4_CttsAtom::Create -> AP4_AtomFactory::CreateAtomFromStream -> main
+
+Root cause:
+  entry_count = 0x20000001 (536870913)
+  entry_count * 8 (32-bit) = 0x100000008 mod 2^32 = 8
+  => new unsigned char[8] (8 bytes allocated)
+  => loop runs 536870913 times, accessing buffer[8] at i=1 -> OOB
+
+ASAN allocation info:
+  0x502000000178 is located 0 bytes to the right of 8-byte region [0x502000000170,0x502000000178)
+  allocated by operator new[]() called from AP4_CttsAtom::AP4_CttsAtom()
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow in AP4_CttsAtom::AP4_CttsAtom(...)

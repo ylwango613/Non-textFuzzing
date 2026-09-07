@@ -1,0 +1,26 @@
+VERIFIED_CRASH
+
+Crash type: AddressSanitizer: rss-limit-exceeded (out-of-memory / DoS)
+ASAN SUMMARY: AddressSanitizer: rss-limit-exceeded in operator new(unsigned long)
+
+Root cause:
+  AP4_TrunAtom constructor (Ap4TrunAtom.cpp:127) reads sample_count=0x10000000
+  from the trun box and calls m_Entries.SetItemCount(0x10000000) without checking
+  the return value.  This triggers AP4_Array::EnsureCapacity which calls
+  ::operator new(0x10000000 * 16) = ~4 GB allocation.  The allocation exhausts
+  physical RSS, causing ASAN to report rss-limit-exceeded on the next allocation
+  inside the same box-parsing call chain.
+
+ASAN log (excerpt):
+  ==PID==ERROR: AddressSanitizer: specified RSS limit exceeded
+      #0 operator new(unsigned long)  [asan_new_delete.cpp:99]
+      #1 AP4_ContainerAtom::ReadChildren(...)
+      #2 AP4_ContainerAtom::Create(...)
+      #3 AP4_AtomFactory::CreateAtomFromStream(...)
+      #9 AP4_File::ParseStream(...)
+      #10 AP4_File::AP4_File(...)
+      #11 main
+
+Trigger: vuln_003.mp4 (220 bytes): ftyp + moov(mvhd) + moof{mfhd+traf{tfhd+trun(sample_count=0x10000000)}} + mdat
+ASAN options used: abort_on_error=0:soft_rss_limit_mb=400:log_path=...
+Exit: process aborts (ABORTING) after ASAN report — confirmed DoS.

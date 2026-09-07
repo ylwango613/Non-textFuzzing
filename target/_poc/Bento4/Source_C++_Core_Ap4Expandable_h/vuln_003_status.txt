@@ -1,0 +1,8 @@
+VERIFIED_CRASH
+vuln_003: AP4_ObjectDescriptor integer underflow → ~4GB SubStream (CWE-191)
+Binary: /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+PoC:    vuln_003.mp4
+Result: ASAN CHECK failure — (total_mmaped >> 20) < common_flags()->mmap_limit_mb
+        Attack nested descriptor tag=0x07 → AP4_UnknownDescriptor → new AP4_Byte[268435455]
+        268 MB allocation exceeds mmap_limit_mb=200 → SIGABRT
+Date:   2026-09-07

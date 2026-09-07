@@ -1,0 +1,7 @@
+UNVERIFIED
+Integer underflow (payload_size=5 → 5-13 = 0xFFFFFFF8 SubStream size) confirmed
+by strace: two mmap(268443648) calls triggered, showing the bug fires.
+No crash on this system (~992 MB available RAM) because both 268 MB allocations
+succeed and the file-backed stream prevents actual heap OOB reads.
+Would crash (std::bad_alloc) on systems with ≤ ~600 MB available RAM or under
+memory limits (ulimit -v, cgroup, or ASAN_OPTIONS=hard_rss_limit_mb=300).

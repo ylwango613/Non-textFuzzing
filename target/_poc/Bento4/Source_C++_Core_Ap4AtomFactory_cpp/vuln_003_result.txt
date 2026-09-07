@@ -1,0 +1,107 @@
+=================================================================
+==596917==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5020000000f1 at pc 0x55f931838094 bp 0x7ffe6957b770 sp 0x7ffe6957b760
+READ of size 1 at 0x5020000000f1 thread T0
+    #0 0x55f931838093 in AP4_CttsAtom::AP4_CttsAtom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xaa1093)
+    #1 0x55f931839087 in AP4_CttsAtom::Create(unsigned int, AP4_ByteStream&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xaa2087)
+    #2 0x55f931768437 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d1437)
+    #3 0x55f931772f8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #4 0x55f93183033a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #5 0x55f931832677 in AP4_ContainerAtom::Create(unsigned int, unsigned long long, bool, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9b677)
+    #6 0x55f93176866e in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d166e)
+    #7 0x55f931772f8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #8 0x55f93183033a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #9 0x55f931832677 in AP4_ContainerAtom::Create(unsigned int, unsigned long long, bool, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9b677)
+    #10 0x55f93176866e in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d166e)
+    #11 0x55f931772f8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #12 0x55f93183033a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #13 0x55f931832677 in AP4_ContainerAtom::Create(unsigned int, unsigned long long, bool, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9b677)
+    #14 0x55f93176866e in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d166e)
+    #15 0x55f931772f8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #16 0x55f93183033a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #17 0x55f9318313f3 in AP4_ContainerAtom::AP4_ContainerAtom(unsigned int, unsigned long long, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9a3f3)
+    #18 0x55f9316c8471 in AP4_TrakAtom::AP4_TrakAtom(unsigned int, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x931471)
+    #19 0x55f93176af15 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d3f15)
+    #20 0x55f931772f8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #21 0x55f93183033a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #22 0x55f9318313f3 in AP4_ContainerAtom::AP4_ContainerAtom(unsigned int, unsigned long long, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9a3f3)
+    #23 0x55f9315f304d in AP4_MoovAtom::AP4_MoovAtom(unsigned int, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x85c04d)
+    #24 0x55f931768cf5 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d1cf5)
+    #25 0x55f931771050 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9da050)
+    #26 0x55f9315e75de in AP4_File::ParseStream(AP4_ByteStream&, AP4_AtomFactory&, bool) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x8505de)
+    #27 0x55f9315e8bb2 in AP4_File::AP4_File(AP4_ByteStream&, bool) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x851bb2)
+    #28 0x55f9315c7016 in main (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x830016)
+    #29 0x7ff42bf3ad8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #30 0x7ff42bf3ae3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #31 0x55f9315cb834 in _start (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x834834)
+
+0x5020000000f1 is located 0 bytes to the right of 1-byte region [0x5020000000f0,0x5020000000f1)
+allocated by thread T0 here:
+    #0 0x7ff42cb5a357 in operator new[](unsigned long) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:102
+    #1 0x55f931836ec0 in AP4_CttsAtom::AP4_CttsAtom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9fec0)
+    #2 0x55f931839087 in AP4_CttsAtom::Create(unsigned int, AP4_ByteStream&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xaa2087)
+    #3 0x55f931768437 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d1437)
+    #4 0x55f931772f8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #5 0x55f93183033a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #6 0x55f931832677 in AP4_ContainerAtom::Create(unsigned int, unsigned long long, bool, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9b677)
+    #7 0x55f93176866e in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d166e)
+    #8 0x55f931772f8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #9 0x55f93183033a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #10 0x55f931832677 in AP4_ContainerAtom::Create(unsigned int, unsigned long long, bool, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9b677)
+    #11 0x55f93176866e in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d166e)
+    #12 0x55f931772f8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #13 0x55f93183033a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #14 0x55f931832677 in AP4_ContainerAtom::Create(unsigned int, unsigned long long, bool, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9b677)
+    #15 0x55f93176866e in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d166e)
+    #16 0x55f931772f8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #17 0x55f93183033a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #18 0x55f9318313f3 in AP4_ContainerAtom::AP4_ContainerAtom(unsigned int, unsigned long long, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9a3f3)
+    #19 0x55f9316c8471 in AP4_TrakAtom::AP4_TrakAtom(unsigned int, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x931471)
+    #20 0x55f93176af15 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d3f15)
+    #21 0x55f931772f8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #22 0x55f93183033a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #23 0x55f9318313f3 in AP4_ContainerAtom::AP4_ContainerAtom(unsigned int, unsigned long long, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9a3f3)
+    #24 0x55f9315f304d in AP4_MoovAtom::AP4_MoovAtom(unsigned int, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x85c04d)
+    #25 0x55f931768cf5 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d1cf5)
+    #26 0x55f931771050 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9da050)
+    #27 0x55f9315e75de in AP4_File::ParseStream(AP4_ByteStream&, AP4_AtomFactory&, bool) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x8505de)
+    #28 0x55f9315e8bb2 in AP4_File::AP4_File(AP4_ByteStream&, bool) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x851bb2)
+    #29 0x55f9315c7016 in main (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x830016)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xaa1093) in AP4_CttsAtom::AP4_CttsAtom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&)
+Shadow bytes around the buggy address:
+  0x0a047fff7fc0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a047fff7fd0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a047fff7fe0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a047fff7ff0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a047fff8000: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 00 00
+=>0x0a047fff8010: fa fa 04 fa fa fa fd fd fa fa 00 05 fa fa[01]fa
+  0x0a047fff8020: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8030: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8040: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8050: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8060: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==596917==ABORTING
+
+=== RUN NOTE ===
+Process timed out after 30s (timeout 124). ASAN crash confirmed (heap-buffer-overflow).
+TrunAtom huge allocation (sample_count=0xFFFFFFFF, ~64GB) caused DoS/hang.

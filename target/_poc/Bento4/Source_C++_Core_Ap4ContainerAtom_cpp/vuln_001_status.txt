@@ -1,0 +1,52 @@
+UNVERIFIED
+
+## Summary
+
+The integer underflow vulnerability in AP4_ContainerAtom::ReadChildren IS triggered
+by all crafted MP4 variants (size_64 in [12..19] for 64-bit full atoms), but no
+ASAN/UBSAN sanitizer error is produced by the mp42aac binary.
+
+## What happens at runtime
+
+1. The parser reads size_32=1, type="meta", size_64=14 from the crafted file.
+2. AP4_ContainerAtom::Create() passes size=14 to the constructor.
+3. The guard `if (size < AP4_FULL_ATOM_HEADER_SIZE)` checks 14 >= 12: PASSES.
+4. The constructor calls ReadChildren(size - GetHeaderSize()) = 14 - 20 = 0xFFFFFFFFFFFFFFFA.
+5. ReadChildren greedy-parses child atoms from beyond the declared meta boundary
+   until end-of-file (the file stream naturally caps reads at the file boundary).
+6. The program exits with code 1 and "ERROR: no movie in file" (application-level
+   error, not a sanitizer violation).
+
+## Why ASAN/UBSAN does not fire
+
+- The underflow (14 - 20) involves unsigned 64-bit types. Unsigned integer
+  wrap-around is DEFINED behaviour in C++; UBSAN's __ubsan_handle_sub_overflow
+  only instruments SIGNED subtraction overflow.
+- All read operations go through a stdio-backed file stream (AP4_StdcFileByteStream /
+  fread). Reads are naturally capped at EOF; no heap buffer is accessed out of
+  bounds.
+- Individual child-atom parsers (AP4_UnknownAtom, AP4_HdlrAtom, etc.) allocate
+  buffers sized to the child's own declared size, not to bytes_available, so
+  there is no secondary heap OOB from the underflowed limit.
+
+## Variants tried
+
+| File            | Atom  | size_64 | Exit | ASAN log |
+|-----------------|-------|---------|------|----------|
+| vuln_001.mp4    | meta  | 14      | 1    | none     |
+| vuln_001b.mp4   | meta  | 14 (in moov) | 1 | none  |
+| vuln_001c.mp4   | odrm  | 12      | 1    | none     |
+| vuln_001d.mp4   | odrm  | 13      | 1    | none     |
+| vuln_001e.mp4   | odrm  | 19      | 1    | none     |
+| vuln_001f.mp4   | marl  | 8       | 1    | none     |
+| vuln_001g.mp4   | marl  | 15      | 1    | none     |
+
+## Conclusion
+
+The vulnerability (logic error / out-of-bounds parse) is confirmed as reachable
+and triggered by the crafted files, but does not manifest as an ASAN/UBSAN-
+detectable memory error via the mp42aac entry point with a file-backed stream.
+The impact is limited to: incorrect parse tree (atoms outside the declared meta
+boundary erroneously added as meta's children), potential information disclosure
+in memory-backed stream contexts, and possible further exploitation if combined
+with additional vulnerabilities in child atom parsers.

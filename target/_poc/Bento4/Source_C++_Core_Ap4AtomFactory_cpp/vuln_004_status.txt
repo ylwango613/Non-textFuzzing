@@ -1,0 +1,23 @@
+VERIFIED_CRASH
+
+Vulnerability: VULN 004 — AP4_TfraAtom missing entry_count bounds check before heap allocation
+File: Bento4/Source/C++/Core/Ap4TfraAtom.cpp, lines 86-88
+PoC input: vuln_004.mp4 (192 bytes)
+
+Crash type: Memory exhaustion (OOM) — ASAN hard RSS limit exceeded
+  ==668227==AddressSanitizer: hard rss limit exhausted (8192Mb vs 8198Mb)
+
+Trigger: tfra atom with entry_count=0x3FFFFFFF (1,073,741,823 entries)
+  → AP4_Array<Entry>::SetItemCount(0x3FFFFFFF)
+  → EnsureCapacity calls ::operator new(0x3FFFFFFF * 28) = ~28 GB
+  → Memory grows beyond limit, ASAN aborts process
+
+Notes:
+- entry_count=0x08000000 (~3.5 GB) succeeds on this host because Linux overcommit
+  allows virtual allocation; zero-initialised entries do not consume physical pages.
+- entry_count=0x3FFFFFFF (~28 GB) exhausts RSS even on this host and reliably crashes.
+- On memory-constrained hosts (vm.overcommit_memory=2) or ASAN with default options,
+  std::bad_alloc is thrown at ::operator new, propagating uncaught through
+  AP4_TfraAtom constructor → immediate crash without hard_rss_limit option.
+- The vulnerability is confirmed at the source level: no bounds check between
+  ReadUI32(entry_count) and SetItemCount(entry_count) in Ap4TfraAtom.cpp:86-88.

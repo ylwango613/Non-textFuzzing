@@ -15,11 +15,11 @@ set -euo pipefail
 export PATH="$HOME/.nvm/versions/node/v20.19.6/bin:$HOME/.local/bin:$HOME/bin:$PATH"
 
 SOURCE_DIR="/data/ylwang/non-textfuzz/target/exiv2"
-OUTDIR="$SOURCE_DIR/exiv2"
-POC_BASE="$OUTDIR/poc"
+OUTDIR="/data/ylwang/non-textfuzz/target/_audit_result/exiv2"
+POC_BASE="/data/ylwang/non-textfuzz/target/_poc/exiv2"
 DRAFTS_DIR="$OUTDIR/report-drafts"
-LOGFILE="$OUTDIR/exiv2_report.log"
-REPORT_DIR="$(cd "$(dirname "$0")/../.." && pwd)/report"
+LOGFILE="$OUTDIR/report.log"
+REPORT_DIR="/data/ylwang/non-textfuzz/target/report"
 REPORT_MD="$REPORT_DIR/exiv2.md"
 REPORT_PARALLEL="${REPORT_PARALLEL:-4}"
 
@@ -313,6 +313,17 @@ for c in "${PENDING[@]}"; do
         continue
     fi
 
+    # Dedup: skip if same function+CWE already in report
+    _dedup_func=$(grep -oE '\*\*函数\*\*: [^()]+' "$vuln_block_file" 2>/dev/null | head -1 | sed 's/.*: //' | tr -d ' ')
+    _dedup_cwe=$(grep -oE 'CWE-[0-9]+' "$vuln_block_file" 2>/dev/null | head -1)
+    _dedup_key="${_dedup_func}::${_dedup_cwe}"
+    if [ -n "$_dedup_func" ] && [ -n "$_dedup_cwe" ] && grep -qF "<!-- DEDUP: ${_dedup_key} -->" "$REPORT_MD" 2>/dev/null; then
+        echo "[$(date '+%F %T')] DEDUP-SKIP ${tag}#${nnn} (key=$_dedup_key)" >> "$LOGFILE"
+        echo "  [DEDUP] skipped ${tag}#${nnn} (same func+CWE: $_dedup_key)"
+        continue
+    fi
+    cur_dedup_key="$_dedup_key"
+
     if [ "$kind" = "BEHAVIOR" ]; then
         tmpl="$BEHAVIOR_PROMPT_TEMPLATE"
     else
@@ -351,6 +362,7 @@ for c in "${PENDING[@]}"; do
                             sed "s/^## Bug0:/## Bug${next_n}:/" "$local_draft"
                             echo ""
                             echo "<!-- REPORT_SOURCE: ${local_tag}#${local_nnn} -->"
+                            [ -n "${cur_dedup_key:-}" ] && echo "<!-- DEDUP: ${cur_dedup_key} -->"
                         } >> "$REPORT_MD"
                         echo "  + Bug${next_n} <- ${local_tag}#${local_nnn} [$local_kind]"
                         echo "[$(date '+%F %T')] WRITTEN Bug${next_n} <- ${local_tag}#${local_nnn} [$local_kind]" >> "$LOGFILE"

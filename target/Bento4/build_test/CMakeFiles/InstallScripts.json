@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/data/ylwang/non-textfuzz/target/Bento4/build_test/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

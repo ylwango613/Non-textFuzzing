@@ -1,0 +1,1 @@
+/usr/bin/g++ -fsanitize=address,undefined -g0 -fno-omit-frame-pointer -Wall -O3 -DNDEBUG -fsanitize=address,undefined CMakeFiles/hevcinfo.dir/Source/C++/Apps/HevcInfo/HevcInfo.cpp.o -o hevcinfo  libap4.a

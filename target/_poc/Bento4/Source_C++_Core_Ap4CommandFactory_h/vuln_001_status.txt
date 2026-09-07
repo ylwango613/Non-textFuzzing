@@ -1,0 +1,32 @@
+UNVERIFIED
+
+The integer underflow is real: with declared payload_size=5 but reading
+2B(bits)+1B(url_length)+200B(url)=203 bytes from the stream, the expression
+  payload_size - AP4_Size(offset - start)  →  5 - 203  (uint32)  =  4294967098
+creates an AP4_SubStream with a ~4 GB declared size.
+
+However, with mp42aac's AP4_FileByteStream (disk-backed, EOF-bounded), the
+unbounded substream causes a logical out-of-bounds read (it reads past the iods
+atom boundary into the mdat box that follows), but does NOT trigger an
+ASAN heap-buffer-overflow because:
+
+1. No heap buffer is pre-allocated to hold the iods atom payload. Reads go
+   directly from the OS file descriptor, which clamps to EOF gracefully.
+2. The AP4_SubStream's ReadPartial delegates to the container file stream;
+   when the file ends, ReadUI08 returns AP4_ERROR_EOS and the while loop exits
+   without any heap overread.
+3. The descriptor factory's AP4_UnknownDescriptor allocates exactly
+   payload_size bytes (from the garbage bytes in mdat, which are zeros →
+   payload_size=0), so there is nothing to overflow.
+
+The vulnerability is confirmed at the source-code level (the underflow occurs
+and the substream reads parse data from outside the iods logical boundary), but
+the exploitability class is "logical OOB / information leak from sibling atoms"
+rather than a heap-buffer-overflow. ASAN does not fire on this execution path
+with a file-backed stream.
+
+To achieve a verifiable ASAN crash, a modified PoC would need to reach a code
+path where a heap buffer is allocated based on a trusted small size and then
+filled from the underflowed substream beyond that size (e.g., an ES descriptor
+or decoder config with a nested descriptor layout that causes over-read into an
+adjacent allocation).

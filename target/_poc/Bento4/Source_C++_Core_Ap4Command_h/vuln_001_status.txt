@@ -1,0 +1,53 @@
+UNVERIFIED
+
+All three variants (tag=0x01/payload_size=0, tag=0x01/payload_size=1,
+tag=0x11/payload_size=0) ran to completion with exit message
+"ERROR: no audio track found" and produced no ASAN or UBSAN output.
+
+Root cause of the non-crash outcome
+────────────────────────────────────
+The integer underflow IS present: in AP4_ObjectDescriptor.cpp:96,
+
+    payload_size - AP4_Size(offset - start) = 0 - 2 = 0xFFFFFFFE
+
+This creates an AP4_SubStream with m_Size ≈ 4 GB. However, on this system
+no ASAN/UBSAN signal is raised for the following reasons:
+
+1. Unsigned integer underflow is NOT undefined behavior in C++.
+   Standard -fsanitize=undefined does not include
+   -fsanitize=unsigned-integer-overflow, so UBSAN ignores the wrap-around.
+   (Build flags verified: CXX_FLAGS = -fsanitize=address,undefined -g0 -O3)
+
+2. File reads bypass ASAN shadow memory.
+   The SubStream reads are performed via fread/fseek (AP4_StdcFileByteStream),
+   not through ASAN-instrumented heap buffers.  ASAN cannot detect a logical
+   read past the iods atom boundary when the data comes from a disk file.
+
+3. The large heap allocation succeeds.
+   The crafted sub-descriptor encodes payload_size=0x0FFFFFFF (268 MB).
+   AP4_UnknownDescriptor calls new AP4_Byte[0x0FFFFFFF], which succeeds on
+   Linux with virtual memory overcommit (no physical pages are touched because
+   the subsequent stream.Read returns 0 bytes at EOF).  The buffer is freed
+   when the descriptor is destroyed; no ASAN heap error is raised.
+
+4. The SubStream loop exits gracefully.
+   After parsing the one crafted sub-descriptor, the loop seeks to substream
+   position 0x10000004 (~268 MB), then tries to read again.  The underlying
+   file has no data there, so ReadPartial returns AP4_ERROR_EOS and the loop
+   exits cleanly.
+
+How the vulnerability would manifest in practice
+─────────────────────────────────────────────────
+- OOM crash: a very large MP4 with many valid-looking descriptor bytes beyond
+  the iods boundary causes the SubStream loop to iterate millions of times,
+  accumulating AP4_Descriptor heap allocations until memory is exhausted.
+- Environment crash: on systems without overcommit (e.g., constrained
+  containers, ASAN_OPTIONS=max_heap=...), new AP4_Byte[268MB] throws
+  std::bad_alloc, propagating as an uncaught exception and terminating the
+  process.
+
+Variants tested
+───────────────
+  v1: OD tag=0x01, payload_size=0  → underflow 0-2=0xFFFFFFFE  UNVERIFIED
+  v2: OD tag=0x01, payload_size=1  → underflow 1-2=0xFFFFFFFF  UNVERIFIED
+  v3: MP4_OD tag=0x11, payload_size=0 → underflow 0-2=0xFFFFFFFE  UNVERIFIED

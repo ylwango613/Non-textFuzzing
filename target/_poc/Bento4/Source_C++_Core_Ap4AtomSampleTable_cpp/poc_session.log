@@ -1,0 +1,27 @@
+两个 subagent 均已完成，结果汇总如下：
+
+---
+
+## PoC 生成结果
+
+| 编号 | 漏洞 | 状态 | 触发机制 |
+|------|------|------|----------|
+| VULN 001 | AP4_CttsAtom 整数溢出 → 堆越界读 | **VERIFIED_CRASH** | ASAN `heap-buffer-overflow` |
+| VULN 002 | AP4_CttsAtom 缺少边界检查 → 不受控内存分配 | **VERIFIED_CRASH** | ASAN `hard rss limit exhausted` |
+
+---
+
+### VULN 001 详情
+- `entry_count = 0x20000001`，`entry_count × 8` 在 32 位运算中溢出为 `8`
+- `new unsigned char[8]` 仅分配 8 字节
+- 循环第 1 次迭代访问 `buffer[8]` → **立即触发 ASAN heap-buffer-overflow**
+- ASAN 栈回溯指向 `AP4_CttsAtom::AP4_CttsAtom()`
+
+### VULN 002 详情
+- `entry_count = 0x04000000`（6700 万），ctts box 声明 size=16（仅头部）
+- `m_Entries.SetItemCount(0x04000000)` + `new unsigned char[0x04000000 * 8]` → 尝试分配 ~1GB
+- 触发 ASAN `hard rss limit exhausted (512Mb)`
+
+---
+
+所有文件已写入 `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4AtomSampleTable_cpp/`，包含 `vuln_001_gen.py`、`vuln_001_run.sh`、`vuln_001_notes.md`、`vuln_001_status.txt` 及对应的 `vuln_002_*` 文件。

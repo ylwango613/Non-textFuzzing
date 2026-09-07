@@ -1,0 +1,33 @@
+UNVERIFIED
+The integer underflow at Ap4EsDescriptor.cpp is triggered:
+  payload_size(5) - AP4_Size(offset-start)(6) = 0xFFFFFFFF  (uint32 wrap-around)
+  AP4_SubStream(stream, offset, 0xFFFFFFFF) is allocated successfully.
+
+However, no ASAN heap error or crash is produced because:
+  - mp42aac uses AP4_FileByteStream (file I/O), not a heap buffer, so there is no
+    heap object to overflow when the huge SubStream tries to read.
+  - The file is only 563 bytes; after exhausting the ~94 bytes remaining past the
+    SubStream's m_Offset (file position 469), the outer FileByteStream returns EOS
+    and CreateDescriptorFromStream exits the while loop cleanly.
+  - Unlike vuln_001 (DecoderConfig underflow guarded by a small EsDescriptor SubStream),
+    this SubStream is based DIRECTLY on the raw FileByteStream with no inner guard —
+    so actual reads DO reach unexpected file positions (stts/stsc/stsz/stco box bytes
+    are parsed as garbage descriptors), but all reads are within file bounds.
+  - UBSAN unsigned-integer-overflow detection is not enabled in this build.
+
+Binary output:
+  "Audio Track:\n  duration: 1000 ms\n  sample count: 1"
+  Exit code: 0
+
+The vulnerable code path IS reached on each run:
+  - flags byte = 0x40 → m_Flags = (0x40>>5)&7 = 2 = AP4_ES_DESCRIPTOR_FLAG_URL
+  - Code checks URL flag twice (bug): reads OcrEsId (2B) instead of checking OCR_STREAM flag
+  - Bytes consumed from stream: 2(es_id) + 1(flags) + 1(url_len) + 2(OcrEsId) = 6
+  - payload_size declared = 5; underflow: 5 - 6 = 0xFFFFFFFF (AP4_Size = uint32_t)
+  - AP4_SubStream created with size = 0x00000000FFFFFFFF (as AP4_LargeSize = uint64_t)
+  - While loop reads stts/stsc/stsz/stco bytes as unknown descriptors, then exits at EOF
+
+An exploit would require either:
+  (a) A memory-backed AP4_MemoryByteStream so the huge SubStream bypasses file-EOF,
+  (b) Compilation with -fsanitize=unsigned-integer-overflow to surface the wrap, or
+  (c) A nested secondary vulnerability triggered by the OOB descriptor content.

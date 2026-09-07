@@ -1,0 +1,2 @@
+VERIFIED_CRASH
+UBSAN: runtime error: left shift of negative value -66 (exif.c:344)

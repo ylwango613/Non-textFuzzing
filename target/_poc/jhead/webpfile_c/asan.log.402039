@@ -1,0 +1,20 @@
+==402039==WARNING: AddressSanitizer failed to allocate 0x80000000 bytes
+=================================================================
+==402039==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7ff1f00ea923 bp 0x000000000020 sp 0x7fff07e662a8 T0)
+==402039==The signal is caused by a WRITE memory access.
+==402039==Hint: address points to the zero page.
+    #0 0x7ff1f00ea923  (/lib/x86_64-linux-gnu/libc.so.6+0x1a6923)
+    #1 0x7ff1effcf3e5 in __GI__IO_file_xsgetn libio/fileops.c:1303
+    #2 0x7ff1effc3ba8 in __GI__IO_fread libio/iofread.c:38
+    #3 0x7ff1f08c8753 in __interceptor_fread ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:1045
+    #4 0x55c707ab3071 in ReadWebpSections (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x61071)
+    #5 0x55c707aa2beb in ReadImgFile (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x50beb)
+    #6 0x55c707a9e16a in ProcessFile (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x4c16a)
+    #7 0x55c707aa24e7 in main (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x504e7)
+    #8 0x7ff1eff6dd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #9 0x7ff1eff6de3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #10 0x55c707a9aba4 in _start (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x48ba4)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0x1a6923) 
+==402039==ABORTING

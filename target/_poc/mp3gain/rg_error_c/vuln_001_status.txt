@@ -1,0 +1,4 @@
+VERIFIED_CRASH
+ASAN heap-buffer-overflow: READ of size 4 at 1-byte allocation in ReadMP3APETag()
+Stack: ReadMP3APETag → ReadMP3GainAPETag → main
+Trigger: APE item key="MP3GAIN_UNDO" vsize=0 → malloc(1) → memcpy(tmpString,vp,4) reads 3 bytes past allocation

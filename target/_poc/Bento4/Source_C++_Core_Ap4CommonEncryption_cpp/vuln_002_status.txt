@@ -1,0 +1,8 @@
+UNVERIFIED
+mp42aac correctly parses the crafted CENC-encrypted fragmented MP4 (audio track found, sample
+description type=PROTECTED, senc box with overflow payload parsed). However, the vulnerable
+code path is not triggered because AP4_SampleDecrypter::Create(pdesc, key, 16) in
+Ap4Protection.cpp returns NULL for cenc scheme (only OMA/IAEC handled in that overload).
+mp42aac prints "ERROR: unable to create decrypter" and exits before any DecryptSampleData
+call. The integer overflow at line 1893 would be triggered by tools using the traf-aware
+Create overload (e.g., mp4decrypt, AP4_CencDecryptingProcessor), not mp42aac.

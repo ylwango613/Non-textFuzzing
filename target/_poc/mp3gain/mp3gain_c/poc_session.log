@@ -1,0 +1,2 @@
+Background tasks still running after 600s; terminating. Set CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 to wait indefinitely.
+VULN 001 completed: **VERIFIED_CRASH** (heap-buffer-overflow READ of size 4 at ReadMP3APETag). Still waiting for VULNs 003 and 004.

@@ -1,0 +1,17 @@
+Both subagents have completed. Here's the final summary:
+
+---
+
+## PoC Generation Results
+
+**Report:** `Source_C++_Core_Ap4CommonEncryption_h.md`  
+**Target:** `/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac`
+
+| # | Vulnerability | Status | ASAN Finding |
+|---|---|---|---|
+| 001 | SENC OVERRIDE Flag → OOB Read | **VERIFIED_CRASH** | `allocation-size-too-big 0xFFFFFFFC` via int underflow triggered by OVERRIDE flag path |
+| 002 | SENC Size=12 → Integer Underflow → ~4GB Alloc | **VERIFIED_CRASH** | `allocation-size-too-big 0xFFFFFFFC` — `payload_size = 12 − 16` wraps to 0xFFFFFFFC |
+
+Both PoCs are in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4CommonEncryption_h/`.
+
+**Note on vuln_001:** The subagent found the OVERRIDE-flag path actually also triggers the integer underflow (it reads 24 bytes past the 12-byte box boundary before computing payload_size), so the ASAN output is the same class of bug as vuln_002 — both converge on the `SetDataSize(0xFFFFFFFC)` allocation crash. The OOB stream-read described in the report is the logical precursor, but the allocation failure is what ASAN catches first at runtime.

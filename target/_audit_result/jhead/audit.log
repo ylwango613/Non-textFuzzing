@@ -1,0 +1,23 @@
+[2026-09-06 23:29:40] DONE: 1 new, 0 skipped, 0 vulns
+[2026-09-06 23:44:48] VULN jpgfile.c: 1 findings
+[2026-09-06 23:44:48] DONE: 1 new, 0 skipped, 1 vulns
+[2026-09-06 23:50:59] POC jpgfile.c: 1/1 verified
+[2026-09-07 00:52:30] VULN exif.c: 1 findings
+[2026-09-07 00:57:03] VULN gpsinfo.c: 2 findings
+[2026-09-07 01:03:20] POC exif.c: 0/1 verified
+[2026-09-07 01:23:38] POC gpsinfo.c: 1/2 verified
+[2026-09-07 01:25:41] VULN imgfile.c: 1 findings
+[2026-09-07 01:25:43] VULN imgfile.c: 1 findings
+[2026-09-07 01:36:09] VULN jhead.c: 2 findings
+[2026-09-07 01:36:21] POC imgfile.c: 0/1 verified
+[2026-09-07 01:38:25] POC imgfile.c: 1/1 verified
+[2026-09-07 01:38:27] VULN jhead.c: 2 findings
+  -> [webpfile.c] WARNING: empty result, removed
+[2026-09-07 01:42:06] DONE: 12 new, 1 skipped, 6 vulns
+[2026-09-07 01:49:37] POC jhead.c: 2/2 verified
+[2026-09-07 01:50:27] POC jpgfile.c: 1/1 verified
+  -> [webpfile.c] WARNING: empty result, removed
+[2026-09-07 01:55:26] VULN webpfile.c: 1 findings
+[2026-09-07 02:05:43] POC jhead.c: 2/2 verified
+[2026-09-07 02:05:44] DONE: 3 new, 10 skipped, 4 vulns
+[2026-09-07 02:13:10] POC webpfile.c: 1/1 verified

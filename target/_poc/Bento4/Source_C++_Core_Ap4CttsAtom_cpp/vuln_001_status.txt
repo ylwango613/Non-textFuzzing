@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+ASAN: heap-buffer-overflow in AP4_CttsAtom::AP4_CttsAtom (Ap4CttsAtom.cpp)
+READ of size 1 at 0x502000000151 — 0 bytes to the right of a 1-byte region (entry_count*8 overflow produced 1-byte alloc instead of 0-byte due to ASAN rounding)
+entry_count=0x20000000 triggers 32-bit integer overflow (0x20000000*8=0 mod 2^32) → 1-byte buffer allocated → immediate OOB read at loop iteration 0 (buffer[0] is past allocation)
+Binary: /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+PoC: vuln_001.mp4 (517 bytes)

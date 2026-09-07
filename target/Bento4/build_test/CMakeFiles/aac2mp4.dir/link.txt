@@ -1,0 +1,1 @@
+/usr/bin/g++ -fsanitize=address,undefined -g0 -fno-omit-frame-pointer -Wall -O3 -DNDEBUG -fsanitize=address,undefined CMakeFiles/aac2mp4.dir/Source/C++/Apps/Aac2Mp4/Aac2Mp4.cpp.o -o aac2mp4  libap4.a

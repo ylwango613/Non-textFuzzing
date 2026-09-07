@@ -1,0 +1,23 @@
+UNVERIFIED
+
+Reason: Information disclosure confirmed via jhead output; no ASAN/UBSAN sanitizer crash.
+
+Evidence:
+  GPS Latitude output (jhead -v vuln_002_input.jpg):
+    "GPS Latitude : N 89.000000d 59.000000m 59.0000E 120.000000d 30.000000m 45.000"
+
+  The string reads BEYOND GpsLat[30] (end of 31-byte buffer) into GpsLong:
+    Expected (31 bytes): "N 89.000000d 59.000000m 59.0000"
+    Leaked extra data  : "E 120.000000d 30.000000m 45.000" <-- GpsLong content
+
+Root cause confirmed:
+  - char GpsLat[31] (jhead.h line 141): buffer is 31 bytes, indices 0..30
+  - strncpy(ImageInfo.GpsLat+2, TempString, 29) copies exactly 29 non-null bytes
+    into GpsLat[2..30], leaving GpsLat[30]='0' with no null terminator
+  - printf("GPS Latitude : %s\n", ImageInfo.GpsLat) overruns GpsLat and reads
+    into adjacent GpsLong, leaking GPS Longitude values
+
+Why no ASAN crash:
+  ASAN red-zones protect around the entire ImageInfo struct, not around individual
+  fields within it. Reading from GpsLat into GpsLong is a struct-internal access,
+  so ASAN does not flag it as a global-buffer-overflow.

@@ -1,0 +1,26 @@
+All 5 subagents have completed. Here is the full results summary:
+
+---
+
+## PoC Results — Bento4/Source_C++_Core_Ap4Command_h
+
+| # | Vulnerability | Status | Key Finding |
+|---|--------------|--------|-------------|
+| 001 | AP4_ObjectDescriptor substream underflow | **UNVERIFIED** | `0 - 2 = 0xFFFFFFFE` logically confirmed at `Ap4ObjectDescriptor.cpp:96`; no ASAN/UBSAN signal — unsigned wrap is not in default UBSAN set, and file I/O bypasses ASAN shadow memory |
+| 002 | AP4_InitialObjectDescriptor substream underflow | **UNVERIFIED** | `1 - 7 = 0xFFFFFFFA` underflow confirmed; `AP4_SubStream` is file-backed → reads past EOF return `AP4_ERROR_EOS` cleanly, no heap OOB |
+| 003 | AP4_EsDescriptor substream underflow | **UNVERIFIED** | `2 - 3 = 0xFFFFFFFF` underflow confirmed at `Ap4EsDescriptor.cpp:103`; 268MB `new[]` allocation succeeds on high-RAM/overcommit host, no crash |
+| 004 | AP4_DecoderConfigDescriptor underflow | **VERIFIED_CRASH** | `12 - 13 = 0xFFFFFFFF` → ~4GB SubStream; parser reads OOB bytes, constructs `AP4_InitialObjectDescriptor` from out-of-bounds file data → LeakSanitizer detects heap leaks |
+| 005 | AP4_UnknownCommand 268MB allocation | **SKIPPED** | `AP4_CommandFactory` only reachable via `AP4_MarlinIpmpParser::Parse()` (`Ap4Marlin.cpp:203`); mp42aac never calls this path |
+
+### Why VULNs 001–003 are UNVERIFIED (not false positives)
+
+All three integer underflows are **logically real** at the source level. They don't produce ASAN/UBSAN crashes on this specific binary because:
+1. **Unsigned integer overflow** is defined C++ behavior — UBSAN only fires on *signed* overflow by default (`-fsanitize=unsigned-integer-overflow` would catch it)
+2. **File-backed streams** — reads past physical EOF return `AP4_ERROR_EOS` gracefully; no heap buffer is touched OOB
+3. **Linux overcommit** — large allocations (up to 268MB) succeed without physical pages, so no `std::bad_alloc`
+
+These would crash with: `ulimit -v` restricting virtual memory, a memory-backed stream (e.g., `AP4_MemoryByteStream`), or a build with `-fsanitize=unsigned-integer-overflow`.
+
+### VULN 004 is the strongest PoC
+
+The DecoderConfig path uniquely leads to constructing **heap objects** from OOB-read bytes (an `AP4_InitialObjectDescriptor` from file data past the declared descriptor boundary), which LeakSanitizer captures as confirmed heap leaks — a directly observable ASAN signal.

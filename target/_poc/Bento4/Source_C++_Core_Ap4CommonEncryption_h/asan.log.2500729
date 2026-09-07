@@ -1,0 +1,24 @@
+=================================================================
+==2500729==ERROR: AddressSanitizer: requested allocation size 0xfffffffc (0x100001000 after adjustments for alignment, red zones etc.) exceeds maximum supported size of 0x8000000 (thread T0)
+    #0 0x7fda57d97357 in operator new[](unsigned long) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:102
+    #1 0x562b57c5d505 in AP4_DataBuffer::SetDataSize(unsigned int) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x84c505)
+    #2 0x562b57e6ee64 in AP4_CencSampleEncryption::AP4_CencSampleEncryption(AP4_Atom&, unsigned int, AP4_ByteStream&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa5de64)
+    #3 0x562b58021500 in AP4_SencAtom::Create(unsigned int, AP4_ByteStream&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xc10500)
+    #4 0x562b57de474c in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d374c)
+    #5 0x562b57decf8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #6 0x562b57eaa33a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #7 0x562b57eac677 in AP4_ContainerAtom::Create(unsigned int, unsigned long long, bool, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9b677)
+    #8 0x562b57de266e in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d166e)
+    #9 0x562b57decf8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #10 0x562b57eaa33a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #11 0x562b57eac677 in AP4_ContainerAtom::Create(unsigned int, unsigned long long, bool, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9b677)
+    #12 0x562b57de266e in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d166e)
+    #13 0x562b57deb050 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9da050)
+    #14 0x562b57c615de in AP4_File::ParseStream(AP4_ByteStream&, AP4_AtomFactory&, bool) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x8505de)
+    #15 0x562b57c62bb2 in AP4_File::AP4_File(AP4_ByteStream&, bool) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x851bb2)
+    #16 0x562b57c41016 in main (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x830016)
+    #17 0x7fda57177d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+==2500729==HINT: if you don't care about these errors you may set allocator_may_return_null=1
+SUMMARY: AddressSanitizer: allocation-size-too-big ../../../../src/libsanitizer/asan/asan_new_delete.cpp:102 in operator new[](unsigned long)
+==2500729==ABORTING

@@ -1,0 +1,1 @@
+/usr/bin/g++ -fsanitize=address,undefined -g0 -fno-omit-frame-pointer -Wall -O3 -DNDEBUG -fsanitize=address,undefined CMakeFiles/avcinfo.dir/Source/C++/Apps/AvcInfo/AvcInfo.cpp.o -o avcinfo  libap4.a

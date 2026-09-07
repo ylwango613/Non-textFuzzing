@@ -1,0 +1,15 @@
+3개의 subagent 모두 완료되었습니다. 결과 요약:
+
+---
+
+## PoC 생성 결과 요약
+
+| VULN # | 제목 | 상태 | 비고 |
+|--------|------|------|------|
+| **001** | APE Tag MP3GAIN_UNDO/MINMAX Heap Buffer Over-Read via Undersized vsize | **VERIFIED_CRASH** | ASAN `heap-buffer-overflow` 확인됨. `vsize=0`인 APE 아이템으로 `malloc(1)` 후 `memcpy(tmpString, vp, 4)` 호출 → 3바이트 OOB 읽기 |
+| **002** | ID3v2 Tag Size로 인한 malloc 실패 후 NULL 포인터 역참조 | **UNVERIFIED** | 64비트 Linux에서 `malloc(268MB)`가 성공 (overcommit)하여 NULL 역참조 미발생. `ulimit -v`로 메모리 제한 시 트리거 가능 |
+| **003** | APE Tag Length 필드 과대값으로 인한 malloc 실패 후 NULL 포인터 역참조 | **UNVERIFIED** | `fseek()` 단계에서 `tag_offset(449) - TagLen(0xFFFFFFFF)`가 unsigned wraparound → `fseek` 실패로 조기 반환. `malloc()`까지 도달하려면 4GB 크기 파일 필요 |
+
+---
+
+**VULN 001**만 실제 ASAN crash가 확인되었습니다. VULN 002와 003은 취약 코드 경로 자체는 존재하지만, 64비트 환경에서의 메모리 overcommit 정책 및 `fseek` 실패 가드로 인해 현재 환경에서는 재현 불가한 조건입니다.

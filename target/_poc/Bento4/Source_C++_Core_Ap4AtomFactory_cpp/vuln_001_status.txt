@@ -1,0 +1,4 @@
+VERIFIED_CRASH
+AddressSanitizer: heap-buffer-overflow in AP4_CttsAtom::AP4_CttsAtom()
+READ of size 1 at 0x5020000000f1 (0 bytes past end of 1-byte allocation)
+Crash confirmed via ASAN on mp42aac with vuln_001.mp4 (ctts entry_count=0x20000000, declared size=20).

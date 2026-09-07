@@ -1,0 +1,4 @@
+VERIFIED_CRASH
+ASAN reported: heap-buffer-overflow in AP4_Stz2Atom::AP4_Stz2Atom()
+READ of size 1 at heap address 0x502000000191 (past end of 0-byte buffer)
+Triggered by: stz2 box with field_size=16, sample_count=0x10000000 causing 32-bit integer overflow -> table_size=0 -> new unsigned char[0] -> OOB read loop

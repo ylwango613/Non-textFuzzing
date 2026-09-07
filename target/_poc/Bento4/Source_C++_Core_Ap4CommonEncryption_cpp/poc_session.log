@@ -1,0 +1,24 @@
+两个 subagent 均已完成。以下是完整结果：
+
+---
+
+## PoC 生成结果汇总
+
+| 编号 | 漏洞 | 状态 | 原因 |
+|------|------|------|------|
+| VULN 001 | `AP4_CencSampleInfoTable` 构造函数整数溢出 → 堆 OOB 写 | **UNVERIFIED** | mp42aac 未触发漏洞路径 |
+| VULN 002 | `DecryptSampleData` 边界检查整数溢出绕过 → 4GB OOB | **UNVERIFIED** | mp42aac 未触发漏洞路径 |
+
+### 根本原因（两个漏洞相同）
+
+mp42aac 调用的是 `AP4_SampleDecrypter::Create(pdesc, key, key_size)` **无 traf 版重载**（`Ap4Protection.cpp:735`），该重载仅处理 OMA 和 IAEC scheme，遇到 CENC 直接返回 `NULL`，打印 "ERROR: unable to create decrypter" 后退出。
+
+两个漏洞的触发路径均需要 **traf-aware 版重载**（`Ap4Protection.cpp:781`），该版本由 `AP4_CencDecryptingProcessor` 使用，实际可触发工具为 **mp4decrypt**，而非 mp42aac。
+
+### 已生成文件
+
+所有文件位于 `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4CommonEncryption_cpp/`：
+- `vuln_001_gen.py` / `vuln_001_run.sh` / `vuln_001_notes.md` / `vuln_001_status.txt`
+- `vuln_002_gen.py` / `vuln_002_run.sh` / `vuln_002_notes.md` / `vuln_002_status.txt`
+
+PoC 的 MP4 文件结构本身是正确的（包含完整的 CENC/senc box，sample_count=0x10000000 及恶意 subsample 数据），只是约束要求必须通过 mp42aac 触发，而该二进制不走 CENC 解密路径。若改用 **mp4decrypt** 作为触发工具，这两个漏洞均可验证为 VERIFIED_CRASH。

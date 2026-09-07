@@ -1,0 +1,21 @@
+Confirmed. The loop at line 141 always runs 3 iterations (`a=0,1,2`) but the bounds check at line 110 only validates `Components * ComponentSize` bytes. When `Components < 3` with `FMT_URATIONAL` (8 bytes/component), the accesses at lines 144 and 154 extend beyond the validated region.
+
+- `Components=1`, `Format=FMT_URATIONAL`, `ComponentSize=8`: `ByteCount=8`, but loop reads at offsets 0–7 (a=0), **8–15** (a=1), and **16–23** (a=2) — heap OOB read of up to 16 bytes past the validated area.
+- `Components=2`: OOB read of up to 8 bytes past the validated area (a=2 iteration).
+
+The `ErrNonfatal` on format mismatch (line 138) does **not** `continue`, so this vulnerability also triggers when `Format != FMT_URATIONAL` with small `Components` values.
+
+## VULN: Heap OOB read in ProcessGpsInfo when GPS LAT/LONG Components < 3
+- **漏洞类别**: memory-safety
+- **函数**: ProcessGpsInfo()
+- **行号**: 141-154 (gpsinfo.c)
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 6.1 (AV:L/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted JPEG file
+- **外部触发路径**: jhead main() -> ReadJpegFile() -> process_EXIF() -> ProcessExifDir() -> ProcessGpsInfo() -> loop at gpsinfo.c:141
+- **描述**: `ProcessGpsInfo` 在处理 `TAG_GPS_LAT`（0x0002）或 `TAG_GPS_LONG`（0x0004）时，循环固定执行 3 次（`for (a=0; a<3; a++)`，对应度/分/秒三个有理数），但实际的边界检查（gpsinfo.c:110）只验证了 `Components * ComponentSize` 字节（即 `ByteCount`）。当 EXIF 文件中将 `Components` 设置为 1 或 2（小于循环迭代次数 3）且格式为 `FMT_URATIONAL`（ComponentSize=8）时：第 a=0 次迭代读取有效的 8 字节范围，第 a=1 次迭代在 `Get32s(ValuePtr+4+8)` 和 `ConvertAnyFormat(ValuePtr+8, Format)` 处读取已验证区域之外的 8 字节堆内存，第 a=2 次迭代继续越界读取 16 字节以上。格式不匹配时（line 138）`ErrNonfatal` 不执行 `continue`，同样落入该路径。
+- **触发条件**: 构造一个 JPEG 文件，其 EXIF APP1 段包含 GPS IFD，其中 TAG_GPS_LAT（或 TAG_GPS_LONG）的 IFD 条目将 Components 字段设置为 1 或 2（而非标准的 3），Format 字段设置为 5（FMT_URATIONAL），OffsetVal 指向 EXIF 段内合法起始位置。运行 `jhead <crafted.jpg>` 即可触发。
+- **安全影响**: 堆越界读取最多 16 字节相邻堆内存内容，可能造成：（1）程序崩溃（DoS），若相邻页不可访问；（2）泄露堆内存内容（信息泄露），可辅助绕过 ASLR；在开启 AddressSanitizer 时可被可靠触发并报告为 heap-buffer-overflow。
+
+<!-- AUDIT_PROMPT_VERSION: 1 -->

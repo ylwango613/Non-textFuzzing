@@ -1,0 +1,23 @@
+UNVERIFIED
+mp42aac parsed the crafted file without ASAN/UBSAN reporting a detectable error.
+
+Root cause analysis:
+- The integer underflow at line 92 IS triggered:
+    payload_size = 1  =>  1U - 13U = 0xFFFFFFF4 (AP4_SubStream size underflow)
+- The underflowed AP4_SubStream (size=0xFFFFFFF4) wraps the ES child SubStream
+  (size=8). AP4_SubStream::Seek(15) fails because 15 > 8, so the descriptor
+  factory loop inside the DC constructor exits immediately without reading.
+- The extra bytes [0x05 0xFF 0xFF 0xFF 0x7F] are parsed by the NORMAL ES child
+  descriptor loop (not the underflowed SubStream), creating a
+  AP4_DecoderSpecificInfoDescriptor with payload_size=0x0FFFFFFF (268 MB).
+- The 268 MB AP4_DataBuffer allocation succeeds on this system. stream.Read()
+  reads 0 bytes (EOS), so no bytes are written past the allocated buffer.
+  ASAN does not detect a heap-buffer-overflow.
+- The subtraction 1U - 13U is unsigned arithmetic (AP4_Size = unsigned int),
+  which is defined behavior in C++, so UBSAN's sub_overflow handler is not
+  triggered. The binary lacks -fsanitize=unsigned-integer-overflow, so UBSAN
+  cannot catch the unsigned wraparound.
+
+The vulnerability is confirmed present in the source code (Ap4DecoderConfigDescriptor.cpp:92)
+and is triggered by this input, but the combination of SubStream bounds checking and
+successful large allocation prevents an immediate ASAN/UBSAN-detectable crash.

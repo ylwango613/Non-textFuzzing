@@ -1,0 +1,1 @@
+/usr/bin/g++ -fsanitize=address,undefined -g0 -fno-omit-frame-pointer -Wall -O3 -DNDEBUG -fsanitize=address,undefined CMakeFiles/mp4rtphintinfo.dir/Source/C++/Apps/Mp4RtpHintInfo/Mp4RtpHintInfo.cpp.o -o mp4rtphintinfo  libap4.a

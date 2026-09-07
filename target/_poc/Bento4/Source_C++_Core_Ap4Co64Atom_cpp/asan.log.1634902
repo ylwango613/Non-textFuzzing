@@ -1,0 +1,1 @@
+(total_mmaped >> 20) < common_flags()->mmap_limit_mb

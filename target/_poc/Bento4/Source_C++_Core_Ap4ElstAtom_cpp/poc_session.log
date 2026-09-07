@@ -1,0 +1,19 @@
+**VULN 001 — VERIFIED_CRASH**
+
+The PoC works. Here's what was produced in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4ElstAtom_cpp/`:
+
+| File | Purpose |
+|---|---|
+| `vuln_001_gen.py` | Generates a 56-byte crafted MP4 with `elst.entry_count = 0x20000000` |
+| `vuln_001_run.sh` | Runs gen → mp42aac → greps ASAN logs |
+| `vuln_001_notes.md` | PoC rationale and expected behavior |
+| `vuln_001_result.txt` | Actual ASAN output |
+| `vuln_001_status.txt` | **VERIFIED_CRASH** |
+
+**How the crash unfolds on the 64-bit build:**
+1. The crafted `elst` box advertises `entry_count = 0x20000000` (536 M entries) but contains no actual entry data.
+2. `AP4_ElstAtom` constructor calls `m_Entries.EnsureCapacity(0x20000000)`, which calls `::operator new(0x20000000 × 24 = ~12 GB)`.
+3. On 64-bit Linux with overcommit enabled the virtual allocation succeeds; the constructor then calls `Append()` 536 M times, each touching a new page, sending RSS past 1.2 GB.
+4. ASAN aborts: `hard rss limit exhausted (1024Mb vs 1202Mb)`.
+
+On systems with overcommit disabled, `::operator new(~12 GB)` throws `std::bad_alloc` immediately — still a crash, but faster.

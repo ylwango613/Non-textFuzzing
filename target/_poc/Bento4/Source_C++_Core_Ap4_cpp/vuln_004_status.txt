@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+ASAN reported: heap-buffer-overflow (==ABORTING)
+Primary crash in AP4_Stz2Atom::AP4_SaioAtom (asan.log.3233209) and AP4_CttsAtom (asan.log.3233822).
+The malicious saio box (entry_count=0x40000000, version=0) caused integer overflow in the bounds check
+(entry_count*4 wraps to 0 in uint32_t), bypassing validation. The corrupted parser state then caused
+heap-buffer-overflow crashes in downstream atom parsers consuming the residual bytes.

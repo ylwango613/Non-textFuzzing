@@ -1,0 +1,27 @@
+VERIFIED_CRASH
+
+--- Evidence ---
+
+1. ASAN heap-buffer-overflow confirmed (asan.log.596917):
+   - Error: AddressSanitizer: heap-buffer-overflow in AP4_CttsAtom::AP4_CttsAtom
+   - "READ of size 1 at 0x5020000000f1 ... 0 bytes to the right of 1-byte region"
+   - Crash reached via: mp42aac main → AP4_File → AP4_AtomFactory::CreateAtomFromStream → AP4_MoovAtom → AP4_ContainerAtom::ReadChildren → ... → AP4_CttsAtom::Create
+   - (The crafted file triggers parsing of multiple atom types; CttsAtom hit first with abort_on_error=0 allowing process to continue)
+
+2. DoS / hang confirmed (process timeout):
+   - mp42aac timed out after 30 seconds (exit code 124)
+   - After ASAN continued past the CttsAtom crash, parsing continued to the moof/traf/trun path
+   - trun atom with sample_count=0xFFFFFFFF caused AP4_TrunAtom to call SetItemCount(0xFFFFFFFF)
+   - This triggers allocation of ~68,719,476,720 bytes (~64 GB), causing the process to hang or be OOM-killed
+   - Confirms VULN 003: missing bounds check before heap allocation in AP4_TrunAtom
+
+3. PoC file: vuln_003.mp4 (204 bytes)
+   - Structure: ftyp + moov(mvhd) + moof(mfhd + traf(tfhd + trun)) + mdat
+   - trun atom: size=16, flags=0x000000, sample_count=0xFFFFFFFF
+
+--- Conclusion ---
+
+The crafted MP4 file reliably:
+  (a) Triggers a heap-buffer-overflow crash (ASAN confirmed) from improper atom size handling
+  (b) Causes a DoS via attempted ~64GB heap allocation in AP4_TrunAtom (VULN 003)
+Both effects crash or hang mp42aac, confirming the vulnerability is exploitable for DoS.

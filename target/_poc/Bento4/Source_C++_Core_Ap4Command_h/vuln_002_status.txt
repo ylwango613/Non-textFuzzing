@@ -1,0 +1,40 @@
+UNVERIFIED
+
+Vulnerability confirmed present in source (Ap4ObjectDescriptor.cpp lines 252-255),
+but the ASAN+UBSAN instrumented binary does NOT produce a detectable memory-safety
+signal for the following structural reasons:
+
+1. UNDERFLOW IS REAL:
+   With payload_size=1 declared and 16 physical bytes available:
+     ReadUI16(bits)     → offset-start = 2
+     ReadUI08 × 5      → offset-start = 7
+     1 - 7 = 0xFFFFFFFA  (uint32 wrap-around, AP4_LargeSize widens to ~4 GiB)
+   AP4_SubStream is created with size=0xFFFFFFFA backed by the raw FILE stream.
+
+2. WHY ASAN DOES NOT FIRE:
+   AP4_SubStream delegates all I/O to the underlying AP4_FileByteStream (not a
+   memory buffer). When the descriptor factory reads from the huge SubStream, it
+   Seeks the file stream to positions beyond the iods atom but within the physical
+   file. Reads past the file's physical EOF return AP4_ERROR_EOS gracefully, and
+   the descriptor-parsing while loop exits without any heap/stack OOB.
+   Unsigned integer wrap-around is fully-defined behaviour in C++ — UBSAN does not
+   flag it. No allocation of a heap buffer with a size derived from the underflowed
+   value occurs that would allow ASAN to detect an OOB access.
+
+3. SECURITY IMPACT (real, but not memory-crash):
+   CWE-191 / CWE-125 at the semantic level: the parser reads file data far outside
+   the declared iods atom boundary, potentially exposing bytes from other atoms or
+   consuming unbounded I/O if followed by a large data block. This is a correctness
+   and potential information-disclosure bug; in a streaming or memory-mapped context
+   it could escalate to an actual OOB read.
+
+4. VARIANTS TRIED (all returned rc=1, "ERROR: no audio track found", no ASAN log):
+   - tag 0x02 and 0x10, payload_size 0–6, with 20-byte padding
+   - URL_flag=1 path, payload_size 1–2
+   All triggered the underflow per source analysis but produced no sanitizer signal.
+
+File locations:
+  vuln_002_gen.py   — generates the crafted MP4
+  vuln_002.mp4      — the crafted input (170 bytes)
+  vuln_002_run.sh   — run script
+  vuln_002_notes.md — detailed technical explanation

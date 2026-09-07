@@ -1,0 +1,1 @@
+/usr/bin/g++ -fsanitize=address,undefined -g0 -fno-omit-frame-pointer -Wall -O3 -DNDEBUG -fsanitize=address,undefined CMakeFiles/mp4split.dir/Source/C++/Apps/Mp4Split/Mp4Split.cpp.o -o mp4split  libap4.a

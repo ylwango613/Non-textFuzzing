@@ -1,0 +1,5 @@
+VERIFIED_CRASH
+ASAN confirmed: heap-buffer-overflow READ of size 4 in ReadMP3APETag (apetag.c)
+Trigger: APEv2 item key=MP3GAIN_UNDO, vsize=0 -> malloc(1) then memcpy(..., vp, 4)
+Binary: /data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain
+Input:  vuln_001.mp3 (470 bytes)

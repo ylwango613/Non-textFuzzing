@@ -1,0 +1,5 @@
+VERIFIED_CRASH
+AddressSanitizer: heap-buffer-overflow READ of size 1 in AP4_AvccAtom::Create()
+Address 0x502000000118 is 0 bytes past end of 8-byte heap region.
+Triggered by avcC atom (size=16, payload_size=8) with num_seq_params=1, seq_param_length=0.
+After loop cursor=8=payload_size; line 88 reads payload[8] OOB.

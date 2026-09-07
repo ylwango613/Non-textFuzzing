@@ -1,0 +1,4 @@
+VERIFIED_CRASH
+ASAN: heap-buffer-overflow READ of size 3 in ReadMP3APETag (apetag.c)
+0x502000000051 is 0 bytes past a 1-byte heap allocation (vsize=0 → malloc(1))
+Call stack: memcpy ← ReadMP3APETag ← ReadMP3GainAPETag ← main

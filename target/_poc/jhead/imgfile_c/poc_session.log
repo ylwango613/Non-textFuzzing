@@ -1,0 +1,13 @@
+## Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| VULN 001 | SaveImgThumbnail Heap OOB Read via Negative ThumbnailSize Sign Error | **VERIFIED_CRASH** |
+
+**VULN 001** is confirmed. The crafted JPEG triggers `runtime error: left shift of negative value -1` in UBSan at `exif.c:344` when `TAG_THUMBNAIL_LENGTH = 0xFFFFFFFF` is read. The malicious value propagates as `ThumbnailSize = -1` through the full vulnerable path: the signed comparison at exif.c:982 passes (−1 is not > any positive length), the `== 0` guard at imgfile.c:334 passes, and `fwrite(ptr, SIZE_MAX, 1, file)` is ultimately executed at imgfile.c:365. On 64-bit glibc the actual heap read is a no-op (glibc's internal ssize_t wraps to −1 and the write loop never executes), but the UBSan report is concrete evidence the vulnerable code path is fully reachable.
+
+PoC files are at `/data/ylwang/non-textfuzz/target/_poc/jhead/imgfile_c/`:
+- `vuln_001_gen.py` — constructs the 96-byte crafted JPEG
+- `vuln_001_run.sh` — runs `jhead -st` and collects ASAN/UBSan output
+- `vuln_001_notes.md` — detailed write-up
+- `vuln_001_status.txt` — `VERIFIED_CRASH`

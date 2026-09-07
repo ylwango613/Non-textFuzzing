@@ -1,0 +1,27 @@
+VERIFIED_CRASH
+
+ASAN Error: heap-buffer-overflow (READ of size 1 past 1-byte heap allocation)
+Crash location: AP4_CttsAtom::AP4_CttsAtom() (Ap4CttsAtom.cpp)
+ASAN log: asan.log.2997961
+
+Root cause chain:
+1. stco atom declared with size=12 (AP4_FULL_ATOM_HEADER_SIZE = no payload room).
+2. Bounds check in AP4_StcoAtom::AP4_StcoAtom() underflows:
+     (12 - AP4_FULL_ATOM_HEADER_SIZE - 4) / 4 = (12-12-4)/4 = 0xFFFFFFFC/4 = 0x3FFFFFFF
+   (unsigned integer underflow, CWE-191)
+3. entry_count = 0x10000000 is read from 4 bytes BEYOND stco's declared boundary (extra_bytes).
+4. Underflow check: 0x10000000 > 0x3FFFFFFF? NO -> entry_count not clamped (bounds bypass).
+5. new AP4_UI32[0x10000000] allocates ~1 GB (succeeds on high-memory system).
+6. stream.Read(buffer, 0x40000000) reads nothing (EOF), constructor returns.
+7. Factory seeks to stco_start+12, reads SIZE=0x10000000 from extra_bytes as next atom.
+8. Factory reads TYPE from bytes beyond file buffer (ASAN shadow/red zone).
+9. TYPE bytes are interpreted as 'ctts'; AP4_CttsAtom::Create() is called.
+10. AP4_CttsAtom constructor allocates a 1-byte buffer and reads 1 byte past it.
+11. ASAN detects: heap-buffer-overflow in AP4_CttsAtom::AP4_CttsAtom().
+
+Note: On memory-constrained systems (ulimit -v 524288), the ASAN binary itself
+fails to start (ASAN cannot reserve shadow memory). The crash is demonstrated
+under normal conditions where the system has sufficient virtual memory.
+
+ASAN summary line:
+  AddressSanitizer: heap-buffer-overflow in AP4_CttsAtom::AP4_CttsAtom()

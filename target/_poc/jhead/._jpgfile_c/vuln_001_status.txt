@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+UBSAN runtime error detected: exif.c:344:37: runtime error: left shift of negative value -66
+Trigger: ProcessGpsInfo() GPS Lat/Long loop (a=0,1,2) reads past ExifLength boundary
+Root cause: Components=1 passes bounds check (OffsetVal+8=ExifLength) but loop reads 24 bytes
+OOB: Get32s(ValuePtr+4+1*8) at gpsinfo.c:144 reads 4 bytes starting at ExifLength+4 (out of bounds)
+Sanitizer: UBSAN (left shift of negative value = signed integer overflow from garbage OOB byte)

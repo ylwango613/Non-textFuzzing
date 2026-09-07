@@ -1,0 +1,27 @@
+## PoC Generation Complete
+
+### VULN 001 — Integer Underflow in EsDescriptor SubStream Size
+
+**Status: `UNVERIFIED`**
+
+All files generated in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4EsDescriptor_cpp/`:
+
+| File | Description |
+|------|-------------|
+| `vuln_001_gen.py` | Constructs 734-byte malicious MP4 |
+| `vuln_001_run.sh` | Shell runner (executable) |
+| `vuln_001_notes.md` | Technical write-up |
+| `vuln_001_status.txt` | Status: UNVERIFIED (with explanation) |
+| `vuln_001.mp4` / `vuln_001_variant.mp4` | Crafted MP4 inputs |
+
+### Key Findings
+
+**The vulnerability code path IS reached** — mp42aac successfully parsed the crafted audio track (`Audio Track: duration: 0 ms, sample count: 1`), confirming execution through `AP4_EsDescriptor::AP4_EsDescriptor` with the underflowing arithmetic.
+
+**Why ASAN/UBSAN doesn't fire:**
+1. **C++ unsigned wrap-around is not UB** — `-fsanitize=undefined` does not catch unsigned integer overflow by design. Catching it would require the additional `-fsanitize=unsigned-integer-overflow` flag, which is absent from this build.
+2. **File I/O is not heap memory** — The OOB "reads" occur through `AP4_FileByteStream` backed by `fread()`. ASAN only instruments heap allocations (`malloc`/`new`), not OS file I/O. The file stream naturally returns EOF when exhausted, preventing any detectable heap corruption.
+
+**Notable correction:** The subagent identified that flags byte `0x80` (as one might naively assume for STREAM_DEPENDENCY) would **not** trigger the vulnerability in Bento4. Bento4 parses `m_Flags = (bits>>5)&7`, so the correct trigger byte is `0x20` (produces `m_Flags=1`, matching `AP4_ES_DESCRIPTOR_FLAG_STREAM_DEPENDENCY`). The PoC uses `0x20`.
+
+**Conclusion:** This vulnerability is a confirmed logic/semantic bug (the underflow definitely occurs at `Ap4EsDescriptor.cpp:103`) but produces no instrumentable crash in this build configuration because the effects are bounded by file EOF via the OS file stream layer.

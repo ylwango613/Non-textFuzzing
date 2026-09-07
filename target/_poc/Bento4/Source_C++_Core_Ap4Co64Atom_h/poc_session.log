@@ -1,0 +1,24 @@
+PoC 生成完成，结果如下：
+
+## VULN 001 — Integer Underflow in co64 Entry Count Bounds Check
+
+**状态: `VERIFIED_CRASH`**
+
+| 文件 | 说明 |
+|------|------|
+| `vuln_001_gen.py` | 构造 433 字节恶意 MP4（co64 size=12，entry_count=0x10000000） |
+| `vuln_001_run.sh` | 自动化运行脚本 |
+| `vuln_001_notes.md` | 漏洞分析与修复建议 |
+| `vuln_001.mp4` | 生成的恶意输入文件 |
+| `vuln_001_result.txt` | 运行输出 |
+| `vuln_001_status.txt` | `VERIFIED_CRASH` |
+
+**触发原理确认**:
+
+1. co64 box 的 `size` 字段设为 12（等于 `AP4_FULL_ATOM_HEADER_SIZE`），通过 `Create()` 的入口检查
+2. 构造函数第 78 行：`(12u - 12u - 4u) / 8u` → 无符号下溢 → `0xFFFFFFFC / 8 = 536870911`
+3. 边界检查 `m_EntryCount > 536870911` 形同虚设，攻击者控制的 `0x10000000`（268M）顺利通过
+4. 随后进入 268M 次的 `ReadUI64` 循环（Ap4Co64Atom.cpp 第 82-84 行），**实测耗时 9.5 秒**（正常文件 < 1ms）
+
+**在测试环境（大内存+overcommit）**: 虚拟分配成功，实际表现为 CPU DoS（持续读循环）
+**在内存受限环境**: `new AP4_UI64[268435456]` 触发 `std::bad_alloc` → 未捕获异常 → SIGABRT

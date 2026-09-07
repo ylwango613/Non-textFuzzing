@@ -1,0 +1,15 @@
+All 3 subagents complete. Here's the final summary:
+
+---
+
+## PoC Results — `Ap4Expandable.h`
+
+| # | Vulnerability | Status | Notes |
+|---|---------------|--------|-------|
+| 001 | `DecoderConfigDescriptor` — `payload_size=0` → `0-13` underflow | **UNVERIFIED** | Underflow occurs (`0xFFFFFFF3` SubStream created), but parent EsDescriptor SubStream is only 2 bytes wide — `Seek(15)` returns `AP4_FAILURE` and blocks any OOB read. No heap buffer involved. |
+| 002 | `EsDescriptor` — URL flag + `payload_size=5` → `5-6` underflow | **UNVERIFIED** | Underflow occurs (`0xFFFFFFFF` SubStream), reads bleed into adjacent box bytes and interpret them as descriptors, but file EOF is hit cleanly (~94 bytes). File-backed I/O gives ASAN nothing to instrument. |
+| 003 | `ObjectDescriptor` — URL flag + `payload_size=2` → `2-4` underflow | **VERIFIED_CRASH** | Underflow creates `0xFFFFFFFE` (~4 GB) SubStream. Attacker-controlled bytes immediately after the declared payload encode an `AP4_UnknownDescriptor` with 268 MB payload; ASAN's `mmap_limit_mb=200` cap causes an `mmap` abort. |
+
+**VULN 003 crash mechanism**: The `iods` atom's ObjectDescriptor reads beyond its declared 2-byte payload, hits attacker bytes `[0x07 0xFF 0xFF 0xFF 0x7F]`, interprets tag `0x07` as an unknown descriptor with a 268 MB size, and the resulting `mmap` call exceeds the ASAN memory cap → abort.
+
+All files are in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Expandable_h/`.

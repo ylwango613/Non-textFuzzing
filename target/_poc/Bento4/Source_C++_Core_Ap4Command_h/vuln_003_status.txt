@@ -1,0 +1,58 @@
+UNVERIFIED
+
+Summary
+-------
+The integer underflow vulnerability IS confirmed to exist and triggers as described:
+- AP4_EsDescriptor(stream, header_size=2, payload_size=2) reads 3 bytes
+  (ReadUI16=2 + ReadUI08=1) before computing the SubStream size.
+- At Ap4EsDescriptor.cpp:103: payload_size(2) - AP4_Size(offset-start=3)
+  = 0xFFFFFFFF (uint32_t underflow).
+- AP4_SubStream is created with m_Size=0xFFFFFFFF.
+- The while loop parses adjacent file data as descriptors far beyond the
+  declared ES descriptor boundary.
+- With the crafted extra bytes (tag=0x06, size encoding 0xFF FF FF 7F),
+  AP4_UnknownDescriptor allocates 268,435,455 bytes (256 MB).
+
+No Crash Observed Because
+-------------------------
+1. Build flags: -fsanitize=address,undefined  (NOT -fsanitize=unsigned-integer-overflow).
+   The uint32_t underflow (2-3=0xFFFFFFFF) is defined behaviour per C++ standard,
+   so default UBSAN does NOT report it. Adding -fsanitize=unsigned-integer-overflow
+   would detect it at Ap4EsDescriptor.cpp:103.
+
+2. System RAM: 1 TB with Linux overcommit. The 256 MB new AP4_Byte[] call
+   succeeds even though only ~68 bytes (rest of the file) are written.
+   No std::bad_alloc, no OOM crash.
+
+3. File stream semantics: reads past EOF on a StdC FILE* stream return
+   AP4_ERROR_EOS gracefully; no heap OOB occurs because the SubStream
+   never reads beyond the ASAN-shadowed memory (only from kernel file
+   buffers into a legitimately allocated 256 MB heap buffer).
+
+Conditions Under Which This WOULD Crash
+----------------------------------------
+- -fsanitize=unsigned-integer-overflow: UBSAN reports underflow at line 103.
+- Memory-limited system (overcommit disabled / ulimit): new[] throws
+  std::bad_alloc -> std::terminate -> SIGABRT (exit 134).
+- Code path that calls AP4_SampleDescription::Clone() or AP4_Atom::Clone():
+  creates AP4_MemoryByteStream(GetSize()=22 bytes), then AP4_EsDescriptor::Write
+  tries to serialize the 256 MB fake UnknownDescriptor sub-descriptor.
+  The MemoryByteStream grows dynamically (local buffer), so no ASAN OOB on
+  this code path either. However, if the buffer had EXTERNAL storage
+  (m_BufferIsLocal=false), writes beyond capacity return AP4_ERROR_EOS
+  without growing, leaving internal state inconsistent.
+
+Variants Tested
+---------------
+vuln_003_p2_extra.mp4 (539 B): payload_size=2, extra OOM bytes -> exit 0, no ASAN
+vuln_003_p2_plain.mp4 (533 B): payload_size=2, no extra     -> exit 0, no ASAN
+vuln_003_p1_extra.mp4 (538 B): payload_size=1, extra OOM bytes -> exit 0, no ASAN
+vuln_003_p0_extra.mp4 (537 B): payload_size=0, extra OOM bytes -> exit 0, no ASAN
+
+Files
+-----
+vuln_003_gen.py    - PoC generator (Python struct/bytes only)
+vuln_003.mp4       - Primary PoC (payload_size=2 + extra bytes)
+vuln_003_run.sh    - Automation script
+vuln_003_notes.md  - Technical analysis and fix recommendation
+vuln_003_result.txt - Execution output

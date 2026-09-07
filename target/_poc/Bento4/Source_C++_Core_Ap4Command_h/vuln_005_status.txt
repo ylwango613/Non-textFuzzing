@@ -1,0 +1,28 @@
+SKIPPED
+AP4_CommandFactory::CreateCommandFromStream is not reachable via mp42aac's normal MP4 file parsing path.
+
+Analysis:
+- AP4_CommandFactory::CreateCommandFromStream is called in exactly one location in the entire codebase:
+  Bento4/Source/C++/Core/Ap4Marlin.cpp:203, inside AP4_MarlinIpmpParser::Parse().
+
+- AP4_MarlinIpmpParser::Parse() is only invoked by:
+  - Mp4Info (to display Marlin IPMP info)
+  - Mp4Decrypt (to decrypt Marlin-protected content)
+  - Mp4Encrypt (to encrypt with Marlin IPMP)
+  None of these are mp42aac.
+
+- mp42aac's code path (Mp42Aac.cpp):
+  1. Opens the file: AP4_File(*input)
+  2. Gets the movie: input_file->GetMovie()
+  3. Gets the audio track: movie->GetTrack(AP4_Track::TYPE_AUDIO)
+  4. Writes audio samples via WriteSamples() or DecryptAndWriteSamples()
+  It never calls AP4_MarlinIpmpParser::Parse() or any function that reaches
+  AP4_CommandFactory::CreateCommandFromStream().
+
+- Additionally, AP4_MarlinIpmpParser::Parse() has an early-exit guard that checks
+  whether the file's ftyp atom carries the Marlin brand (AP4_MARLIN_BRAND_MGSV).
+  Without the Marlin brand, the function returns AP4_ERROR_INVALID_FORMAT immediately,
+  further preventing any crafted MP4 from reaching the OD command parsing logic
+  even if mp42aac were to call it (which it does not).
+
+Conclusion: The vulnerability is not triggerable via mp42aac.

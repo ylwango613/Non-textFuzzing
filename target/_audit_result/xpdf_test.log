@@ -1,0 +1,25 @@
+==========================================
+ xpdf (pdftotext) Full Security Audit
+ Mode: resume  (audit=1, poc=1, audit_parallel=3, poc_parallel=3)
+ Files to audit: 1 (skipped 0 missing)
+ Results: /data/ylwang/non-textfuzz/target/_audit_result/xpdf/   PoCs: /data/ylwang/non-textfuzz/target/_poc/xpdf/
+ Log: /data/ylwang/non-textfuzz/target/_audit_result/xpdf/audit.log
+==========================================
+
+[1/1] Auditing: xpdf/Stream.cc
+  -> [xpdf/Stream.cc] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=3952171, running=1/3)
+
+==========================================
+ Audit Complete
+ Files audited: 1 new + 0 skipped / 1 total
+ Errors: 0
+ Vulnerabilities found: 1
+==========================================
+
+Waiting for background PoC subagents...
+==========================================
+ PoC Generation Summary
+ Launched: 1  Skip: 0  Done: 1  Total: 0  Verified: 0
+ Base: /data/ylwang/non-textfuzz/target/_poc/xpdf/
+==========================================

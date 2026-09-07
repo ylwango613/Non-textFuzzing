@@ -18,8 +18,8 @@ export PATH="$HOME/.nvm/versions/node/v20.19.6/bin:$HOME/.local/bin:$HOME/bin:$P
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SOURCE_DIR="/data/ylwang/non-textfuzz/target/flvmeta"
-OUTDIR="$SOURCE_DIR/flvmeta"
-LOGFILE="$SOURCE_DIR/audit.log"
+OUTDIR="/data/ylwang/non-textfuzz/target/_audit_result/flvmeta"
+LOGFILE="$OUTDIR/audit.log"
 mkdir -p "$OUTDIR"
 
 PROMPT_VERSION="1"
@@ -66,8 +66,9 @@ tag_for() {
     local name dir
     name=$(basename "$f")
     name="${name//./_}"
-    dir=$(dirname "$f" | tr '/' '_')
-    echo "${dir}_${name}"
+    dir=$(dirname "$f" | tr "/" "_")
+    [ "$dir" = "." ] && dir=""
+    [ -n "$dir" ] && echo "${dir}_${name}" || echo "$name"
 }
 
 result_is_current() {
@@ -188,7 +189,7 @@ AUDIT_PROMPT_TEMPLATE='你是一个顶级 C 安全审计专家，正在对 flvme
 同时用 Grep/Glob/Read 查看相关的头文件、宏定义、调用的函数实现，以理解完整上下文。
 
 **大文件必须多遍 / 分组深读——"一遍读完就判 clean"是历史漏报根因：**
-- 若文件较大（≳500 行），不要一遍扫完就下结论。按函数群拆分，**并行派发多个 subagent**（一条消息内同时发出 N 个 Agent 调用，subagent_type=general-purpose），每个 subagent 深读一个函数群并各自独立找漏洞；你再把它们的发现【全部重新整理】成 `## VULN:` 块。
+- 若文件较大（≳500 行），不要一遍扫完就下结论。用 Read 工具分批读取（每批 400-600 行），逐组分析后**在自己的输出里**记录每组的发现，全部读完后汇总成 `## VULN:` 块。**不要派发 subagent**，全部在你自己的消息里完成，这样输出才能被正确捕获。
 - 每个函数群都要追到边界条件（malloc 大小、数组索引、指针算术、整数溢出后的 malloc 大小参数）。
 
 项目背景：
@@ -298,15 +299,17 @@ POC_PROMPT_TEMPLATE='你是 flvmeta 安全研究员。基于已有的漏洞审�
 本项目的 __BIN__ 已经是 ASAN+UBSAN 构建。
 所有 PoC 必须通过这个真实二进制触发。
 
-1. **禁止自写 harness**：绝对不允许把漏洞函数抠出来单独编译，也不允许链接 flvmeta 内部头文件写 C 程序。
-2. **内存漏洞的唯一合法验证途径**：
+1. **严禁自写 harness**：
+   - 不允许把漏洞函数抠出来单独编译成可执行文件
+   - 不允许链接 flvmeta 内部头文件写任何 C/C++ 程序
+   - 不允许通过任何方式编译新的 C/C++ 代码来触发漏洞
+2. **唯一合法的漏洞触发途径**（只允许以下两种方式）：
    - 用 Python struct 模块构造精心设计的恶意 FLV 字节序列（vuln_NNN_gen.py），
-   - 用 shell 脚本直接调用 flvmeta 二进制处理该 FLV 文件（vuln_NNN_run.sh），
+   - 用 shell 脚本直接调用 flvmeta，并通过命令行选项（-a、-U、-F 等）调整执行路径（vuln_NNN_run.sh），
    - 让 ASAN/UBSAN 在真实执行路径中自行报错。
-3. 唯一可接受的辅助程序是：
-   - 用 Python 生成恶意 FLV 文件的脚本（vuln_NNN_gen.py），只用 struct 模块构造二进制，
-     绝不能调用 flvmeta 内部函数/头文件。
-   - 运行 flvmeta 的 shell 脚本（vuln_NNN_run.sh）。
+3. 唯一可接受的辅助文件：
+   - vuln_NNN_gen.py：Python 脚本，只用 struct/bytes 构造 FLV，绝不调用目标库函数
+   - vuln_NNN_run.sh：Shell 脚本，调用 flvmeta [选项] 处理恶意 FLV
 ====================================================================
 
 漏洞报告:   __RESULT_FILE__
@@ -463,12 +466,12 @@ launch_poc_bg() {
     poc_throttle
 
     (
-        if claude -p "$prompt" \
+        if CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 claude -p "$prompt" \
             --model claude-sonnet-4-6 \
             --dangerously-skip-permissions \
             --allowedTools "Read,Write,Bash,Grep,Glob,Agent" \
             > "$POC_DIR/poc_session.log" 2>&1; then
-            if grep -qE "You're out of extra usage|hit your (session|usage) limit" "$POC_DIR/poc_session.log" 2>/dev/null; then
+            if grep -qE "You're out of extra usage|hit your (session|usage) limit|Background tasks still running after" "$POC_DIR/poc_session.log" 2>/dev/null; then
                 echo "[$(date '+%F %T')] POC USAGE-LIMIT $f" >> "$LOGFILE"
             else
                 touch "$POC_DIR/.done"
@@ -542,7 +545,7 @@ audit_one() {
         --allowedTools "Read,Grep,Glob,Agent" \
         > "$result" 2>&1
 
-    if grep -qE "You're out of extra usage|hit your (session|usage) limit" "$result" 2>/dev/null; then
+    if grep -qE "You're out of extra usage|hit your (session|usage) limit|Background tasks still running after" "$result" 2>/dev/null; then
         rm -f "$result"
         touch "$STOP_FILE"
         echo "USAGE_LIMIT|${f}|${tag}|${result}|0" >> "$EVENTS_FILE"

@@ -1,0 +1,23 @@
+pngfile.c:171:25: runtime error: left shift of 1 by 31 places cannot be represented in type 'int'
+    #0 0x55f700296d19 in ReadPngSections (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x5bd19)
+    #1 0x55f7002982cb in ReadPngFile (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x5d2cb)
+    #2 0x55f70028bb3e in ReadImgFile (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x50b3e)
+    #3 0x55f70028716a in ProcessFile (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x4c16a)
+    #4 0x55f70028b4e7 in main (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x504e7)
+    #5 0x7fa8f89ccd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fa8f89cce3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #7 0x55f700283ba4 in _start (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x48ba4)
+
+pngfile.c:43:21: runtime error: left shift of 144 by 24 places cannot be represented in type 'int'
+    #0 0x55f700295898 in Get32png (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x5a898)
+    #1 0x55f70029701c in ReadPngSections (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x5c01c)
+    #2 0x55f7002982cb in ReadPngFile (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x5d2cb)
+    #3 0x55f70028bb3e in ReadImgFile (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x50b3e)
+    #4 0x55f70028716a in ProcessFile (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x4c16a)
+    #5 0x55f70028b4e7 in main (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x504e7)
+    #6 0x7fa8f89ccd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fa8f89cce3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #8 0x55f700283ba4 in _start (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x48ba4)
+
+Trimming 109 bytes from exif
+Modified: /data/ylwang/non-textfuzz/target/_poc/jhead/jhead_c/vuln_002_work.png

@@ -1,0 +1,2 @@
+SKIPPED
+Reason: The integer overflow in ReadNullTerminatedString requires reading 4,294,967,295 consecutive non-null bytes. This demands a real ~4GB file with no null (0x00) bytes in the string payload. Sparse files do not work because their unwritten regions read as 0x00, which immediately terminates the string loop. The STPP box (the only mp42aac-reachable caller) also rejects 64-bit extended sizes (AP4_ERROR_INVALID_FORMAT at AtomFactory.cpp:270). Therefore the vulnerability cannot be triggered by passing any reasonably-sized crafted MP4 file on the command line.

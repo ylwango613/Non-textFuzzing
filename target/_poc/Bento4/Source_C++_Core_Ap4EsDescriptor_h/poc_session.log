@@ -1,0 +1,27 @@
+PoC 完成。以下是结果摘要：
+
+---
+
+## 结果：VULN 001 — AP4_EsDescriptor Integer Underflow
+
+**文件位置**：`_poc/Bento4/Source_C++_Core_Ap4EsDescriptor_h/`
+
+| 文件 | 说明 |
+|---|---|
+| `vuln_001_gen.py` | 构造恶意 MP4（546 字节），payload_size=3，flags=0x20 |
+| `vuln_001_run.sh` | 运行脚本，调用 mp42aac + ASAN 日志采集 |
+| `vuln_001.mp4` | 恶意输入文件 |
+| `vuln_001_notes.md` | 技术原理说明 |
+| `vuln_001_status.txt` | 运行结果 |
+
+**验证结论**：**漏洞已确认触发（VULNERABILITY_CONFIRMED_OOB_READ_NO_ASAN_CRASH）**
+
+**触发路径**：
+1. ES_Descriptor 声明 `payload_size=3`（覆盖 es_id[2]+flags[1]）
+2. `flags=0x20` → `AP4_ES_DESCRIPTOR_FLAG_STREAM_DEPENDENCY` 置位
+3. 代码额外读取 2 字节的 `DependsOn_ES_Id`（超出声明的 payload）
+4. 无符号减法：`3 - 5 = 0xFFFFFFFE`（整数下溢）
+5. `AP4_SubStream` 以 ~4 GB 的虚假大小创建
+6. 解析器跨越 ES_Descriptor payload 边界，读取相邻 box（DecoderConfigDescriptor）的原始字节作为子描述符
+
+**无 ASAN/UBSAN 崩溃的原因**：文件 I/O 越界不被 ASAN 检测（ASAN 只监控堆/栈内存）；无符号整数下溢在 C++ 中是合法的，UBSAN 不报告。但 OOB 读确实发生——mp42aac 输出 `"Audio Track"` 证明解析器读取了声明边界之外的 DecoderConfigDescriptor。

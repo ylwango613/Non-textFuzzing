@@ -1,0 +1,14 @@
+Both PoCs are complete. Here's the final summary:
+
+## Results
+
+| # | Vulnerability | Status | ASAN Finding |
+|---|--------------|--------|-------------|
+| 001 | AP4_CttsAtom integer overflow | **VERIFIED_CRASH** | `heap-buffer-overflow READ` at `buffer[8]` — 8-byte buffer from `0x20000001*8` 32-bit overflow; loop at `i=1` reads out of bounds in `AP4_CttsAtom::AP4_CttsAtom` |
+| 002 | AP4_Stz2Atom integer overflow | **VERIFIED_CRASH** | `heap-buffer-overflow READ` at 1-byte buffer boundary — `0x40000001*4` 32-bit overflow gives `table_size=1`; loop case-4 at `i=2` reads `buffer[1]` which is past the end in `AP4_Stz2Atom::AP4_Stz2Atom` |
+
+All files are in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4AtomSampleTable_h/`:
+- `vuln_001_gen.py`, `vuln_001_run.sh`, `vuln_001_notes.md`, `vuln_001_status.txt`
+- `vuln_002_gen.py`, `vuln_002_run.sh`, `vuln_002_notes.md`, `vuln_002_status.txt`
+
+Both vulnerabilities are confirmed reproducible: crafted MP4 files (~485–488 bytes each) with malformed `ctts`/`stz2` boxes trigger ASAN-detected heap-buffer-overflows in the real `mp42aac` binary without any harness or recompilation.

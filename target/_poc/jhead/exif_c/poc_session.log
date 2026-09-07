@@ -1,0 +1,2 @@
+Background tasks still running after 600s; terminating. Set CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 to wait indefinitely.
+The subagent is working on VULN-001. I'll report the result when it completes.

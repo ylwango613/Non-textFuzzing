@@ -1,0 +1,21 @@
+VERIFIED_CRASH
+
+ASAN confirmed allocation-size-too-big crash:
+  AddressSanitizer: requested allocation size 0xfffffffc (~4.29 GB) exceeds maximum.
+
+Root cause: AP4_SencAtom with size=12 passes the `size < 12` guard.
+  payload_size = 12 - GetHeaderSize(12) - 4 = 12 - 16 → 0xFFFFFFFC (unsigned underflow).
+  AP4_DataBuffer::SetDataSize(0xFFFFFFFC) → new AP4_Byte[0xFFFFFFFC] → ASAN aborts.
+
+Call stack (abbreviated):
+  AP4_DataBuffer::SetDataSize
+  ← AP4_CencSampleEncryption::AP4_CencSampleEncryption
+  ← AP4_SencAtom::Create
+  ← AP4_AtomFactory::CreateAtomFromStream (parsing traf children)
+  ← AP4_File::ParseStream / AP4_File::AP4_File
+  ← main
+
+Note: ASAN_OPTIONS=max_allocation_size_mb=128 is required to trigger the abort.
+Without it, Linux's memory overcommit allows the virtual mmap to succeed silently,
+and no physical memory is touched since stream.Read reads only a few bytes from EOF.
+The underlying integer underflow (CWE-191) is present regardless.

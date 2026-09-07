@@ -1,0 +1,5 @@
+VERIFIED_CRASH
+ASAN: heap-buffer-overflow in ReadMP3APETag (apetag.c:230)
+Trigger: APE item name="MP3GAIN_UNDO", item_value_size=0
+Binary: /data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain
+PoC: vuln_001.mp3 (153 bytes)

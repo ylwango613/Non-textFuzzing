@@ -1,0 +1,2 @@
+==227648==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50600000005b at pc 0x562161c88471 bp 0x7fff7f040120 sp 0x7fff7f040110
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x67470) in Get32s

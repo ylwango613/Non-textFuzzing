@@ -1,0 +1,17 @@
+VERIFIED_CRASH
+
+Crash type: SIGABRT (exit code 134) via ASAN mmap_limit abort
+Trigger: Integer underflow in AP4_EsDescriptor::AP4_EsDescriptor()
+         payload_size(3) - AP4_Size(offset-start)(6) = 0xFFFFFFFA (uint32_t underflow)
+         → AP4_SubStream created with size=0xFFFFFFFA
+         → factory loop reads attacker-controlled bytes from unbounded SubStream
+         → AP4_DecoderSpecificInfoDescriptor: new AP4_Byte[268435455] (268 MB)
+         → ASAN aborts: total mmap'd memory exceeds 200 MB limit
+
+ASAN log: (total_mmaped >> 20) < common_flags()->mmap_limit_mb
+
+Note: On the 968 GB RAM test server, the 268 MB allocation succeeds without crash
+      unless ASAN_OPTIONS=mmap_limit_mb=200 is set. On resource-constrained systems
+      (< 268 MB available), std::bad_alloc is thrown unconditionally → SIGABRT.
+      The vulnerability mechanism (integer underflow + unbounded SubStream read) is
+      identical in both cases and confirmed by the crash.

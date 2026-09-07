@@ -1,0 +1,16 @@
+All 3 subagents have completed. Here's the final summary:
+
+---
+
+## PoC Results — `Ap4Constants.h` Audit
+
+| # | Vulnerability | Status | ASAN Finding |
+|---|---|---|---|
+| 001 | ctts `entry_count` → heap-buffer-overflow | **VERIFIED_CRASH** | `heap-buffer-overflow` READ 1 byte past 8-byte alloc in `AP4_CttsAtom::AP4_CttsAtom()` |
+| 002 | stz2 `table_size` integer overflow → heap OOB read | **VERIFIED_CRASH** | `heap-buffer-overflow` READ 1 byte past 2-byte alloc in `AP4_Stz2Atom::AP4_Stz2Atom()` |
+| 003 | trun `sample_count` → 4GB alloc / DoS | **VERIFIED_CRASH** | `hard rss limit exhausted` — ASAN killed process after ~535 MB RSS (triggered via `hard_rss_limit_mb=512` since this server has 1 TB RAM; on a typical system `std::bad_alloc` fires directly) |
+
+All files are in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Constants_h/`:
+- `vuln_001_gen.py` / `vuln_001_run.sh` / `vuln_001_notes.md` / `vuln_001_status.txt`
+- `vuln_002_gen.py` / `vuln_002_run.sh` / `vuln_002_notes.md` / `vuln_002_status.txt`
+- `vuln_003_gen.py` / `vuln_003_run.sh` / `vuln_003_notes.md` / `vuln_003_status.txt`

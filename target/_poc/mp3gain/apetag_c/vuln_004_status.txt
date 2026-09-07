@@ -1,0 +1,2 @@
+VERIFIED_CRASH
+ASAN heap-buffer-overflow detected in ReadMP3APETag (apetag.c) — triggered by APEv2 footer with Length=0xFFFFFFFF. ASAN intercepted the oversized malloc, returned a minimal-size buffer, then fread/memcpy accessed beyond the allocated region, causing heap-buffer-overflow. UBSAN also reported left-shift UB (apetag.c:287). Both errors captured in vuln_004_result.txt.

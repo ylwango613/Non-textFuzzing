@@ -1,0 +1,24 @@
+The subagent completed. Here's the summary:
+
+## VULN-001 — VERIFIED_CRASH
+
+**漏洞**: `AP4_NullTerminatedStringAtom` Heap OOB Write (Ap4Atom.cpp:470-474)
+
+**触发结果**: ASAN 确认崩溃：
+```
+ERROR: AddressSanitizer: SEGV on unknown address 0x50210000008f
+The signal is caused by a WRITE memory access.
+#0 AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom(...)
+```
+
+**关键修正**: 报告中 atom 类型字节 `0x38 0x69 0x64 0x5F`（`8ID_`）有误，实际 C++ 常量 `AP4_ATOM_TYPE_8ID_` = `AP4_ATOM_TYPE('8','i','d',' ')` = `0x38 0x69 0x64 0x20`（小写 + 尾部空格），subagent 已使用正确字节触发。
+
+**生成文件**:
+| 文件 | 说明 |
+|---|---|
+| `vuln_001_gen.py` | 构造 36 字节恶意 MP4（moov 内含 8 字节 `8id ` atom） |
+| `vuln_001_run.sh` | 运行 gen.py + mp42aac，收集 ASAN 输出 |
+| `vuln_001_notes.md` | 根因分析与修正说明 |
+| `vuln_001_status.txt` | 第一行：`VERIFIED_CRASH` |
+
+**根因确认**: `str_size = size - 8 = 0`，`str[0xFFFFFFFF]` 写入超出映射内存 4GB 处，在 64 位系统上可靠 SIGSEGV（DoS）。

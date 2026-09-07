@@ -1,0 +1,4 @@
+VERIFIED_CRASH
+ASAN reported: "hard rss limit exhausted (8192Mb vs 8198Mb)"
+Cause: AP4_SaizAtom constructor: size=20, flags=0x000001 → remains underflows to 0xFFFFFFFB → sample_count sanity-check bypassed → m_SampleCount=0xFF000066 (~4 GB) → ::operator new(4278190182) exhausts RSS limit → ASAN fatal abort (exit 1).
+Cross-boundary stream read confirmed: saiz body is fully consumed (8 bytes aux fields); default_sample_info_size + sample_count read from adjacent 'free' box header bytes.

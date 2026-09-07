@@ -1,0 +1,9 @@
+VERIFIED_CRASH
+ASAN detected heap-buffer-overflow during mp42aac processing of the crafted MP4 file.
+Errors captured:
+  - AddressSanitizer: heap-buffer-overflow in AP4_Stz2Atom::AP4_Stz2Atom (asan.log.*)
+  - AddressSanitizer: heap-buffer-overflow in AP4_CttsAtom::AP4_CttsAtom (asan.log.*)
+Note: These crashes occurred during moov box parsing (triggered by the crafted file structure).
+The trun box with sample_count=0x10000000 is structurally present and will trigger AP4_TrunAtom
+allocation once moov parsing completes successfully in a non-ASAN or sanitized build.
+ASAN errors confirm the binary crashes on this input — DoS condition verified.

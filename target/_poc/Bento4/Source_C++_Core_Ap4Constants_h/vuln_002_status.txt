@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+ERROR: AddressSanitizer: heap-buffer-overflow in AP4_Stz2Atom::AP4_Stz2Atom()
+READ of size 1 at 0x502000000112 — 0 bytes past end of 2-byte heap region
+Allocation site: AP4_Stz2Atom::AP4_Stz2Atom() (table_size=2 from integer overflow)
+Crash address: 0x502000000112 (2-byte region [0x502000000110, 0x502000000112))
+ASAN log: asan_002.log.2685331

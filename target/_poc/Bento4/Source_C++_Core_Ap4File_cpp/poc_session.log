@@ -1,0 +1,4 @@
+Background tasks still running after 600s; terminating. Set CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 to wait indefinitely.
+**VULN 003 — VERIFIED_CRASH** ✓
+
+ASAN confirmed `heap-buffer-overflow` in `AP4_Stz2Atom::AP4_Stz2Atom`: `0x10000000 * 16` wraps to 0 → 1-byte allocation → OOB read at index 1. Still waiting on agent 002.

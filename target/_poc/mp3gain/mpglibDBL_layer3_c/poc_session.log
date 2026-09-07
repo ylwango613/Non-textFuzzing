@@ -1,0 +1,17 @@
+## PoC 生成汇总
+
+| 编号 | 漏洞 | 状态 |
+|------|------|------|
+| VULN 001 | OOB Read in `bandInfo.longIdx` → Unbounded OOB Write in `III_dequantize_sample` | **VERIFIED_CRASH** |
+
+**触发结果**（两个错误均已确认）：
+
+1. **UBSAN OOB Read** (`layer3.c:403`): `r0c=15, r1c=7` 导致索引 24 越界 `longIdx[23]`，读到相邻 `longDiff[1]=4`，产生 `region2start=2`。
+2. **ASAN global-buffer-overflow** in `III_dequantize_sample`: `l[1] = region2 - region1 = 2 - 81 = -79`，解码循环越界读写 `pretab` 全局缓冲区。
+
+生成文件位于 `/data/ylwang/non-textfuzz/target/_poc/mp3gain/mpglibDBL_layer3_c/`：
+- `vuln_001_gen.py` — 构造恶意 MP3 的 Python 脚本
+- `vuln_001_run.sh` — 运行脚本
+- `vuln_001.mp3` — 触发文件
+- `vuln_001_result.txt` — 完整 ASAN 输出
+- `vuln_001_status.txt` — `VERIFIED_CRASH`

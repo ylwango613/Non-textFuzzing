@@ -1,0 +1,5 @@
+UNVERIFIED
+Code path confirmed reached: tiffsplit emits "Failed to allocate memory for to fetch tag value (0 elements of 1 bytes each)".
+This proves dp->tdir_count + 1 wrapped from 0xFFFFFFFF to 0 (uint32 overflow at line 1690).
+_TIFFCheckMalloc detected the 0-element count and returned NULL, preventing heap damage.
+No ASAN/UBSan errors fired because unsigned integer overflow is defined behavior in C.

@@ -1,0 +1,16 @@
+Both PoCs are complete. Final results:
+
+---
+
+## Summary
+
+| # | Vulnerability | Status |
+|---|---|---|
+| 001 | AP4_NullTerminatedStringAtom – Heap OOB Write (size=8 integer underflow) | **VERIFIED_CRASH** |
+| 002 | AP4_CttsAtom – Integer Overflow `entry_count×8` → Heap OOB Read | **VERIFIED_CRASH** |
+
+**VULN 001**: ASAN caught a `WRITE` at address `str[0xFFFFFFFF]` — the unsigned underflow of `str_size=0` minus 1 produced a ~4GB offset, triggering a SEGV in `AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom`.
+
+**VULN 002**: ASAN reported `heap-buffer-overflow READ` directly in `AP4_CttsAtom::AP4_CttsAtom` — the integer overflow in `entry_count * 8` produced a ~1-byte allocation, and the subsequent loop read immediately hit the heap redzone.
+
+All artifacts are in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Atom_h/` — `gen.py`, `run.sh`, `notes.md`, `result.txt`, and `status.txt` for each vulnerability.

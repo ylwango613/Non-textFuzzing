@@ -1,0 +1,5 @@
+UNVERIFIED
+mp42aac exits with "ERROR: unable to create decrypter" for CENC tracks.
+AP4_SampleDecrypter::Create(pdesc,key,size) returns NULL for CENC scheme;
+CreateSampleInfoTable is never called. The vulnerable path requires the
+traf-aware variant used by other Bento4 tools (e.g., mp4decrypt).

@@ -1,0 +1,12 @@
+{
+	"InstallScripts" : 
+	[
+		"/data/ylwang/non-textfuzz/target/xpdf/build_test/cmake_install.cmake",
+		"/data/ylwang/non-textfuzz/target/xpdf/build_test/goo/cmake_install.cmake",
+		"/data/ylwang/non-textfuzz/target/xpdf/build_test/fofi/cmake_install.cmake",
+		"/data/ylwang/non-textfuzz/target/xpdf/build_test/splash/cmake_install.cmake",
+		"/data/ylwang/non-textfuzz/target/xpdf/build_test/xpdf/cmake_install.cmake",
+		"/data/ylwang/non-textfuzz/target/xpdf/build_test/xpdf-qt/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

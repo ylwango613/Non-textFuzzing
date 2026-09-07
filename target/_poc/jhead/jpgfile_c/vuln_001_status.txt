@@ -1,0 +1,5 @@
+VERIFIED_CRASH
+Tool: UBSAN (runtime error: left shift of negative value -66)
+File: exif.c:344:37 in Get32s()
+Triggered by: ProcessGpsInfo() OOB read reading uninitialized heap bytes past ExifLength
+Call stack: Get32s → ProcessGpsInfo → ProcessExifDir → process_EXIF → ReadJpegSections → ReadJpegFile → ReadImgFile → ProcessFile → main

@@ -1,0 +1,5 @@
+[2026-09-06 23:29:40] DONE: 1 new, 0 skipped, 0 vulns
+  -> [libavformat/mov.c] WARNING: format anomaly (no '## VULN:' and no NO_VULN_FOUND) — flagged for review
+[2026-09-06 23:40:06] FORMAT-ANOMALY libavformat/mov.c
+[2026-09-06 23:40:06] DONE: 1 new, 0 skipped, 0 vulns
+[2026-09-07 00:24:49] DONE: 1 new, 0 skipped, 0 vulns

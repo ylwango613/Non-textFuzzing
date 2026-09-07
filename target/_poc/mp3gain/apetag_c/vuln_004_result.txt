@@ -1,0 +1,17 @@
+apetag.c:287:39: runtime error: left shift of 1 by 31 places cannot be represented in type 'int'
+                                                 vuln_004.mp3
+Recommended "Track" dB change: 64.820000
+Recommended "Track" mp3 gain change: 43
+Max PCM sample at current gain: 0.000000
+Max mp3 global gain field: 0
+Min mp3 global gain field: 0
+
+
+Recommended "Album" dB change for all files: 64.820000
+Recommended "Album" mp3 gain change for all files: 43
+==14525==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000031 at pc 0x7f0ac5dab397 bp 0x7ffc02310b20 sp 0x7ffc023102c8
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 in __interceptor_memcpy
+==15195==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000050 at pc 0x55f3ba4e0408 bp 0x7fffa0a75e40 sp 0x7fffa0a75e30
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xb7407) in ReadMP3APETag
+==32652==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000051 at pc 0x7f0cd55e1397 bp 0x7ffed3f6e110 sp 0x7ffed3f6d8b8
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 in __interceptor_memcpy

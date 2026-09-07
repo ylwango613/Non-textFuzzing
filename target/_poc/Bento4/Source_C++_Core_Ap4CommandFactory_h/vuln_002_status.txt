@@ -1,0 +1,22 @@
+UNVERIFIED
+
+The integer underflow is confirmed to occur at Ap4ObjectDescriptor.cpp:254-255:
+  payload_size(3) - AP4_Size(offset - start)(7) = 0xFFFFFFFC  [approach 1]
+  payload_size(4) - AP4_Size(offset - start)(258) = 0xFFFFFEFE [approach 2]
+
+Both approaches ran to completion with output "ERROR: no audio track found" and no ASAN error.
+
+Reason ASAN does not trigger:
+- AP4_Size is AP4_UI32 (unsigned). Unsigned wrap-around is defined behaviour in C++,
+  so UBSAN does not flag it.
+- AP4_SubStream wraps the raw file-backed ByteStream. Reads beyond the declared
+  payload boundary simply return EOF from the OS file layer before any heap buffer
+  is overrun, so ASAN heap-buffer-overflow is not triggered either.
+- The SubStream with size 0xFFFFFFFC causes the descriptor parsing loop to consume
+  ALL remaining bytes in the file (an information-disclosure / logic OOB), but
+  because the reads go through normal file I/O the ASAN shadow memory never flags them.
+
+The vulnerability is structurally valid: the integer underflow exists, and the resulting
+SubStream reads past the declared iods atom boundary. A different analysis tool
+(e.g., Valgrind, or running against a memory-mapped file with a guard page) or a
+follow-on heap allocation triggered by the over-read data could expose the full impact.

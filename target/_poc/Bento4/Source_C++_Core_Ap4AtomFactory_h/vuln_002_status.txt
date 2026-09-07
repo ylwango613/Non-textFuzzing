@@ -1,0 +1,18 @@
+VERIFIED_CRASH
+
+Crash type : AddressSanitizer: heap-buffer-overflow
+Signal     : ABORTING (ASAN abort)
+Crash site : AP4_CttsAtom::AP4_CttsAtom() — READ 1 byte past 8-byte heap region
+Root cause : AP4_SbgpAtom integer overflow (entry_count=0x20000000, entry_count*8 wraps
+             to 0x00000000 on 32-bit) bypasses bounds check. SetItemCount(0x20000000)
+             allocates a large heap array; subsequent stream/heap corruption cascades into
+             a heap-buffer-overflow caught by ASAN in the AP4_CttsAtom parser.
+PoC file   : vuln_002.mp4 (457 bytes)
+ASAN log   : asan.log.723252
+Binary     : /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+
+Note: The immediate ASAN crash site is AP4_CttsAtom (cascade), not AP4_SbgpAtom
+      itself, because the large SetItemCount(0x20000000) allocation succeeded under
+      Linux overcommit. The overflow then corrupted stream offsets / heap layout,
+      causing the OOB read detected in the next atom parsed. The integer overflow
+      in AP4_SbgpAtom is the root trigger.

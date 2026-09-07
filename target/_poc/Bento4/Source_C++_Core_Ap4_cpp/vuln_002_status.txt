@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+ASAN reported: heap-buffer-overflow in AP4_CttsAtom::AP4_CttsAtom()
+Allocation: new unsigned char[entry_count*8] where entry_count=0x20000000 overflows to 1 byte.
+Read: loop at i=0 reads buffer[0..7] (8 bytes) from a 1-byte allocation — heap-buffer-overflow.
+ASAN log: asan.log.3233822
+SUMMARY line: AddressSanitizer: heap-buffer-overflow (.../mp42aac+0xaa1093) in AP4_CttsAtom::AP4_CttsAtom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&)

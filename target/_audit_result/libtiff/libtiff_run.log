@@ -1,0 +1,27 @@
+==========================================
+ libtiff Full Security Audit
+ Mode: resume  (audit=1, poc=1, audit_parallel=1, poc_parallel=1)
+ Files to audit: 1 (skipped 0 missing)
+ Results: /data/ylwang/non-textfuzz/target/_audit_result/libtiff/   PoCs: /data/ylwang/non-textfuzz/target/_poc/libtiff/
+ Log: /data/ylwang/non-textfuzz/target/_audit_result/libtiff/audit.log
+==========================================
+
+  -> launched PoC (bg pid=4121000, running=1/1)
+
+==========================================
+ Audit Complete
+ Files audited: 0 new + 1 skipped / 1 total
+ Errors: 0
+ Vulnerabilities found: 0
+ Results: /data/ylwang/non-textfuzz/target/_audit_result/libtiff/
+==========================================
+
+Waiting for 1 background PoC subagent(s) to finish...
+==========================================
+ PoC Generation Summary
+ Launched this run:   1
+ Already-done skip:   0
+ Files with .done:    1
+ PoCs total/verified: 2 / 0
+ Base: /data/ylwang/non-textfuzz/target/_poc/libtiff/
+==========================================

@@ -1,0 +1,3 @@
+VERIFIED_CRASH
+Exit code: 134
+ASAN logs: /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4AtomFactory_h/asan.log.723252

@@ -1,0 +1,20 @@
+## 汇总结果
+
+| VULN 编号 | 标题 | 状态 |
+|-----------|------|------|
+| VULN 001  | GPS Lat/Long Out-of-Bounds Read via Under-counted Components | **VERIFIED_CRASH** |
+
+**触发证据**：UBSAN 在真实 jhead 执行路径中报告：
+```
+exif.c:344:37: runtime error: left shift of negative value -66
+```
+
+**根因确认**：`ProcessGpsInfo()` 中循环固定迭代 3 次，但 `Components=1` 只通过了 8 字节的边界校验。第 2 次迭代（`a=1`）时 `Get32s(ValuePtr+4+8)` 读取越界内存，读到垃圾字节 `0xBE`（有符号值 −66），左移 24 位触发有符号整数溢出，被 UBSAN 捕获。
+
+所有 PoC 文件已生成于 `/data/ylwang/non-textfuzz/target/_poc/jhead/._jpgfile_c/`：
+- `vuln_001_gen.py` — 构造恶意 JPEG 的 Python 脚本
+- `vuln_001_run.sh` — 运行 jhead 并收集 ASAN/UBSAN 输出的 Shell 脚本
+- `vuln_001_input.jpg` — 76 字节恶意 JPEG 文件
+- `vuln_001_result.txt` — 实际运行结果
+- `vuln_001_notes.md` — PoC 思路说明
+- `vuln_001_status.txt` — `VERIFIED_CRASH`

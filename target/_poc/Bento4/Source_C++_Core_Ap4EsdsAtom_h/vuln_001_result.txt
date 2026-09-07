@@ -1,0 +1,4 @@
+timeout: the monitored command dumped core
+
+=== ASAN log: /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4EsdsAtom_h/asan.log.1531723 ===
+(total_mmaped >> 20) < common_flags()->mmap_limit_mb

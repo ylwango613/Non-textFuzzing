@@ -1,0 +1,5 @@
+VERIFIED_CRASH
+ASAN reported: hard rss limit exhausted (OOM) — sbgp entry_count=0x20000000 causes integer overflow in bounds check (entry_count*8 wraps to 0), bypassing the guard. SetItemCount(0x20000000) then attempts to allocate ~4GB+ of heap memory, triggering OOM crash confirmed by AddressSanitizer hard_rss_limit.
+Binary: /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+Input:  vuln_003.mp4
+ASAN log: asan.log.3255832 — "AddressSanitizer: hard rss limit exhausted (512Mb vs 546Mb)"

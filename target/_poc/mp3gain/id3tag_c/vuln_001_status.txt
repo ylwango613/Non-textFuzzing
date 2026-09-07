@@ -1,0 +1,5 @@
+VERIFIED_CRASH
+ASAN heap-buffer-overflow: READ of size 1 at 0 bytes past 16-byte malloc in id3_parse_v2_tag (id3tag.c:592)
+Stack: id3_parse_v2_tag -> id3_search_tag -> ReadMP3GainID3Tag -> main
+Trigger: mp3gain -s i vuln_001.mp3
+File: dlen=16 with 2 TT2 frames; second frame at p=11, p+5=16=dlen bypasses the off-by-one check (p+5>dlen is false) and reads tagdata[16] OOB.

@@ -1,0 +1,4 @@
+VERIFIED_CRASH
+ASAN: heap-buffer-overflow in AP4_CttsAtom::AP4_CttsAtom
+READ of size 1 at 0x5020000000f8 (0 bytes past end of 8-byte allocation)
+Integer overflow: entry_count=0x20000001 -> allocation of only 8 bytes -> OOB read at loop iteration i=1

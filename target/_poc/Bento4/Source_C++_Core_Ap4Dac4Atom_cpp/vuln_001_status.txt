@@ -1,0 +1,5 @@
+VERIFIED_CRASH
+ASAN: heap-buffer-overflow READ of size 1 in AP4_BitReader::ReadBits
+Location: 0 bytes past end of 12-byte heap region (the 11-byte dac4 payload + 1 internal copy byte)
+Call site: AP4_BitReader::ReadBits -> AP4_Dac4Atom::AP4_Dac4Atom -> AP4_Dac4Atom::Create
+Confirmed by: AddressSanitizer (PID 3407136), asan.log.3407136

@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+ASAN Error: heap-buffer-overflow
+Location: AP4_CttsAtom::AP4_CttsAtom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&)
+Read size: 1 byte at 0x502000000111 (0 bytes to the right of a 1-byte heap allocation)
+Root cause: entry_count=0x20000000 -> entry_count*8 overflows to 0 -> new unsigned char[0] -> loop reads buffer[i*8] OOB
+ASAN log: asan.log.2997961

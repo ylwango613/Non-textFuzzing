@@ -1,0 +1,1 @@
+/usr/bin/g++ -fsanitize=address,undefined -g0 -fno-omit-frame-pointer -Wall -O3 -DNDEBUG -fsanitize=address,undefined CMakeFiles/fixaacsampledescription.dir/Source/C++/Apps/FixAacSampleDescription/FixAacSampleDescription.cpp.o -o fixaacsampledescription  libap4.a

@@ -1,0 +1,16 @@
+[2026-09-07 01:07:12] VULN mp3gain.c: 4 findings
+[2026-09-07 01:07:12] DONE: 1 new, 0 skipped, 4 vulns
+[2026-09-07 01:20:35] POC mp3gain.c: 2/4 verified
+[2026-09-07 01:28:37] VULN apetag.c: 4 findings
+[2026-09-07 01:35:07] POC apetag.c: 4/4 verified
+[2026-09-07 01:37:49] VULN id3tag.c: 1 findings
+[2026-09-07 01:50:09] POC id3tag.c: 1/1 verified
+[2026-09-07 02:02:12] VULN mpglibDBL/interface.c: 1 findings
+[2026-09-07 02:16:22] POC mpglibDBL/interface.c: 0/1 verified
+[2026-09-07 02:22:21] VULN mpglibDBL/layer3.c: 1 findings
+[2026-09-07 02:27:50] VULN replaygaindll.c: 1 findings
+[2026-09-07 02:28:54] POC mpglibDBL/layer3.c: 1/1 verified
+[2026-09-07 02:29:34] POC replaygaindll.c: 0/1 verified
+[2026-09-07 02:34:54] VULN rg_error.c: 3 findings
+[2026-09-07 02:34:54] DONE: 13 new, 1 skipped, 11 vulns
+[2026-09-07 02:40:17] POC rg_error.c: 1/3 verified

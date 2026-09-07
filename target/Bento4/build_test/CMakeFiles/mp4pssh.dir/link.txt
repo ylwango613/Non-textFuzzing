@@ -1,0 +1,1 @@
+/usr/bin/g++ -fsanitize=address,undefined -g0 -fno-omit-frame-pointer -Wall -O3 -DNDEBUG -fsanitize=address,undefined CMakeFiles/mp4pssh.dir/Source/C++/Apps/Mp4Pssh/Mp4Pssh.cpp.o -o mp4pssh  libap4.a

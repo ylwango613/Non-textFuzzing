@@ -1,0 +1,13 @@
+Background tasks still running after 600s; terminating. Set CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 to wait indefinitely.
+VULN 002 finished: **UNVERIFIED** — the integer overflow (`0xFFFFFFFF + 1 = 0`) was confirmed by the "0 elements" error message, but `_TIFFCheckMalloc`'s defensive check prevents a crash on this 64-bit build.
+
+Still waiting on VULN 001 (EstimateStripByteCounts overflow).
+
+
+Both vulnerabilities are **unsigned integer overflows** in C. Unsigned wrapping is well-defined behavior in C (not undefined behavior), so UBSAN does not instrument it by default — only signed overflow is caught by `-fsanitize=undefined`. ASAN also has no hook for this class of bug.
+
+However, both PoCs demonstrably reach the vulnerable code paths:
+- VULN 001 output: `"TIFF directory is missing required 'StripByteCounts' field, calculating from imagelength"` and `"Failed to allocate memory for to fetch tag value (1073741824 elements of 4 bytes each)"` — confirms EstimateStripByteCounts was reached and the overflow-inflated count propagated.
+- VULN 002 output: `"Failed to allocate memory for to fetch tag value (0 elements of 1 bytes each)"` — the `0` element count proves the `0xFFFFFFFF + 1 → 0` wrap occurred at line 1690.
+
+All PoC files are in `/data/ylwang/non-textfuzz/target/_poc/libtiff/libtiff_tif_dirread_c/`.

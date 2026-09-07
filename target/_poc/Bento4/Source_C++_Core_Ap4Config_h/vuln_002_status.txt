@@ -1,0 +1,10 @@
+VERIFIED_CRASH
+Type: heap-buffer-overflow (READ of size 1)
+Location: AP4_Stz2Atom::AP4_Stz2Atom (Ap4Stz2Atom.cpp) — entry loop accessing 0-byte buffer
+Trigger: stz2 box with field_size=4, sample_count=0x40000000
+Overflow: sample_count*field_size = 0x40000000*4 = 0x100000000 -> 0 (32-bit wraparound)
+table_size=(0+7)/8=0; bounds check (0+8)>20 = false -> bypassed
+buffer = new unsigned char[0] (1 byte allocated by ASAN);
+Loop iterates 0x40000000 times; first READ past the 1-byte buffer triggers ASAN
+ASAN log: asan_002.log.2580266
+ASAN summary: AddressSanitizer: heap-buffer-overflow in AP4_Stz2Atom::AP4_Stz2Atom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&)

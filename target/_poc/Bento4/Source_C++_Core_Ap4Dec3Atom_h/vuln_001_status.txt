@@ -1,0 +1,19 @@
+VERIFIED_CRASH
+
+Vulnerability: VULN-001 — Heap Over-Read in AP4_Dec3Atom Constructor
+CWE: CWE-125 (Out-of-bounds Read)
+File: Ap4Dec3Atom.cpp, line 97 (payload[3] read when num_dep_sub != 0)
+
+ASAN Report Summary:
+  ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5020000000f5
+  READ of size 1 at 0x5020000000f5 thread T0
+  In: AP4_Dec3Atom::AP4_Dec3Atom(unsigned int, unsigned char const*)
+  The 5-byte heap region [0x5020000000f0, 0x5020000000f5) was read 0 bytes past its end.
+
+Trigger:
+  - dec3 box size=13 → payload_size=5 bytes
+  - payload[1]=0x07 → substream_count = 1 + (7 & 7) = 8
+  - After DataRate skip: payload_size=3 (indices 0..2 valid)
+  - payload[4]=0x02 → num_dep_sub = (0x02>>1)&0xF = 1 (non-zero)
+  - Code reads payload[3] → 1 byte PAST the 5-byte allocation
+  - payload_size -= 4 → unsigned wrap to 0xFFFFFFFC → 7 additional OOB iterations

@@ -1,0 +1,23 @@
+Both subagents have completed. Here's the full summary:
+
+---
+
+## PoC Results — Bento4/Source_C++_Core/Ap4EsdsAtom.cpp
+
+All files are in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4EsdsAtom_cpp/`
+
+| Vuln | File | Status | Root Cause |
+|------|------|--------|-----------|
+| VULN 001 | `AP4_DecoderConfigDescriptor` line 92 | **UNVERIFIED** | `payload_size=4 < 13` → `4-13=0xFFFFFFF7` underflow, SubStream of ~4GB created |
+| VULN 002 | `AP4_EsDescriptor` lines 102-103 | **UNVERIFIED** | `payload_size=2 < 3` consumed bytes → `2-3=0xFFFFFFFF` underflow, same SubStream escape |
+
+### Why both are UNVERIFIED (not VERIFIED_CRASH)
+
+Both vulnerabilities are **logically confirmed** — the underflows occur in the code and the SubStreams are created with ~4GB sizes — but ASAN doesn't fire because:
+
+1. **No unsigned-integer-overflow sanitizer**: The binary is built with `-fsanitize=address,undefined` but unsigned wraparound is defined behavior in C++ and not flagged by UBSAN by default (requires `-fsanitize=unsigned-integer-overflow`).
+2. **File I/O, not heap access**: The out-of-bounds reads come through `fread`/`AP4_BufferedInputStream` on the MP4 file, not a heap buffer. ASAN guards heap allocations, not file reads.
+3. **mp42aac's audio output path**: `WriteSamples()` reads channel/sample-rate from the fixed `mp4a` box header fields, not from EsDescriptor sub-descriptors, so the corrupted descriptor list isn't dereferenced in the output path.
+4. **Adequate RAM**: No OOM crash from the large phantom allocation path.
+
+The vulnerability is real and exploitable in memory-constrained environments or tools that dereference `GetDecoderConfigDescriptor()` without null-checks.

@@ -1,0 +1,6 @@
+UNVERIFIED
+VULN 001 Stack Buffer Overflow in decodeMP3() via inflated part2_3_length
+Binary: /data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain
+Input:  /data/ylwang/non-textfuzz/target/_poc/mp3gain/mpglibDBL_interface_c/vuln_001.mp3
+Overflow confirmed by code analysis: dsize=2048 > available=1760, overflow=288 bytes into hybrid_block
+ASAN not triggered: overflow stays within MPSTR struct boundary (no red zone between struct fields)

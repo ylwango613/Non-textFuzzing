@@ -1,0 +1,8 @@
+UNVERIFIED
+Ran mp3gain against vuln_002.mp3 (ID3v2 size=0x7F7F7F7F, syncsafe=268,435,455 bytes).
+No ASAN/UBSAN errors produced. malloc(268435455) succeeded on this 64-bit Linux system
+with overcommit enabled; fread() read short and returned gracefully.
+The "Can't find any valid MP3 frames in file" message confirms id3_parse_v2_tag() was
+entered but malloc did not fail, so the NULL pointer dereference (CWE-476) was not
+triggered. To reproduce: restrict virtual address space with `ulimit -v 524288` before
+running, so malloc(268MB) actually returns NULL.

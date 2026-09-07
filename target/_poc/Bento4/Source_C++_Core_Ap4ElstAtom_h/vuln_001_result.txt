@@ -1,0 +1,2 @@
+/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4ElstAtom_h/vuln_001_run.sh: line 17: 734550 Aborted                 (core dumped) ASAN_OPTIONS="abort_on_error=0:log_path=/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4ElstAtom_h/asan.log" /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4ElstAtom_h/vuln_001.mp4 /dev/null
+==734550==ERROR: AddressSanitizer failed to allocate 0xdfff0001000 (15392894357504) bytes at address 2008fff7000 (errno: 12)

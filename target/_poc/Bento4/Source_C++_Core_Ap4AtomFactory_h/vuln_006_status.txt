@@ -1,0 +1,45 @@
+UNVERIFIED
+
+Vulnerability trigger: CONFIRMED (integer underflow in cap calculation)
+Crash symptom (bad_alloc / OOM abort): NOT OBSERVED on this machine
+
+--- Analysis ---
+
+The integer underflow is analytically and observably present:
+  stco box size   = 14  (declared in header)
+  AP4_FULL_ATOM_HEADER_SIZE = 12
+  cap = (14 - 12 - 4) / 4 = (0xFFFFFFFE) / 4 = 0x3FFFFFFF  [AP4_UI32 underflow]
+  entry_count read from file = 0x10000000
+  0x10000000 > 0x3FFFFFFF? → FALSE → entry_count NOT clamped
+  new AP4_UI32[0x10000000]  attempted  (= 1 GiB alloc)
+  new unsigned char[0x40000000]  attempted  (= 1 GiB alloc)
+
+The code path IS reached: mp42aac parses the full moov→trak→mdia→minf→stbl→stco
+chain (confirmed by reaching "ERROR: unable to parse sample description" which
+comes after the entire moov is parsed).
+
+Why the crash does NOT occur on this system:
+  - System has 1 TiB RAM with 630+ GiB free and Linux overcommit mode=0 (heuristic)
+  - `new AP4_UI32[0x10000000]` succeeds (virtual address reservation only)
+  - `new unsigned char[0x40000000]` succeeds (same reason)
+  - `stream.Read(buffer, 0x40000000)` returns AP4_ERROR_EOS immediately because
+    the input file is only 477 bytes; no physical pages of the 1-GiB buffer
+    are ever touched
+  - Constructor calls `delete[] buffer` and returns early; no memory persists
+  - ASAN redzones (small) are the only non-zero shadow writes; far below any RSS limit
+
+Contrast with vuln_005 (tfra, VERIFIED_CRASH):
+  tfra's SetItemCount() calls default constructors for EACH of 0x20000000 entries,
+  physically committing ~1 GiB of pages → RSS hit 1159 MB → hard_rss_limit_mb=1024 fired.
+  stco has NO per-entry initialization loop; pages stay virtual-only after failed Read().
+
+The vulnerability IS real and WOULD crash (bad_alloc or OOM kill) on:
+  - Systems with < 2 GiB free memory
+  - Systems with strict overcommit_memory=2
+  - Embedded / constrained environments
+  - If combined with an input file large enough to force stream.Read to commit pages
+
+Binary path: /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+PoC file   : vuln_006.mp4 (477 bytes)
+Exit code  : 1 (mp42aac normal error exit, not crash)
+ASAN log   : none (no ASAN violation detected)

@@ -1,0 +1,58 @@
+=================================================================
+==227648==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50600000005b at pc 0x562161c88471 bp 0x7fff7f040120 sp 0x7fff7f040110
+READ of size 1 at 0x50600000005b thread T0
+    #0 0x562161c88470 in Get32s (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x67470)
+    #1 0x562161c963e4 in ProcessGpsInfo (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x753e4)
+    #2 0x562161c8cea5 in ProcessExifDir (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x6bea5)
+    #3 0x562161c8e0a8 in process_EXIF (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x6d0a8)
+    #4 0x562161c824ca in ReadWebpSections (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x614ca)
+    #5 0x562161c71beb in ReadImgFile (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x50beb)
+    #6 0x562161c6d16a in ProcessFile (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x4c16a)
+    #7 0x562161c714e7 in main (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x504e7)
+    #8 0x7ff76daa9d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #9 0x7ff76daa9e3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #10 0x562161c69ba4 in _start (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x48ba4)
+
+0x50600000005b is located 7 bytes to the right of 52-byte region [0x506000000020,0x506000000054)
+allocated by thread T0 here:
+    #0 0x7ff76e479887 in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:145
+    #1 0x562161c82049 in ReadWebpSections (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x61049)
+    #2 0x562161c71beb in ReadImgFile (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x50beb)
+    #3 0x562161c6d16a in ProcessFile (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x4c16a)
+    #4 0x562161c714e7 in main (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x504e7)
+    #5 0x7ff76daa9d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/jhead/build_test/jhead+0x67470) in Get32s
+Shadow bytes around the buggy address:
+  0x0a0c7fff7fb0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a0c7fff7fc0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a0c7fff7fd0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a0c7fff7fe0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a0c7fff7ff0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x0a0c7fff8000: fa fa fa fa 00 00 00 00 00 00 04[fa]fa fa fa fa
+  0x0a0c7fff8010: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a0c7fff8020: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a0c7fff8030: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a0c7fff8040: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a0c7fff8050: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==227648==ABORTING

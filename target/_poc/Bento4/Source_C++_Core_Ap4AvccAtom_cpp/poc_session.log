@@ -1,0 +1,28 @@
+Both subagents have completed. Here is the final summary for all 2 vulnerabilities in `Ap4AvccAtom.cpp`:
+
+---
+
+## PoC Results — `Ap4AvccAtom.cpp`
+
+| # | Vulnerability | Location | Status |
+|---|--------------|----------|--------|
+| 001 | OOB read: `payload[0]` before size guard | line 75 | **UNVERIFIED** |
+| 002 | OOB read: `payload[cursor]` at `num_pic_params` | line 88 | **VERIFIED_CRASH** ✅ |
+
+---
+
+### VULN 001 — `UNVERIFIED`
+- **Trigger**: `avcC` atom with `size=8` → `payload_size=0` → 0-byte buffer allocated → `payload[0]` read before the size guard.
+- **Why not crashing**: On this system `new AP4_Byte[0]` returns a non-null pointer into an allocator block of minimum size (typically 8–16 bytes). ASAN's red-zone is placed *after* that minimum block, so `payload[0]` lands within the block rather than in the red-zone. The logic flaw is real (read precedes size guard), but ASAN cannot observe it with standard `new char[0]` semantics on Linux.
+
+### VULN 002 — `VERIFIED_CRASH`
+- **Trigger**: `avcC` atom with `size=16`, `num_seq_params=1`, `seq_param_length=0` → after the seq-params loop `cursor=8=payload_size` → line 87 guard (`cursor > payload_size`) is false → `payload[8]` read at line 88 from an 8-byte buffer.
+- **ASAN output**:
+  ```
+  ERROR: AddressSanitizer: heap-buffer-overflow
+  READ of size 1 at 0x502000000118
+  0 bytes to the right of 8-byte region [0x502000000110, 0x502000000118)
+  in AP4_AvccAtom::Create(unsigned int, AP4_ByteStream&)
+  ```
+
+All PoC files are in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4AvccAtom_cpp/`.

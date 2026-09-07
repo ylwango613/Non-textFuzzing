@@ -1,0 +1,5 @@
+ERROR: unable to parse sample description
+==3233209==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000191 at pc 0x5612d099bb62 bp 0x7fff8178f570 sp 0x7fff8178f560
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xc51b61) in AP4_Stz2Atom::AP4_Stz2Atom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&)
+==3233822==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5020000000f1 at pc 0x55d00e596094 bp 0x7ffc7cb3e2e0 sp 0x7ffc7cb3e2d0
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xaa1093) in AP4_CttsAtom::AP4_CttsAtom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&)

@@ -1,0 +1,52 @@
+=================================================================
+==651028==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000050 at pc 0x562c6d625408 bp 0x7fff01d25140 sp 0x7fff01d25130
+READ of size 4 at 0x502000000050 thread T0
+    #0 0x562c6d625407 in ReadMP3APETag (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xb7407)
+    #1 0x562c6d62702a in ReadMP3GainAPETag (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xb902a)
+    #2 0x562c6d60b956 in main (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0x9d956)
+    #3 0x7f95270ded8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x7f95270dee3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #5 0x562c6d619fd4 in _start (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xabfd4)
+
+0x502000000051 is located 0 bytes to the right of 1-byte region [0x502000000050,0x502000000051)
+allocated by thread T0 here:
+    #0 0x7f9527aae887 in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:145
+    #1 0x562c6d624280 in ReadMP3APETag (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xb6280)
+    #2 0x562c6d62702a in ReadMP3GainAPETag (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xb902a)
+    #3 0x562c6d60b956 in main (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0x9d956)
+    #4 0x7f95270ded8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xb7407) in ReadMP3APETag
+Shadow bytes around the buggy address:
+  0x0a047fff7fb0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a047fff7fc0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a047fff7fd0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a047fff7fe0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a047fff7ff0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x0a047fff8000: fa fa 00 fa fa fa 00 05 fa fa[01]fa fa fa fa fa
+  0x0a047fff8010: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8020: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8030: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8040: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8050: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==651028==ABORTING

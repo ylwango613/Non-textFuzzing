@@ -1,0 +1,1 @@
+/usr/bin/g++ -fsanitize=address,undefined -g0 -fno-omit-frame-pointer -Wall -O3 -DNDEBUG -fsanitize=address,undefined CMakeFiles/mp4decrypt.dir/Source/C++/Apps/Mp4Decrypt/Mp4Decrypt.cpp.o -o mp4decrypt  libap4.a

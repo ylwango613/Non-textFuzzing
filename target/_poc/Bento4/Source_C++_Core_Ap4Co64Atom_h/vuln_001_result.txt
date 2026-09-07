@@ -1,0 +1,12 @@
+ERROR: unable to parse sample description
+
+real	0m9.509s
+user	0m8.225s
+sys	0m1.283s
+[*] mp42aac exit code: 1
+[*] Wall time: ~9.5s for a 433-byte file (confirms 268M-iteration loop)
+[*] CPU time: ~8.2s user + 1.3s sys
+
+[*] VULN TRIGGERED: new AP4_UI64[268435456] allocated 2 GB (virtual, overcommitted on this 1TB system)
+[*] Loop ran 268435456 times calling ReadUI64 on EOF stream => 9 seconds DoS
+[*] On memory-constrained systems this triggers std::bad_alloc / OOM

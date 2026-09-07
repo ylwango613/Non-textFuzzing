@@ -1,0 +1,4 @@
+VERIFIED_CRASH
+ASAN: heap-buffer-overflow in __interceptor_memcpy
+Triggered by: APE item name="MP3GAIN_ALBUM_MINMAX" with item_value_size=0
+Root cause: apetag.c line 258 - memcpy(tmpString, vp, 3) reads 3 bytes from 1-byte heap buffer (malloc(vsize+1)=malloc(1))

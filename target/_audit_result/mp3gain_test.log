@@ -1,0 +1,29 @@
+==========================================
+ mp3gain Full Security Audit
+ Mode: resume  (audit=1, poc=1, audit_parallel=3, poc_parallel=3)
+ Files to audit: 1 (skipped 0 missing)
+ Results: /data/ylwang/non-textfuzz/target/_audit_result/mp3gain/   PoCs: /data/ylwang/non-textfuzz/target/_poc/mp3gain/
+ Log: /data/ylwang/non-textfuzz/target/_audit_result/mp3gain/audit.log
+==========================================
+
+[1/1] Auditing: mp3gain.c
+  -> [mp3gain.c] FOUND 4 vulnerability(ies)!
+  -> launched PoC (bg pid=3982654, running=1/3)
+
+==========================================
+ Audit Complete
+ Files audited: 1 new + 0 skipped / 1 total
+ Errors: 0
+ Vulnerabilities found: 4
+ Results: /data/ylwang/non-textfuzz/target/_audit_result/mp3gain/
+==========================================
+
+Waiting for 1 background PoC subagent(s) to finish...
+==========================================
+ PoC Generation Summary
+ Launched this run:   1
+ Already-done skip:   0
+ Files with .done:    1
+ PoCs total/verified: 2 / 2
+ Base: /data/ylwang/non-textfuzz/target/_poc/mp3gain/
+==========================================

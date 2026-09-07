@@ -1,0 +1,9 @@
+apetag.c:287:39: runtime error: left shift of 1 by 31 places cannot be represented in type 'int'
+    #0 0x55e98d83bbfd in ReadMP3APETag (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xb7bfd)
+    #1 0x55e98d83d02a in ReadMP3GainAPETag (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xb902a)
+    #2 0x55e98d821956 in main (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0x9d956)
+    #3 0x7fcd6c182d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x7fcd6c182e3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #5 0x55e98d82ffd4 in _start (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xabfd4)
+
+                                                 

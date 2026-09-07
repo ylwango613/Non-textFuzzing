@@ -1,0 +1,8 @@
+UNVERIFIED
+The code path through AP4_AvccAtom::Create() is reached (the avcC atom with size=8 is parsed),
+but ASAN does not detect the OOB read because new AP4_Byte[0] returns a pointer to a
+minimum-sized heap block (not a zero-byte allocation in ASAN shadow terms). The read of
+payload[0] lands within the allocator's minimum block, so ASAN's shadow map does not flag it.
+The vulnerability exists at the source level (line 75 read before line 80 size guard),
+but requires a different detection mechanism (e.g., custom allocator returning exact 0-byte
+blocks, or a sanitizer configuration enforcing strict 0-size allocation boundaries).

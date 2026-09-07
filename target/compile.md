@@ -11,8 +11,14 @@
 | exiv2 | `/data/ylwang/non-textfuzz/target/exiv2/build_test/bin/exiv2` | 18 MB |
 | FFmpeg | `/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg` | 588 MB |
 | FFmpeg | `/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffprobe` | 583 MB |
-| mp3rgain | `/data/ylwang/non-textfuzz/target/mp3rgain/build_test/mp3rgain` | 7.4 MB |
-| gdk | `/data/ylwang/non-textfuzz/target/gdk/build_test/cmake_build/libgreen_gdk_full.a` | 564 MB |
+| mp3gain | `/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain` | 125 KB |
+| libtiff (tiffsplit) | `/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit` | — |
+| jasper (imginfo) | `/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo` | — |
+| xpdf (pdftotext) | `/data/ylwang/non-textfuzz/target/xpdf/build_test/bin/pdftotext` | — |
+| Bento4 (mp42aac) | `/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac` | — |
+| gdk-pixbuf (pixdata) | `/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata` | — |
+
+> **注意**: mp3rgain（Rust）和 gdk（Blockstream Bitcoin SDK）已被删除，替换为上表中的正确版本。
 
 > **exiv2 前置依赖**（已编译，无需重复）：
 > - inih r58 → `/data/ylwang/non-textfuzz/target/tool/inih-install/`
@@ -165,7 +171,135 @@ cp target/x86_64-unknown-linux-gnu/release/mp3rgain build_test/
 
 ---
 
-## gdk
+## mp3gain
+
+**构建系统**: Makefile  
+**输出**: `/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain`
+
+```bash
+cd /data/ylwang/non-textfuzz/target/mp3gain
+make clean -s 2>/dev/null || true
+make -j4 CC=gcc \
+    "CFLAGS=-Wall -O2 -DHAVE_MEMCPY -fsanitize=address,undefined -g0 -fno-omit-frame-pointer" \
+    "LIBS=-lm -fsanitize=address,undefined"
+mkdir -p build_test
+cp mp3gain build_test/
+```
+
+---
+
+## libtiff (tiffsplit)
+
+**构建系统**: autoconf/configure  
+**输出**: `/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit`
+
+```bash
+cd /data/ylwang/non-textfuzz/target/libtiff
+mkdir -p build_test
+./configure --prefix=$(pwd)/build_test \
+    CC=gcc CFLAGS="-fsanitize=address,undefined -g0 -fno-omit-frame-pointer" \
+    LDFLAGS="-fsanitize=address,undefined" \
+    --disable-lzma --without-x
+make -j4
+make install
+```
+
+---
+
+## jasper (imginfo)
+
+**构建系统**: CMake  
+**输出**: `/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo`
+
+```bash
+cd /data/ylwang/non-textfuzz/target/jasper
+mkdir -p build_test && cd build_test
+cmake .. \
+    -DCMAKE_C_COMPILER=gcc \
+    -DCMAKE_C_FLAGS="-fsanitize=address,undefined -g0 -fno-omit-frame-pointer" \
+    -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined" \
+    -DCMAKE_INSTALL_PREFIX=$(pwd)/install \
+    -DJAS_ENABLE_SHARED=OFF -DJAS_ENABLE_LIBJPEG=ON \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+make -j4
+make install
+```
+
+---
+
+## Bento4 (mp42aac)
+
+**构建系统**: CMake  
+**输出**: `/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac`
+
+```bash
+cd /data/ylwang/non-textfuzz/target/Bento4
+mkdir -p build_test && cd build_test
+cmake .. \
+    -DCMAKE_CXX_COMPILER=g++ \
+    -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -g0 -fno-omit-frame-pointer" \
+    -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+make -j4 mp42aac
+mkdir -p bin && cp mp42aac bin/
+```
+
+---
+
+## xpdf (pdftotext)
+
+**构建系统**: CMake（需 patch CMakeLists.txt）  
+**输出**: `/data/ylwang/non-textfuzz/target/xpdf/build_test/bin/pdftotext`  
+**注意**: 需向 xpdf/xpdf/CMakeLists.txt 的 xpdf_objs 中添加 Splash 相关源文件，以解决 typeinfo for PDFCore 链接问题；pdftotext link 需加 splash + freetype。
+
+```bash
+# patch 已应用（见 xpdf/xpdf/CMakeLists.txt）：
+# - xpdf_objs 添加了 DisplayState.cc PDFCore.cc PreScanOutputDev.cc ShadingImage.cc SplashOutputDev.cc TileCache.cc TileCompositor.cc TileMap.cc
+# - pdftotext target_link_libraries 添加了 splash ${FREETYPE_LIBRARY}
+
+cd /data/ylwang/non-textfuzz/target/xpdf
+mkdir -p build_test && cd build_test
+cmake .. \
+    -DCMAKE_CXX_COMPILER=g++ \
+    -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -g0 -fno-omit-frame-pointer" \
+    -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+make -j4 pdftotext
+mkdir -p bin && cp xpdf/pdftotext bin/
+```
+
+---
+
+## gdk-pixbuf (gdk-pixbuf-pixdata)
+
+**构建系统**: autoconf/configure  
+**输出**: `/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata`  
+**依赖**: glib-2.0 >= 2.37.6（系统已有 2.72.4）
+
+```bash
+cd /data/ylwang/non-textfuzz/target/gdk-pixbuf
+mkdir -p build_test
+./configure --prefix=$(pwd)/build_test \
+    CC=gcc CFLAGS="-fsanitize=address,undefined -g0 -fno-omit-frame-pointer" \
+    LDFLAGS="-fsanitize=address,undefined" \
+    --without-libtiff --without-libjasper \
+    --disable-modules
+make -j4
+make install
+```
+
+---
+
+## gdk（已废弃，Blockstream Bitcoin SDK）
+
+> **已删除**。原 `/data/ylwang/non-textfuzz/target/gdk/` 和 `/data/ylwang/non-textfuzz/target/mp3rgain/`（Rust 版）均已删除并替换为上述正确版本。
+
+---
+
+## gdk（原记录，保留以备参考）
 
 **构建系统**: 自有 builddeps.sh + CMake  
 **输出**: `/data/ylwang/non-textfuzz/target/gdk/build_test/cmake_build/libgreen_gdk_full.a`  

@@ -1,0 +1,40 @@
+CMakeFiles/ap4.dir/Source/C++/Core/Ap4SampleSource.cpp.o: \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4SampleSource.cpp \
+ /usr/include/stdc-predef.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4SampleSource.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Types.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Config.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Track.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Array.h \
+ /usr/include/c++/11/new \
+ /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
+ /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
+ /usr/include/features.h /usr/include/features-time64.h \
+ /usr/include/x86_64-linux-gnu/bits/wordsize.h \
+ /usr/include/x86_64-linux-gnu/bits/timesize.h \
+ /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+ /usr/include/x86_64-linux-gnu/bits/long-double.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
+ /usr/include/x86_64-linux-gnu/c++/11/bits/cpu_defines.h \
+ /usr/include/c++/11/pstl/pstl_config.h \
+ /usr/include/c++/11/bits/exception.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Results.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4SampleDescription.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Atom.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4List.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4ByteStream.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Interfaces.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4DataBuffer.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4String.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Debug.h \
+ /usr/include/assert.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4DynamicCast.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4EsDescriptor.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Descriptor.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Expandable.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4DecoderConfigDescriptor.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4DecoderSpecificInfoDescriptor.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4EsdsAtom.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4AvccAtom.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4HvccAtom.h

@@ -1,0 +1,3 @@
+VERIFIED_CRASH
+runtime error: left shift of negative value -1 (exif.c:344, from Get32u -> Get32s reading crafted TAG_THUMBNAIL_LENGTH = 0xFFFFFFFF)
+SaveImgThumbnail called with ThumbnailSize = -1; fwrite(ptr, SIZE_MAX, 1, file) executed (output file created, 0 bytes written due to glibc SIZE_MAX ssize_t sign-conversion).

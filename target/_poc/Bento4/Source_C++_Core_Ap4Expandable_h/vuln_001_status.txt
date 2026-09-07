@@ -1,0 +1,23 @@
+UNVERIFIED
+The integer underflow at Ap4DecoderConfigDescriptor.cpp:92 is triggered:
+  payload_size(0) - 13 = 0xFFFFFFF3  (uint32 wrap-around)
+  AP4_SubStream(stream, start+13, 0xFFFFFFF3) is allocated successfully.
+
+However, no ASAN heap error or crash is produced because:
+  - The parent EsDescriptor SubStream (EsSub, size=2) guards subsequent Seek calls.
+  - DCSub.ReadPartial calls EsSub.Seek(15), which returns AP4_FAILURE (15 > 2),
+    so no byte is actually read past the declared descriptor boundary.
+  - mp42aac uses AP4_FileByteStream (file I/O), not a heap buffer, so there is no
+    heap object to overflow even if reads succeeded.
+  - UBSAN unsigned-integer-overflow detection is not enabled in this build.
+
+Binary output (vuln_001_result.txt):
+  "Audio Track:\n  duration: 0 ms\n  sample count: 0"
+  Exit code: 0
+
+The vulnerable code path IS reached on each run, confirming the underflow computation
+occurs.  An exploit would require either:
+  (a) A memory-backed ByteStream so the huge SubStream size bypasses bounds,
+  (b) Compilation with -fsanitize=unsigned-integer-overflow to surface the wrap, or
+  (c) A crafted file where the EsDescriptor's declared payload is >= 19 bytes so that
+      EsSub is large enough to allow DCSub seeks, enabling OOB descriptor parsing.

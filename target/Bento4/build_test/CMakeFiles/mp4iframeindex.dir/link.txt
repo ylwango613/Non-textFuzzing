@@ -1,0 +1,1 @@
+/usr/bin/g++ -fsanitize=address,undefined -g0 -fno-omit-frame-pointer -Wall -O3 -DNDEBUG -fsanitize=address,undefined CMakeFiles/mp4iframeindex.dir/Source/C++/Apps/Mp4IframeIndex/Mp4IframeIndex.cpp.o -o mp4iframeindex  libap4.a

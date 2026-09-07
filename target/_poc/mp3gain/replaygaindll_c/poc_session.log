@@ -1,0 +1,7 @@
+---
+
+## 汇总
+
+| VULN | 状态 | 说明 |
+|------|------|------|
+| VULN-001: Off-by-one OOB write in `GetDLLVersion` | **SKIPPED** | `GetDLLVersion` 是 DLL 导出 API，mp3gain 主程序执行路径中从不调用该函数，无法通过传入恶意 MP3 文件触发。 |

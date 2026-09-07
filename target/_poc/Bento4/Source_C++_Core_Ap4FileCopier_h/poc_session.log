@@ -1,0 +1,16 @@
+VULN 001 PoC is complete and verified.
+
+**结果摘要**
+
+| 编号 | 漏洞 | 状态 |
+|------|------|------|
+| 001 | AP4_NullTerminatedStringAtom Heap OOB Write (Ap4Atom.cpp:474) | **VERIFIED_CRASH** |
+
+**崩溃确认**：ASAN 报告 `SEGV on unknown address 0x50210000008f`（WRITE），调用链完全匹配：
+`main → AP4_File::ParseStream → AP4_AtomFactory::CreateAtomFromStream → AP4_NullTerminatedStringAtom → str[0xFFFFFFFF] = '\0'`
+
+**生成文件**：
+- `vuln_001_gen.py` — 构造 148 字节 MP4，在 `moov` 内嵌入 size=8 的 `8id ` atom
+- `vuln_001_run.sh` — 运行生成器并以 ASAN 执行 mp42aac
+- `vuln_001_notes.md` — 根因分析和预期现象
+- `vuln_001_status.txt` — `VERIFIED_CRASH`

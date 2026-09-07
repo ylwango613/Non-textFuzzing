@@ -1,0 +1,22 @@
+UNVERIFIED
+Ran without ASAN/UBSAN error on this system.
+
+Root cause confirmed: AP4_EsDescriptor::AP4_EsDescriptor (Ap4EsDescriptor.cpp:103)
+  payload_size(2) - AP4_Size(offset-start)(3) = 0xFFFFFFFF  [unsigned integer underflow]
+  SubStream1 created with size=0xFFFFFFFF (~4 GB)
+
+Cascade triggered (validated by design):
+  SubStream1 → DecoderConfigDescriptor (tag=0x04, declared payload=0x0FFFFFFF)
+  SubStream2  → DecoderSpecificInfo    (tag=0x05, declared payload=0x0FFFFFFF)
+  AP4_DataBuffer::ReallocateBuffer: new AP4_Byte[0x0FFFFFFF] — 256 MB allocation SUCCEEDED
+
+No ASAN/UBSAN error because:
+  1. The file stream uses fread(), not mmap(); reading past EOF returns 0 bytes gracefully.
+  2. The 256 MB allocation succeeds on this system (sufficient virtual memory).
+  3. The buffer (256 MB) is large enough to hold the stream data read into it (108 bytes
+     actually transferred), so no heap-buffer-overflow occurs.
+  4. UBSAN -fsanitize=undefined does NOT include unsigned-integer-overflow by default,
+     so the wrap at payload_size-3 is not flagged.
+
+To verify on a memory-constrained system or with ASAN mmap_limit_mb set low, the
+new AP4_Byte[0x0FFFFFFF] call would throw std::bad_alloc, causing an abort.

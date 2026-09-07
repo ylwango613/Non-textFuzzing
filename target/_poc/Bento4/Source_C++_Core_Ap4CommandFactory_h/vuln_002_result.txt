@@ -1,0 +1,14 @@
+=== VULN 002 PoC Run: Mon Sep  7 05:00:31 AM +08 2026 ===
+[*] Generating PoC MP4 files...
+[+] Approach 1 (url_flag=0, payload_size=3): 725 bytes -> /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4CommandFactory_h/vuln_002.mp4
+    Trigger: 3 - 7 = 0xFFFFFFFC underflow in SubStream size
+[+] Approach 2 (url_flag=1, url_length=255, payload_size=4): 960 bytes -> /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4CommandFactory_h/vuln_002_alt.mp4
+    Trigger: 4 - 258 = 0xFFFFFEFE underflow in SubStream size
+
+--- Approach 1: url_flag=0, payload_size=3 (3-7=0xFFFFFFFC underflow) ---
+ERROR: no audio track found
+
+--- Approach 2: url_flag=1, url_length=255, payload_size=4 (4-258=0xFFFFFEFE underflow) ---
+ERROR: no audio track found
+
+=== Run complete ===

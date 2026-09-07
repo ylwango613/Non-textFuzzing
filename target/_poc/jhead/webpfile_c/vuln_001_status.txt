@@ -1,0 +1,4 @@
+VERIFIED_CRASH
+ASAN confirmed: AddressSanitizer: SEGV on unknown address 0x000000000000
+Call chain: main -> ProcessFile -> ReadImgFile -> ReadWebpSections -> fread (NULL ptr write)
+malloc(0x80000000) returned NULL (ASAN max_allocation_size_mb=512), fread(NULL,...) -> SIGSEGV

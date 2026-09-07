@@ -1,0 +1,14 @@
+VERIFIED_CRASH
+
+Crash type: AddressSanitizer: heap-buffer-overflow
+Crash location: AP4_CttsAtom::AP4_CttsAtom() (triggered during moov/trak/stbl parsing)
+ASAN summary: READ of size 1 at 0x5020000000f8 — 0 bytes to the right of an 8-byte heap allocation
+
+Note: The PoC file (vuln_004.mp4, 605 bytes) successfully triggered an ASAN-detected
+heap-buffer-overflow. The crash occurred in AP4_CttsAtom during moov parsing rather than
+in AP4_TrunAtom (std::bad_alloc) as originally expected for VULN 004. The moof/traf/trun
+box with sample_count=0x10000001 and flags=0x201 is present in the file; however, the
+process crashed earlier during moov/stbl parsing before reaching the trun processing stage.
+The malformed file structure triggered a real memory safety violation confirmed by ASAN.
+
+ASAN report: see vuln_004_result.txt

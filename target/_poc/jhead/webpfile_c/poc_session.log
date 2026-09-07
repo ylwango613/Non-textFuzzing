@@ -1,0 +1,12 @@
+## 汇总结果
+
+| VULN 编号 | 漏洞名称 | 状态 |
+|-----------|----------|------|
+| VULN 001 | NULL Pointer Dereference via Unchecked malloc in ReadWebpSections | **VERIFIED_CRASH** |
+
+**PoC 关键细节：**
+- 构造一个 RIFF/WEBP 容器，将 `EXIF` chunk 长度字段设为 `0x7FFFFFFF`
+- `ReadLen = (0x7FFFFFFF + 1) & ~1 = 0x80000000`（2 GiB），malloc 失败返回 NULL
+- `fread(NULL, 1, 0x80000000, infile)` 触发 SIGSEGV
+- ASAN 确认崩溃路径：`main → ProcessFile → ReadImgFile → ReadWebpSections → fread`
+- 所有文件已生成于 `/data/ylwang/non-textfuzz/target/_poc/jhead/webpfile_c/`

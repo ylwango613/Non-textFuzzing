@@ -1,0 +1,13 @@
+VERIFIED_CRASH
+
+ASAN confirmed: heap-buffer-overflow (READ 1 byte) in AP4_Dec3Atom::AP4_Dec3Atom()
+Address 0x5020000000f5 is 0 bytes past a 5-byte heap region [0x5020000000f0, 0x5020000000f5)
+allocated by AP4_DataBuffer::AP4_DataBuffer in AP4_Dec3Atom::Create.
+
+Triggering payload: dec3 box size=13, payload=[00 00 00 00 0E]
+  - num_dep_sub = (payload[4]>>1)&0xF = (0x0E>>1)&0xF = 7 (nonzero)
+  - Causes read of payload[3] at Ap4Dec3Atom.cpp line 97 (1 byte past end of 5-byte buffer)
+  - payload_size unsigned underflow: 3 - 4 = 0xFFFFFFFF
+
+ASAN SUMMARY: AddressSanitizer: heap-buffer-overflow in AP4_Dec3Atom::AP4_Dec3Atom(unsigned int, unsigned char const*)
+Exit code: 42 (ASAN abort)

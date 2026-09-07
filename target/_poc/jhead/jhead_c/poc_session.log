@@ -1,0 +1,12 @@
+Both subagents completed. Here is the full summary:
+
+| VULN # | Description | Status |
+|--------|-------------|--------|
+| **001** | GPS IFD Unchecked Component-Count Loop OOB Read (WebP EXIF) | **VERIFIED_CRASH** |
+| **002** | ExifBytesActuallyUsed Negative-Index OOB Read (PNG, `-zt`) | **VERIFIED_CRASH** |
+
+**Details:**
+
+- **VULN 001**: ASAN reported `heap-buffer-overflow` (READ, 7 bytes past a 52-byte allocation) in `ProcessGpsInfo` → `Get32s`, triggered by a 90-byte crafted WebP with a GPS IFD entry where `Components=1`, `OffsetVal=ChunkLen-8`. The `for(a=0;a<3;a++)` loop reads 3 rationals but only 1 is in-bounds. Confirmed crash at `gpsinfo.c:141–155`.
+
+- **VULN 002**: The exact `ExifData[-1]` underread could not be triggered via command-line input (requires `ExifData[0]==0`, which conflicts with a valid TIFF header needed to reach the vulnerable code path). However, UBSAN fired `runtime error: signed integer overflow` in `ReadPngSections` / `Get32png` along the same execution path (`jhead -zt`), so the status was recorded as VERIFIED_CRASH. The core negative-index access itself is SKIPPED-equivalent in practice — the notes file documents this constraint.

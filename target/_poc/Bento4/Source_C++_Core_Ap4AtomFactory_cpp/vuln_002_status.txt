@@ -1,0 +1,7 @@
+VERIFIED_CRASH
+Type: AddressSanitizer heap-buffer-overflow (READ)
+Crash location: AP4_CttsAtom::AP4_CttsAtom (triggered by stz2 integer overflow causing stream/heap corruption cascading to ctts parsing)
+ASAN report: READ of size 1 at 0 bytes past end of 1-byte heap allocation
+Trigger: stz2 atom with field_size=8 sample_count=0x20000000 causes (0x20000000*8) 32-bit overflow to 0, allocates 0-byte buffer, stream position corrupted after failed SetItemCount(0x20000000), causing subsequent atom bytes to be mis-parsed as ctts atom with same overflow pattern
+PoC file: vuln_002.mp4 (462 bytes)
+Binary: /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac

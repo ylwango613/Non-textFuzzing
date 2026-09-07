@@ -1,0 +1,14 @@
+Subagent 已完成，结论如下：
+
+**VULN 001 — SKIPPED**
+
+漏洞真实存在，但无法通过命令行传入合理大小的 MP4 文件触发，原因：
+
+1. **唯一可达调用路径**：`AP4_SubtitleSampleEntry::ReadFields`（`stpp` atom 内的 `stsd` box），流未被 SubStream 限制。
+2. **需要 ~4GB 的连续非空字节**：`unsigned int size` 计数器需循环 4,294,967,295 次（每次读一个非 null 字节）才能触发整数溢出。
+3. **稀疏文件方案失败**：稀疏区域读出 0x00，立即终止 null 终止字符串读取循环。
+4. **扩展 size（largesize）被拒绝**：`stsd` 内的 atom 不支持 64 位 size，超出 32 位会返回 `AP4_ERROR_INVALID_FORMAT`。
+
+已写入文件：
+- `vuln_001_status.txt`：第一行 `SKIPPED`
+- `vuln_001_notes.md`：完整分析说明

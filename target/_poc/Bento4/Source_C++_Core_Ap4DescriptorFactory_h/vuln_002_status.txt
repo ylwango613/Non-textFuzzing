@@ -1,0 +1,17 @@
+UNVERIFIED
+The ES_Descriptor integer underflow (payload_size=4, consumed=5 → SubStream size=0xFFFFFFFF) is
+structurally triggered: the constructed MP4 parses cleanly via mp42aac, the ES_Descriptor
+constructor consumes 5 bytes against a declared 4-byte payload, and the fake tag=0x05 descriptor
+with size=0x0FFFFFFF is placed at the SubStream anchor position. However, no ASAN/UBSAN signal
+was raised during this run.
+
+Reason: on this machine the 268 MB SetDataSize allocation succeeds, and the actual file bytes
+available past the SubStream anchor are fewer than both the 0x0FFFFFFF-byte buffer and the
+0xFFFFFFFA-byte clamped read request, so the real read is bounded by EOF (a handful of bytes)
+and never reaches the allocated buffer boundary. UBSAN does not flag the unsigned subtraction
+underflow (AP4_Size is uint32_t; -fsanitize=unsigned-integer-overflow is not in the build flags).
+
+The vulnerability class (CWE-191 → CWE-125) is confirmed by source-code analysis; the ASAN
+crash would manifest on a system where the 268 MB allocation fails (UseData() returns NULL →
+null-pointer dereference in stream.Read) or where additional file content after the ES_Descriptor
+fills the fake descriptor payload beyond the allocated buffer size.

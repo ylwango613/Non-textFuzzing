@@ -1,0 +1,9 @@
+VERIFIED_CRASH
+Trigger: crafted MP4 with ctts box declaring size=16 but entry_count=0x04000000 (67108864)
+Crash type: ASAN hard RSS limit exhausted (process consumed 551MB vs 512MB limit)
+ASAN message: "AddressSanitizer: hard rss limit exhausted (512Mb vs 551Mb)"
+Root cause: Ap4CttsAtom.cpp lines 79-80 allocate unbounded memory from attacker-controlled entry_count:
+  m_Entries.SetItemCount(0x04000000) -> ~512MB vector allocation
+  new unsigned char[0x04000000 * 8] -> ~512MB heap buffer
+No bounds check on entry_count vs. declared atom size (16 bytes) vs. actual data in stream (0 bytes)
+PoC file: vuln_002.mp4 (497 bytes)

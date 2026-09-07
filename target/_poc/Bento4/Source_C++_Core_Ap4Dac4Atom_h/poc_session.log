@@ -1,0 +1,11 @@
+VULN-001 PoC is complete and **VERIFIED_CRASH**.
+
+**Result**: `heap-buffer-overflow` confirmed by ASAN on the instrumented binary.
+
+**Files created** under `_poc/Bento4/Source_C++_Core_Ap4Dac4Atom_h/`:
+- `vuln_001_gen.py` — builds a 521-byte MP4 with crafted `dac4` payload (`20 00 01 00 00 00 00 00 00 00 00`)
+- `vuln_001_run.sh` — runner script
+- `vuln_001_notes.md` — technical write-up
+- `vuln_001_status.txt` — first line: `VERIFIED_CRASH`
+
+**Crash summary**: After consuming exactly 90 bits of header fields (`ac4_dsi_version=1`, `bitstream_version=0`, `n_presentations=1`, etc.) from an 11-byte payload (padded to 12 bytes internally), `m_Position==12` and `m_BitsCached==0`. The next `ReadBits(8)` for `presentation_version` calls `ReadCache()` at offset 12 — 0 bytes past the end of the 12-byte heap allocation — triggering ASAN's `heap-buffer-overflow`.

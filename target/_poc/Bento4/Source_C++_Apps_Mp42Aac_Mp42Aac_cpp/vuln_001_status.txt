@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+ASAN: heap-buffer-overflow (READ of size 1) at AP4_CttsAtom::AP4_CttsAtom
+Allocation: new unsigned char[1] (result of 0x20000000*8 overflow to 0, allocator returned 1 byte)
+First OOB access: buffer[0x8] (8 bytes past 1-byte allocation)
+Call chain: main → AP4_File → AP4_AtomFactory → AP4_CttsAtom::Create → AP4_CttsAtom ctor
+ASAN log: asan.log.125925

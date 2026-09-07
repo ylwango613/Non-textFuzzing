@@ -1,0 +1,23 @@
+/data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4DataBuffer.cpp:175:5: runtime error: null pointer passed as argument 1, which is declared to never be null
+    #0 0x557f0b1c2818 in AP4_DataBuffer::SetData(unsigned char const*, unsigned int) [clone .cold] (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x7fb818)
+    #1 0x557f0b2894a1 in AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription(unsigned int, unsigned short, unsigned short, AP4_EsdsAtom*) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x8c24a1)
+    #2 0x557f0b29bca7 in AP4_MpegAudioSampleEntry::ToSampleDescription() (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x8d4ca7)
+    #3 0x557f0b2df991 in AP4_StsdAtom::GetSampleDescription(unsigned int) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x918991)
+    #4 0x557f0b1f7224 in main (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x830224)
+    #5 0x7fc597f5ed8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fc597f5ee3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #7 0x557f0b1fb834 in _start (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x834834)
+
+/data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4DataBuffer.cpp:175:5: runtime error: null pointer passed as argument 2, which is declared to never be null
+    #0 0x557f0b1c27ff in AP4_DataBuffer::SetData(unsigned char const*, unsigned int) [clone .cold] (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x7fb7ff)
+    #1 0x557f0b2894a1 in AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription(unsigned int, unsigned short, unsigned short, AP4_EsdsAtom*) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x8c24a1)
+    #2 0x557f0b29bca7 in AP4_MpegAudioSampleEntry::ToSampleDescription() (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x8d4ca7)
+    #3 0x557f0b2df991 in AP4_StsdAtom::GetSampleDescription(unsigned int) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x918991)
+    #4 0x557f0b1f7224 in main (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x830224)
+    #5 0x7fc597f5ed8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fc597f5ee3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #7 0x557f0b1fb834 in _start (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x834834)
+
+Audio Track:
+  duration: 100 ms
+  sample count: 0

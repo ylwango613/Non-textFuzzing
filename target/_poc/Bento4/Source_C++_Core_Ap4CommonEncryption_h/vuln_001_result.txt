@@ -1,0 +1,3 @@
+ERROR: no audio track found
+==2500729==ERROR: AddressSanitizer: requested allocation size 0xfffffffc (0x100001000 after adjustments for alignment, red zones etc.) exceeds maximum supported size of 0x8000000 (thread T0)
+SUMMARY: AddressSanitizer: allocation-size-too-big ../../../../src/libsanitizer/asan/asan_new_delete.cpp:102 in operator new[](unsigned long)

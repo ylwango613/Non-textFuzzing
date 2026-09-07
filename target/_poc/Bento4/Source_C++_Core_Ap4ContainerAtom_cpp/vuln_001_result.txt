@@ -1,0 +1,46 @@
+=== VULN 001 PoC Run Results ===
+Date: Mon Sep  7 2026
+
+--- Variant: vuln_001.mp4 (meta 64-bit size_64=14, top-level) ---
+ERROR: no movie in file
+Exit code: 1
+ASAN/UBSAN logs: none
+
+--- Variant: vuln_001b.mp4 (meta 64-bit size_64=14, inside moov) ---
+ERROR: no audio track found
+Exit code: 1
+ASAN/UBSAN logs: none
+
+--- Variant: vuln_001c.mp4 (odrm 64-bit size_64=12, top-level) ---
+ERROR: no movie in file
+Exit code: 1
+ASAN/UBSAN logs: none
+
+--- Variant: vuln_001d.mp4 (odrm 64-bit size_64=13, top-level) ---
+ERROR: no movie in file
+Exit code: 1
+ASAN/UBSAN logs: none
+
+--- Variant: vuln_001e.mp4 (odrm 64-bit size_64=19, top-level) ---
+ERROR: no movie in file
+Exit code: 1
+ASAN/UBSAN logs: none
+
+--- Variant: vuln_001f.mp4 (marl non-full 64-bit size_64=8, top-level) ---
+ERROR: no movie in file
+Exit code: 1
+ASAN/UBSAN logs: none
+
+--- Variant: vuln_001g.mp4 (marl non-full 64-bit size_64=15, top-level) ---
+ERROR: no movie in file
+Exit code: 1
+ASAN/UBSAN logs: none
+
+=== Analysis ===
+Exit code 1 in all cases is an APPLICATION-LEVEL error ("no movie in file" /
+"no audio track found"), NOT a sanitizer crash. ASAN and UBSAN produced no
+log files. The underflow IS triggered but does not cause a heap OOB because:
+- Unsigned subtraction underflow is defined C++ behaviour (not caught by UBSAN)
+- File-backed reads are capped at EOF (no heap buffer accessed out of bounds)
+
+=== Done ===

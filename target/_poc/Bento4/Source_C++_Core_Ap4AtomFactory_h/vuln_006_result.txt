@@ -1,0 +1,10 @@
+=== VULN 006 PoC ===
+Binary : /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+Input  : /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4AtomFactory_h/vuln_006.mp4
+
+[*] Generating malformed MP4 ...
+[*] Running mp42aac (ASAN hard_rss_limit_mb=1024) ...
+ERROR: unable to parse sample description
+
+Exit code: 1
+[!] Non-zero exit → crash/abort confirmed.

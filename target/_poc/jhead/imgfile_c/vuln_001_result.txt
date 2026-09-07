@@ -1,0 +1,2 @@
+exif.c:344:37: runtime error: left shift of negative value -1
+Created: 'vuln_001_thumb.jpg'

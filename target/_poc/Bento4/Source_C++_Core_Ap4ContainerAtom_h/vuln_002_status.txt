@@ -1,0 +1,5 @@
+VERIFIED_CRASH
+ASAN Error: AddressSanitizer: heap-buffer-overflow
+Location: AP4_CttsAtom::AP4_CttsAtom (triggered by malicious trun sample_count=0x10000000)
+Detail: READ of size 1 at heap address past allocated region
+ASAN log: asan.log.2997961

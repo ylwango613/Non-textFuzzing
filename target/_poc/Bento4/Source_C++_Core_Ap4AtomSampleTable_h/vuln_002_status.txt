@@ -1,0 +1,5 @@
+VERIFIED_CRASH
+Type: heap-buffer-overflow (READ of size 1)
+Location: AP4_Stz2Atom::AP4_Stz2Atom — 0 bytes past end of 1-byte buffer
+Trigger: stz2 box with field_size=4, sample_count=0x40000001 (integer overflow in table_size)
+ASAN confirmed: buffer allocated as 1 byte, loop reads buffer[1] (out-of-bounds)

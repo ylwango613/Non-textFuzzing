@@ -1,0 +1,5 @@
+VERIFIED_CRASH
+ASAN error: allocation-size-too-big
+Cause: payload_size = size(12) - GetHeaderSize()(12) - 4 = 0xFFFFFFFC (uint32 underflow)
+m_SampleInfos.SetDataSize(0xFFFFFFFC) triggers new AP4_Byte[0xFFFFFFFC] (~4GB), rejected by ASAN.
+ASAN summary: AddressSanitizer: allocation-size-too-big in operator new[](unsigned long)

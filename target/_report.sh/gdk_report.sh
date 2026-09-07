@@ -17,11 +17,11 @@ set -euo pipefail
 export PATH="$HOME/.nvm/versions/node/v20.19.6/bin:$HOME/.local/bin:$HOME/bin:$PATH"
 
 SOURCE_DIR="/data/ylwang/non-textfuzz/target/gdk"
-OUTDIR="$SOURCE_DIR/gdk"
-POC_BASE="$OUTDIR/poc"
+OUTDIR="/data/ylwang/non-textfuzz/target/_audit_result/gdk"
+POC_BASE="/data/ylwang/non-textfuzz/target/_poc/gdk"
 DRAFTS_DIR="$OUTDIR/report-drafts"
 LOGFILE="$OUTDIR/report.log"
-REPORT_DIR="$(cd "$(dirname "$0")/../.." && pwd)/report"
+REPORT_DIR="/data/ylwang/non-textfuzz/target/report"
 REPORT_MD="$REPORT_DIR/gdk.md"
 REPORT_PARALLEL="${REPORT_PARALLEL:-4}"
 

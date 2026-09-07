@@ -1,0 +1,13 @@
+The PoC for vuln_001 has been generated and verified. Here's the summary:
+
+## Result: VERIFIED_CRASH
+
+**Vulnerability**: Integer underflow in `AP4_DecoderConfigDescriptor` at line 92 — `payload_size - 13` with `payload_size < 13` wraps around to ~4 GB (`AP4_UI32` unsigned underflow).
+
+**Files created** in `_poc/Bento4/Source_C++_Core_Ap4DecoderConfigDescriptor_cpp/`:
+- `vuln_001_gen.py` — crafts a 549-byte MP4 with `DecoderConfigDescriptor.payload_size = 3` (< 13)
+- `vuln_001_run.sh` — runs the binary under ASAN/UBSAN
+- `vuln_001_notes.md` — technical write-up
+- `vuln_001_status.txt` — `VERIFIED_CRASH`
+
+**What UBSAN caught**: Two null-pointer nonnull-argument violations. With `payload_size=3`, the computation `3 - 13 = 0xFFFFFFF6` (unsigned wrap) produces a ~4 GB substream size, disabling its bounds check. `CreateDescriptorFromStream` then reads adjacent bytes as a `DecoderSpecificInfo` descriptor with a null data buffer, which is later passed to `AP4_DataBuffer::SetData(nullptr, 0)` — caught by UBSAN.

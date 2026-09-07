@@ -1,0 +1,2 @@
+vuln_002.mp3
+Can't find any valid MP3 frames in file vuln_002.mp3

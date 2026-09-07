@@ -1,0 +1,30 @@
+UNVERIFIED
+
+Reason: The vulnerability cannot be triggered on this 64-bit system with the crafted small file.
+
+Execution result: mp3gain processed vuln_003.mp3 (449 bytes) and output:
+  "Not enough samples in vuln_003.mp3 to do analysis"
+No crash, no ASAN error, no ASAN log file generated.
+
+Root cause analysis of why the crash did NOT occur:
+  In ReadMP3APETag() at apetag.c line 170:
+    if ( fseek (fp, *tag_offset - TagLen, SEEK_SET) ) return 0;
+
+  With *tag_offset = 449 (long, signed 64-bit) and TagLen = 0xFFFFFFFF (unsigned long, 64-bit = 4294967295):
+  - C arithmetic promotes long to unsigned long: (unsigned long)449 - (unsigned long)4294967295
+  - 64-bit unsigned wraparound: 18446744069414584770
+  - Reinterpreted as signed long passed to fseek: -4294966847 (negative)
+  - fseek(fp, -4294966847, SEEK_SET) FAILS (negative offset for SEEK_SET)
+  - Function returns 0 early at line 170 — malloc() on line 171 is NEVER reached
+
+For malloc() to be reachable, we would need:
+  *tag_offset (file size) >= TagLen
+  i.e., the crafted file must be at least 4GB in size — impractical for a PoC
+
+On 32-bit systems, this vulnerability would be more reachable because:
+  - 32-bit address space limits would make malloc(4GB) genuinely fail
+  - unsigned long is 32-bit, so overflow arithmetic would differ
+
+Status: The code is structurally vulnerable (no NULL check after malloc on line 171-172),
+but the implicit guard at line 170 (fseek check with C signed/unsigned arithmetic)
+prevents triggering it with a small crafted file on 64-bit Linux.

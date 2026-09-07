@@ -1,0 +1,26 @@
+VULN 001 is **VERIFIED_CRASH**.
+
+---
+
+## Summary
+
+**Vulnerability**: Integer Overflow in `AP4_Array::EnsureCapacity` → elst parser DoS/Heap Overflow
+
+**Status**: `VERIFIED_CRASH`
+
+**What happened**: The crafted MP4 contains an `elst` box with `entry_count = 0xFFFFFF00` (~4.3 billion) but no actual entries. When `mp42aac` parses it, `Ap4ElstAtom.cpp:73` calls `m_Entries.EnsureCapacity(0xFFFFFF00)` with no bounds check against the actual box size. This triggers `::operator new(0xFFFFFF00 × 20 ≈ 80 GB)`. ASAN's shadow-memory multiplier inflates the request to ~15 TB, which immediately fails with `ENOMEM` and aborts the process:
+
+```
+ERROR: AddressSanitizer failed to allocate 0xdfff0001000 (15392894357504) bytes
+(core dumped)
+```
+
+**Files generated** in `_poc/Bento4/Source_C++_Core_Ap4ElstAtom_h/`:
+| File | Purpose |
+|---|---|
+| `vuln_001_gen.py` | Generates the 280-byte crafted MP4 |
+| `vuln_001.mp4` | The crafted input |
+| `vuln_001_run.sh` | Shell driver (with 2 GB `ulimit` to force failure without 1 TB RAM) |
+| `vuln_001_notes.md` | PoC rationale |
+| `vuln_001_result.txt` | Full run output |
+| `vuln_001_status.txt` | `VERIFIED_CRASH` |

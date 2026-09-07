@@ -1,0 +1,24 @@
+==== VULN-003 Run Results ====
+Mon Sep  7 05:32:21 AM +08 2026
+
+--- Variant: p2_extra (/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Command_h/vuln_003_p2_extra.mp4) ---
+Audio Track:
+  duration: 0 ms
+  sample count: 0
+
+--- Variant: p2_plain (/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Command_h/vuln_003_p2_plain.mp4) ---
+Audio Track:
+  duration: 0 ms
+  sample count: 0
+
+--- Variant: p1_extra (/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Command_h/vuln_003_p1_extra.mp4) ---
+Audio Track:
+  duration: 0 ms
+  sample count: 0
+
+--- Variant: p0_extra (/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Command_h/vuln_003_p0_extra.mp4) ---
+Audio Track:
+  duration: 0 ms
+  sample count: 0
+
+==== Done ====

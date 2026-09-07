@@ -1,0 +1,75 @@
+==========================================
+ jhead Full Security Audit
+ Mode: resume  (audit=1, poc=1, audit_parallel=1, poc_parallel=1)
+ Files to audit: 13 (skipped 0 missing)
+ Results: /data/ylwang/non-textfuzz/target/_audit_result/jhead/   PoCs: /data/ylwang/non-textfuzz/target/_poc/jhead/
+ Log: /data/ylwang/non-textfuzz/target/_audit_result/jhead/audit.log
+==========================================
+
+[1/13] Auditing: exif.c
+[2/13] Auditing: gpsinfo.c
+  -> [exif.c] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=3867048, running=1/1)
+[3/13] Auditing: imgfile.c
+  -> [gpsinfo.c] FOUND 2 vulnerability(ies)!
+  -> launched PoC (bg pid=3954124, running=1/1)
+[4/13] Auditing: iptc.c
+[5/13] Auditing: jhead.c
+  -> [iptc.c] Clean.
+  -> launched PoC (bg pid=4029131, running=1/1)
+[7/13] Auditing: jpgqguess.c
+[8/13] Auditing: makernote.c
+[9/13] Auditing: myglob.c
+[10/13] Auditing: paths.c
+[11/13] Auditing: pngfile.c
+  -> [paths.c] Clean.
+[12/13] Auditing: webpfile.c
+  -> [imgfile.c] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=4147446, running=1/1)
+  -> [pngfile.c] Clean.
+[13/13] Auditing: winfileopen.c
+  -> [jhead.c] FOUND 2 vulnerability(ies)!
+  -> launched PoC (bg pid=64104, running=1/1)
+  -> [webpfile.c] WARNING: empty result, removed
+  -> [winfileopen.c] Clean.
+
+==========================================
+ Audit Complete
+ Files audited: 12 new + 1 skipped / 13 total
+ Errors: 1
+ Vulnerabilities found: 6
+ Results: /data/ylwang/non-textfuzz/target/_audit_result/jhead/
+==========================================
+
+Waiting for 1 background PoC subagent(s) to finish...
+==========================================
+ PoC Generation Summary
+ Launched this run:   5
+ Already-done skip:   0
+ Files with .done:    5
+ PoCs total/verified: 8 / 7
+ Base: /data/ylwang/non-textfuzz/target/_poc/jhead/
+==========================================
+  -> launched PoC (bg pid=199238, running=1/1)
+  -> [webpfile.c] WARNING: empty result, removed
+  -> [winfileopen.c] Clean.
+  -> [webpfile.c] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=320797, running=1/1)
+
+==========================================
+ Audit Complete
+ Files audited: 3 new + 10 skipped / 13 total
+ Errors: 1
+ Vulnerabilities found: 4
+ Results: /data/ylwang/non-textfuzz/target/_audit_result/jhead/
+==========================================
+
+Waiting for 1 background PoC subagent(s) to finish...
+==========================================
+ PoC Generation Summary
+ Launched this run:   5
+ Already-done skip:   1
+ Files with .done:    7
+ PoCs total/verified: 9 / 8
+ Base: /data/ylwang/non-textfuzz/target/_poc/jhead/
+==========================================

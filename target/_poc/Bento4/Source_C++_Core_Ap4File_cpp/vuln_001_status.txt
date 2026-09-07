@@ -1,0 +1,7 @@
+VERIFIED_CRASH
+ASAN reported heap-buffer-overflow in AP4_CttsAtom::AP4_CttsAtom on the first run.
+entry_count=0x20000001 causes a 32-bit integer overflow (0x20000001*8 = 8 bytes allocated).
+The constructor then reads 8 bytes per iteration for 0x20000001 entries, immediately
+overflowing 0 bytes past the end of the 8-byte heap region on the second iteration.
+Crash site: AP4_CttsAtom::AP4_CttsAtom (READ of size 1, 0 bytes past end of 8-byte region).
+Call path: main → AP4_File → AP4_AtomFactory → AP4_CttsAtom constructor.

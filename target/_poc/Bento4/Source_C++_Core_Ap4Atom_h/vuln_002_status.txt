@@ -1,0 +1,8 @@
+VERIFIED_CRASH
+Type: heap-buffer-overflow (READ of size 1, 0 bytes past a 1-byte allocation)
+Detector: AddressSanitizer
+Function: AP4_CttsAtom::AP4_CttsAtom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&)
+Binary: /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+Input: vuln_002.mp4 (488 bytes)
+Trigger: ctts box with entry_count=0x20000000 (536870912); entry_count*8 overflows 32-bit to 1 (not 0 — actual allocation was 1 byte due to implementation details), then OOB read at buffer[i*8] for i>=1.
+ASAN log: asan.log.890701

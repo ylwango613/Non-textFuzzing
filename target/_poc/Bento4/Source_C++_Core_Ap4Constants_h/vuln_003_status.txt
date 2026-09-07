@@ -1,0 +1,11 @@
+VERIFIED_CRASH
+Trigger: trun box with sample_count=0x10000001 inside moof/traf.
+ASAN log: AddressSanitizer: hard rss limit exhausted (512Mb vs 535Mb)
+Root cause: AP4_TrunAtom::AP4_TrunAtom() calls m_Entries.SetItemCount(0x10000001)
+            with no bounds check, allocating and zero-initializing
+            0x10000001 * 16 = ~4.3 GB of heap memory.
+Note: This lab host has 1 TB RAM so the bare allocation succeeds (overcommit).
+      The ASAN hard_rss_limit_mb=512 option was used to cap physical memory and
+      expose the crash on this high-RAM system.  On a normal host (< 4 GB RAM)
+      the same input causes std::bad_alloc -> process abort without any special
+      ASAN options.

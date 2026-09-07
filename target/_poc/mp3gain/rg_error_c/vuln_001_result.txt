@@ -1,0 +1,2 @@
+==651028==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000050 at pc 0x562c6d625408 bp 0x7fff01d25140 sp 0x7fff01d25130
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xb7407) in ReadMP3APETag

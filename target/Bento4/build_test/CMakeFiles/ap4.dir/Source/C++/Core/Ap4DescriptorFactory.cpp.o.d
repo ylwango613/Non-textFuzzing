@@ -1,0 +1,22 @@
+CMakeFiles/ap4.dir/Source/C++/Core/Ap4DescriptorFactory.cpp.o: \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4DescriptorFactory.cpp \
+ /usr/include/stdc-predef.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4DescriptorFactory.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Types.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Config.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4EsDescriptor.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4List.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Results.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4String.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Descriptor.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Expandable.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4DataBuffer.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4DynamicCast.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4DecoderConfigDescriptor.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4DecoderSpecificInfoDescriptor.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4ObjectDescriptor.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Command.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4SLConfigDescriptor.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Ipmp.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4ByteStream.h \
+ /data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4Interfaces.h

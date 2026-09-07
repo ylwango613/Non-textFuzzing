@@ -1,0 +1,20 @@
+VERIFIED_CRASH
+
+UBSAN triggered: exif.c:344:37: runtime error: left shift of negative value -66
+
+The OOB read IS occurring. In ProcessGpsInfo(), the for(a=0;a<3;a++) loop
+unconditionally reads 3 URATIONAL components from ValuePtr (each 8 bytes),
+but the Lat IFD entry has Components=1.  ValuePtr is placed at
+ExifLength-8 = 104 within the 112-byte TIFF buffer.
+
+- a=0: reads [104..111] - within bounds (our crafted lat rational data)
+- a=1: reads [112..127] - OOB (16 bytes past ExifLength), Get32s at offset 116
+         returns an uninitialized byte (0xBE = -66 signed) -> UBSAN fires
+         "left shift of negative value -66"
+- a=2: reads [120..135] - OOB further past ExifLength
+
+ASAN does not fire because jpgfile.c:130 allocates malloc(itemlen+20) - jhead
+adds 20 extra bytes to every section buffer to absorb short reads by fuzzers.
+Our OOB extends 15 bytes past ExifLength, fully within the 20-byte cushion.
+UBSAN, however, catches the UB caused by left-shifting the garbage negative
+byte value recovered from that uninitialized memory.

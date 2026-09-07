@@ -1,0 +1,14 @@
+Both subagents have completed. Here's the final summary:
+
+---
+
+## PoC Generation Results — `Ap4Dac4Atom.cpp`
+
+All files are in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Dac4Atom_cpp/`
+
+| # | Vulnerability | Status | ASAN Report |
+|---|---|---|---|
+| 001 | Heap OOB Read via `AP4_BitReader::ReadCache` (unchecked bit reads, `n_presentations=511`) | **VERIFIED_CRASH** | `heap-buffer-overflow` READ in `AP4_BitReader::ReadBits` → `AP4_Dac4Atom::AP4_Dac4Atom` → `AP4_Dac4Atom::Create` |
+| 002 | Integer Underflow in `AP4_Dac4Atom::Create` (`size < 8` → `payload_size` wraps to ~4GB) | **VERIFIED_CRASH** | `heap-buffer-overflow` READ in `AP4_BitReader::ReadBits` → `AP4_Dac4Atom::AP4_Dac4Atom` → `AP4_Dac4Atom::Create` |
+
+Both vulnerabilities were triggered via crafted MP4 files fed to the ASAN+UBSAN `mp42aac` binary — no harness, no compiled code. ASAN confirmed real heap-buffer-overflow crashes on both.

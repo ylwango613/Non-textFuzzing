@@ -1,0 +1,1 @@
+/usr/bin/g++ -fsanitize=address,undefined -g0 -fno-omit-frame-pointer -Wall -O3 -DNDEBUG -fsanitize=address,undefined CMakeFiles/mp4compact.dir/Source/C++/Apps/Mp4Compact/Mp4Compact.cpp.o -o mp4compact  libap4.a

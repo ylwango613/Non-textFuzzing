@@ -1,0 +1,20 @@
+UNVERIFIED
+Reason: The vulnerable code path (AP4_IpmpDescriptor with DescriptorId=0xFF/IpmpsType=0xFFFF)
+is successfully triggered. The wrong fields_size=6 causes the code to call
+stream.Read(m_Data.UseData(), 24) while only 8 bytes remain in the IPMP descriptor's
+declared payload — reading 16 extra bytes of the 0xBB sentinel padding that follows the
+IPMP descriptor in the ES_Descriptor SubStream.
+
+However, ASAN did not generate a crash report because:
+1. AP4_SubStream::ReadPartial() clamps reads to the substream's declared size, so the
+   underlying reads stay within valid heap/file memory.
+2. We extended the ES_Descriptor payload by 16 bytes (to 51 bytes) so the SubStream has
+   48 bytes available, allowing the full 24-byte read to complete from valid memory.
+3. Those 16 extra bytes are 0xBB sentinel data, readable without triggering an ASAN
+   heap-buffer-overflow because they are within the file's data buffer.
+
+The logical OOB IS present: m_Data absorbs 16 bytes (0xBB) from outside the IPMP
+descriptor's declared scope (payload_size=30), corrupting the parsed m_Data content
+and potentially leaking data from outside the IPMP descriptor's intended payload.
+Program output: "Audio Track: duration: 0 ms, sample count: 0" — parsed without crash.
+No ASAN/UBSAN report generated.

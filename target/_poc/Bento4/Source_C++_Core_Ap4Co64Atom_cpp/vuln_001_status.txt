@@ -1,0 +1,8 @@
+VERIFIED_CRASH
+Trigger: co64 box with size=12 causes unsigned underflow (12-12-4)/8 = 0x1FFFFFFF in the
+entry_count guard. OOB stream read places entry_count=0x1FFFFFFF in the field, which
+passes the corrupted guard (strict ">", not ">="). new AP4_UI64[0x1FFFFFFF] requests ~4 GB;
+under ASAN_OPTIONS=mmap_limit_mb=512 this triggers ASAN CHECK failure:
+  (total_mmaped >> 20) < common_flags()->mmap_limit_mb
+Confirmed: benign input produces no ASAN log; malicious input (vuln_001.mp4) crashes with
+the CHECK failure in asan.log.*

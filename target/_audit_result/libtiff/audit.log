@@ -1,0 +1,5 @@
+[2026-09-07 01:14:30] VULN libtiff/tif_dirread.c: 2 findings
+[2026-09-07 01:14:30] DONE: 1 new, 0 skipped, 2 vulns
+[2026-09-07 01:22:27] DONE: 0 new, 1 skipped, 0 vulns
+[2026-09-07 01:26:25] POC libtiff/tif_dirread.c: 0/2 verified
+[2026-09-07 01:27:23] POC libtiff/tif_dirread.c: 0/2 verified

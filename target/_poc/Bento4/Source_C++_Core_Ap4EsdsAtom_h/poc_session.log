@@ -1,0 +1,26 @@
+两个 subagent 均已完成。以下是汇总结果：
+
+---
+
+## PoC 生成结果汇总
+
+### VULN 001 — ES Descriptor 整数下溢 → 无控制大内存分配
+
+**状态**: `VERIFIED_CRASH`
+
+**触发路径**:
+1. `esds` atom 中 ES_Descriptor 声明 `payload_size = 3`
+2. flags 字节设为 `0x40`（URL flag），触发额外读取：ES_ID(2) + flags(1) + url_length(1) + OcrEsId(2) = **6 字节**
+3. `uint32_t` 下溢：`3 - 6 = 0xFFFFFFFA`，传入 `AP4_SubStream(stream, offset, 0xFFFFFFFA)`
+4. 工厂循环从越界区域读到攻击者精心构造的 5 字节序列（`0x05 0xFF 0xFF 0xFF 0x7F`），解码出 payload_size = **268 MB**
+5. `new AP4_Byte[268435455]` 触发 ASAN `mmap_limit_mb` 检查，进程 SIGABRT（exit 134）
+
+### VULN 002 — DecoderConfigDescriptor 整数下溢 → OOB 读
+
+**状态**: `UNVERIFIED`
+
+**分析**: 整数下溢在代码层面确认（`5 - 13 = 0xFFFFFFF8`），但 `AP4_SubStream::ReadPartial` 和 `Seek` 均以父 ES SubStream 的声明大小（27字节）为上界，实际 OOB 读取被拦截，未触发 ASAN/UBSAN 报错。该漏洞需要父 SubStream 同时下溢（即配合 VULN 001）才能在运行时产生可观测的崩溃。
+
+---
+
+所有 PoC 文件位于：`/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4EsdsAtom_h/`

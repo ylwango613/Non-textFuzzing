@@ -1,0 +1,20 @@
+**VULN-001: VERIFIED_CRASH**
+
+The PoC successfully triggered `AddressSanitizer: heap-buffer-overflow` in `AP4_CttsAtom::AP4_CttsAtom()`.
+
+**What happened:**
+- The 517-byte malicious MP4 embeds a `ctts` atom with `entry_count = 0x20000000`
+- `0x20000000 × 8` overflows to `0` in 32-bit arithmetic → ASAN allocates a 1-byte minimum heap region for `buffer`
+- `stream.Read(buffer, 0)` reads 0 bytes and returns success, bypassing the error check
+- The loop immediately reads `buffer[0]` — 0 bytes past the end → **heap-buffer-overflow READ**
+
+**Artifacts generated in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4CttsAtom_cpp/`:**
+
+| File | Description |
+|---|---|
+| `vuln_001_gen.py` | Python script constructing the malicious MP4 |
+| `vuln_001_run.sh` | Shell script invoking mp42aac under ASAN |
+| `vuln_001_notes.md` | PoC rationale and expected behavior |
+| `vuln_001.mp4` | Generated 517-byte malicious input |
+| `vuln_001_result.txt` | Full ASAN crash output |
+| `vuln_001_status.txt` | `VERIFIED_CRASH` |

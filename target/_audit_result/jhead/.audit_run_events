@@ -1,0 +1,10 @@
+CLEAN|jpgqguess.c|jpgqguess_c|/data/ylwang/non-textfuzz/target/_audit_result/jhead/jpgqguess_c.md|0
+CLEAN|makernote.c|makernote_c|/data/ylwang/non-textfuzz/target/_audit_result/jhead/makernote_c.md|0
+CLEAN|myglob.c|myglob_c|/data/ylwang/non-textfuzz/target/_audit_result/jhead/myglob_c.md|0
+CLEAN|paths.c|paths_c|/data/ylwang/non-textfuzz/target/_audit_result/jhead/paths_c.md|0
+VULN|imgfile.c|imgfile_c|/data/ylwang/non-textfuzz/target/_audit_result/jhead/imgfile_c.md|1
+CLEAN|pngfile.c|pngfile_c|/data/ylwang/non-textfuzz/target/_audit_result/jhead/pngfile_c.md|0
+VULN|jhead.c|jhead_c|/data/ylwang/non-textfuzz/target/_audit_result/jhead/jhead_c.md|2
+ERROR|webpfile.c|webpfile_c|/data/ylwang/non-textfuzz/target/_audit_result/jhead/webpfile_c.md|0
+CLEAN|winfileopen.c|winfileopen_c|/data/ylwang/non-textfuzz/target/_audit_result/jhead/winfileopen_c.md|0
+VULN|webpfile.c|webpfile_c|/data/ylwang/non-textfuzz/target/_audit_result/jhead/webpfile_c.md|1

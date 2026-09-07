@@ -1,0 +1,13 @@
+=== Step 1: Generate PoC JP2 file ===
+Generated: /data/ylwang/non-textfuzz/target/_poc/jasper/src_libjasper_jp2_jp2_dec_c/vuln_002.jp2 (185 bytes)
+File size: 185 bytes
+JPC codestream size: 91 bytes
+
+=== Step 2: Run imginfo with ASAN ===
+cannot get marker segment
+error: cannot decode code stream
+cannot load image
+
+=== Step 3: ASAN/UBSAN output ===
+==3956671==ERROR: LeakSanitizer: detected memory leaks
+SUMMARY: AddressSanitizer: 192 byte(s) leaked in 1 allocation(s).

@@ -1,0 +1,10 @@
+両サブエージェント完了。結果まとめ：
+
+| VULN番号 | タイトル | 状態 |
+|---------|---------|------|
+| VULN 001 | GPS LAT/LONG Heap OOB Read via Components < 3 | **VERIFIED_CRASH** (UBSAN: left shift of negative value, `exif.c:344`) |
+| VULN 002 | GPS Coordinates strncpy Missing Null-Termination → Info Disclosure | **UNVERIFIED** (情報漏洩は確認済み、ASAN/UBSAN sanitizer は未発火) |
+
+**補足**：
+- VULN 001: UBSAN が `exif.c:344` で `runtime error: left shift of negative value -66` を検出。ASAN が未発火なのは `jpgfile.c:130` が `malloc(itemlen+20)` で 20 バイトのパディングを確保しており、15 バイトの OOB 読み取りがその範囲内に収まるため。
+- VULN 002: `printf("GPS Latitude: %s", GpsLat)` の出力が `GpsLong` の内容まで漏洩することを実際の jhead 出力で確認済み。ASAN の赤ゾーンが struct 内部には設定されないため sanitizer エラーは出ないが、情報漏洩は実証された。

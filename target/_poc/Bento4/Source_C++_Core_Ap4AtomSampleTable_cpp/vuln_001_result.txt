@@ -1,0 +1,240 @@
+==1053701==AddressSanitizer: hard rss limit exhausted (512Mb vs 551Mb)
+==1053701==Process memory map follows:
+	0x00007fff7000-0x00008fff7000	
+	0x00008fff7000-0x02008fff7000	
+	0x02008fff7000-0x10007fff8000	
+	0x500000000000-0x502000000000	
+	0x502000000000-0x502000010000	
+	0x502000010000-0x502e00000000	
+	0x502e00000000-0x502e00010000	
+	0x502e00010000-0x503000000000	
+	0x503000000000-0x503000010000	
+	0x503000010000-0x503e00000000	
+	0x503e00000000-0x503e00010000	
+	0x503e00010000-0x504000000000	
+	0x504000000000-0x504000010000	
+	0x504000010000-0x504e00000000	
+	0x504e00000000-0x504e00010000	
+	0x504e00010000-0x506000000000	
+	0x506000000000-0x506000010000	
+	0x506000010000-0x506e00000000	
+	0x506e00000000-0x506e00010000	
+	0x506e00010000-0x507000000000	
+	0x507000000000-0x507000010000	
+	0x507000010000-0x507e00000000	
+	0x507e00000000-0x507e00010000	
+	0x507e00010000-0x508000000000	
+	0x508000000000-0x508000010000	
+	0x508000010000-0x508e00000000	
+	0x508e00000000-0x508e00010000	
+	0x508e00010000-0x50b000000000	
+	0x50b000000000-0x50b000010000	
+	0x50b000010000-0x50be00000000	
+	0x50be00000000-0x50be00010000	
+	0x50be00010000-0x50c000000000	
+	0x50c000000000-0x50c000010000	
+	0x50c000010000-0x50ce00000000	
+	0x50ce00000000-0x50ce00010000	
+	0x50ce00010000-0x50d000000000	
+	0x50d000000000-0x50d000010000	
+	0x50d000010000-0x50de00000000	
+	0x50de00000000-0x50de00010000	
+	0x50de00010000-0x50e000000000	
+	0x50e000000000-0x50e000010000	
+	0x50e000010000-0x50ee00000000	
+	0x50ee00000000-0x50ee00010000	
+	0x50ee00010000-0x511000000000	
+	0x511000000000-0x511000010000	
+	0x511000010000-0x511e00000000	
+	0x511e00000000-0x511e00010000	
+	0x511e00010000-0x512000000000	
+	0x512000000000-0x512000010000	
+	0x512000010000-0x512e00000000	
+	0x512e00000000-0x512e00010000	
+	0x512e00010000-0x515000000000	
+	0x515000000000-0x515000010000	
+	0x515000010000-0x515e00000000	
+	0x515e00000000-0x515e00010000	
+	0x515e00010000-0x519000000000	
+	0x519000000000-0x519000010000	
+	0x519000010000-0x519e00000000	
+	0x519e00000000-0x519e00010000	
+	0x519e00010000-0x521000000000	
+	0x521000000000-0x521000010000	
+	0x521000010000-0x521e00000000	
+	0x521e00000000-0x521e00010000	
+	0x521e00010000-0x524000000000	
+	0x524000000000-0x524000010000	
+	0x524000010000-0x524e00000000	
+	0x524e00000000-0x524e00010000	
+	0x524e00010000-0x531000000000	
+	0x531000000000-0x531000020000	
+	0x531000020000-0x531e00000000	
+	0x531e00000000-0x531e00010000	
+	0x531e00010000-0x540000000000	
+	0x540000000000-0x540000003000	
+	0x55ec353f5000-0x55ec35bef000	/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+	0x55ec35bef000-0x55ec360db000	/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+	0x55ec360db000-0x55ec36153000	/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+	0x55ec36153000-0x55ec3615d000	/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+	0x55ec3615d000-0x55ec36a62000	/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+	0x7f40c24fb000-0x7f41024ff000	
+	0x7f41024ff000-0x7f4102500000	
+	0x7f4102500000-0x7f4102e00000	
+	0x7f4102f00000-0x7f4103000000	
+	0x7f4103100000-0x7f4103200000	
+	0x7f4103298000-0x7f4105735000	
+	0x7f4105735000-0x7f4105f15000	
+	0x7f4105f15000-0x7f410626a000	
+	0x7f410626a000-0x7f4106292000	/usr/lib/x86_64-linux-gnu/libc.so.6
+	0x7f4106292000-0x7f4106427000	/usr/lib/x86_64-linux-gnu/libc.so.6
+	0x7f4106427000-0x7f410647f000	/usr/lib/x86_64-linux-gnu/libc.so.6
+	0x7f410647f000-0x7f4106480000	/usr/lib/x86_64-linux-gnu/libc.so.6
+	0x7f4106480000-0x7f4106484000	/usr/lib/x86_64-linux-gnu/libc.so.6
+	0x7f4106484000-0x7f4106486000	/usr/lib/x86_64-linux-gnu/libc.so.6
+	0x7f4106486000-0x7f4106495000	
+	0x7f4106495000-0x7f4106498000	/usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+	0x7f4106498000-0x7f41064af000	/usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+	0x7f41064af000-0x7f41064b3000	/usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+	0x7f41064b3000-0x7f41064b4000	/usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+	0x7f41064b4000-0x7f41064b5000	/usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+	0x7f41064b5000-0x7f41064bc000	/usr/lib/x86_64-linux-gnu/libubsan.so.1.0.0
+	0x7f41064bc000-0x7f41064fc000	/usr/lib/x86_64-linux-gnu/libubsan.so.1.0.0
+	0x7f41064fc000-0x7f4106513000	/usr/lib/x86_64-linux-gnu/libubsan.so.1.0.0
+	0x7f4106513000-0x7f4106515000	/usr/lib/x86_64-linux-gnu/libubsan.so.1.0.0
+	0x7f4106515000-0x7f4106518000	/usr/lib/x86_64-linux-gnu/libubsan.so.1.0.0
+	0x7f4106518000-0x7f4106aea000	
+	0x7f4106aea000-0x7f4106af8000	/usr/lib/x86_64-linux-gnu/libm.so.6
+	0x7f4106af8000-0x7f4106b74000	/usr/lib/x86_64-linux-gnu/libm.so.6
+	0x7f4106b74000-0x7f4106bcf000	/usr/lib/x86_64-linux-gnu/libm.so.6
+	0x7f4106bcf000-0x7f4106bd0000	/usr/lib/x86_64-linux-gnu/libm.so.6
+	0x7f4106bd0000-0x7f4106bd1000	/usr/lib/x86_64-linux-gnu/libm.so.6
+	0x7f4106bd1000-0x7f4106c6b000	/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
+	0x7f4106c6b000-0x7f4106d7c000	/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
+	0x7f4106d7c000-0x7f4106deb000	/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
+	0x7f4106deb000-0x7f4106dec000	/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
+	0x7f4106dec000-0x7f4106df7000	/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
+	0x7f4106df7000-0x7f4106dfa000	/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
+	0x7f4106dfa000-0x7f4106dfd000	
+	0x7f4106dfd000-0x7f4106e21000	/usr/lib/x86_64-linux-gnu/libasan.so.6.0.0
+	0x7f4106e21000-0x7f4106ef8000	/usr/lib/x86_64-linux-gnu/libasan.so.6.0.0
+	0x7f4106ef8000-0x7f4106f2a000	/usr/lib/x86_64-linux-gnu/libasan.so.6.0.0
+	0x7f4106f2a000-0x7f4106f2b000	/usr/lib/x86_64-linux-gnu/libasan.so.6.0.0
+	0x7f4106f2b000-0x7f4106f2f000	/usr/lib/x86_64-linux-gnu/libasan.so.6.0.0
+	0x7f4106f2f000-0x7f4106f32000	/usr/lib/x86_64-linux-gnu/libasan.so.6.0.0
+	0x7f4106f32000-0x7f41077e6000	
+	0x7f41077e8000-0x7f4107800000	
+	0x7f4107800000-0x7f4107802000	/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+	0x7f4107802000-0x7f410782c000	/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+	0x7f410782c000-0x7f4107837000	/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+	0x7f4107837000-0x7f4107838000	
+	0x7f4107838000-0x7f410783a000	/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+	0x7f410783a000-0x7f410783c000	/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+	0x7fffb8a88000-0x7fffb8aa9000	[stack]
+	0x7fffb8b52000-0x7fffb8b56000	[vvar]
+	0x7fffb8b56000-0x7fffb8b58000	[vdso]
+	0xffffffffff600000-0xffffffffff601000	[vsyscall]
+==1053701==End of process memory map.
+=================================================================
+==1070555==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000178 at pc 0x5573a6a13140 bp 0x7ffd60dd2cb0 sp 0x7ffd60dd2ca0
+READ of size 1 at 0x502000000178 thread T0
+    #0 0x5573a6a1313f in AP4_CttsAtom::AP4_CttsAtom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xaa113f)
+    #1 0x5573a6a14087 in AP4_CttsAtom::Create(unsigned int, AP4_ByteStream&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xaa2087)
+    #2 0x5573a6943437 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d1437)
+    #3 0x5573a694df8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #4 0x5573a6a0b33a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #5 0x5573a6a0d677 in AP4_ContainerAtom::Create(unsigned int, unsigned long long, bool, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9b677)
+    #6 0x5573a694366e in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d166e)
+    #7 0x5573a694df8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #8 0x5573a6a0b33a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #9 0x5573a6a0d677 in AP4_ContainerAtom::Create(unsigned int, unsigned long long, bool, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9b677)
+    #10 0x5573a694366e in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d166e)
+    #11 0x5573a694df8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #12 0x5573a6a0b33a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #13 0x5573a6a0d677 in AP4_ContainerAtom::Create(unsigned int, unsigned long long, bool, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9b677)
+    #14 0x5573a694366e in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d166e)
+    #15 0x5573a694df8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #16 0x5573a6a0b33a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #17 0x5573a6a0c3f3 in AP4_ContainerAtom::AP4_ContainerAtom(unsigned int, unsigned long long, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9a3f3)
+    #18 0x5573a68a3471 in AP4_TrakAtom::AP4_TrakAtom(unsigned int, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x931471)
+    #19 0x5573a6945f15 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d3f15)
+    #20 0x5573a694df8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #21 0x5573a6a0b33a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #22 0x5573a6a0c3f3 in AP4_ContainerAtom::AP4_ContainerAtom(unsigned int, unsigned long long, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9a3f3)
+    #23 0x5573a67ce04d in AP4_MoovAtom::AP4_MoovAtom(unsigned int, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x85c04d)
+    #24 0x5573a6943cf5 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d1cf5)
+    #25 0x5573a694c050 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9da050)
+    #26 0x5573a67c25de in AP4_File::ParseStream(AP4_ByteStream&, AP4_AtomFactory&, bool) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x8505de)
+    #27 0x5573a67c3bb2 in AP4_File::AP4_File(AP4_ByteStream&, bool) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x851bb2)
+    #28 0x5573a67a2016 in main (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x830016)
+    #29 0x7fe75da1dd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #30 0x7fe75da1de3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #31 0x5573a67a6834 in _start (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x834834)
+
+0x502000000178 is located 0 bytes to the right of 8-byte region [0x502000000170,0x502000000178)
+allocated by thread T0 here:
+    #0 0x7fe75e63d357 in operator new[](unsigned long) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:102
+    #1 0x5573a6a11ec0 in AP4_CttsAtom::AP4_CttsAtom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9fec0)
+    #2 0x5573a6a14087 in AP4_CttsAtom::Create(unsigned int, AP4_ByteStream&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xaa2087)
+    #3 0x5573a6943437 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d1437)
+    #4 0x5573a694df8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #5 0x5573a6a0b33a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #6 0x5573a6a0d677 in AP4_ContainerAtom::Create(unsigned int, unsigned long long, bool, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9b677)
+    #7 0x5573a694366e in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d166e)
+    #8 0x5573a694df8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #9 0x5573a6a0b33a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #10 0x5573a6a0d677 in AP4_ContainerAtom::Create(unsigned int, unsigned long long, bool, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9b677)
+    #11 0x5573a694366e in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d166e)
+    #12 0x5573a694df8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #13 0x5573a6a0b33a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #14 0x5573a6a0d677 in AP4_ContainerAtom::Create(unsigned int, unsigned long long, bool, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9b677)
+    #15 0x5573a694366e in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d166e)
+    #16 0x5573a694df8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #17 0x5573a6a0b33a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #18 0x5573a6a0c3f3 in AP4_ContainerAtom::AP4_ContainerAtom(unsigned int, unsigned long long, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9a3f3)
+    #19 0x5573a68a3471 in AP4_TrakAtom::AP4_TrakAtom(unsigned int, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x931471)
+    #20 0x5573a6945f15 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d3f15)
+    #21 0x5573a694df8a in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned long long&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9dbf8a)
+    #22 0x5573a6a0b33a in AP4_ContainerAtom::ReadChildren(AP4_AtomFactory&, AP4_ByteStream&, unsigned long long) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9933a)
+    #23 0x5573a6a0c3f3 in AP4_ContainerAtom::AP4_ContainerAtom(unsigned int, unsigned long long, bool, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xa9a3f3)
+    #24 0x5573a67ce04d in AP4_MoovAtom::AP4_MoovAtom(unsigned int, AP4_ByteStream&, AP4_AtomFactory&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x85c04d)
+    #25 0x5573a6943cf5 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, unsigned int, unsigned int, unsigned long long, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9d1cf5)
+    #26 0x5573a694c050 in AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream&, AP4_Atom*&) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x9da050)
+    #27 0x5573a67c25de in AP4_File::ParseStream(AP4_ByteStream&, AP4_AtomFactory&, bool) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x8505de)
+    #28 0x5573a67c3bb2 in AP4_File::AP4_File(AP4_ByteStream&, bool) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x851bb2)
+    #29 0x5573a67a2016 in main (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x830016)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xaa113f) in AP4_CttsAtom::AP4_CttsAtom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&)
+Shadow bytes around the buggy address:
+  0x0a047fff7fd0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a047fff7fe0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a047fff7ff0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a047fff8000: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 00 00
+  0x0a047fff8010: fa fa 04 fa fa fa fd fa fa fa 06 fa fa fa fd fa
+=>0x0a047fff8020: fa fa fd fa fa fa 01 fa fa fa fd fa fa fa 00[fa]
+  0x0a047fff8030: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8040: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8050: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8060: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8070: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==1070555==ABORTING

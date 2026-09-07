@@ -1,0 +1,53 @@
+                                                 /data/ylwang/non-textfuzz/target/_poc/mp3gain/mpglibDBL_interface_c/vuln_001.mp3
+Recommended "Track" dB change: 64.820000
+Recommended "Track" mp3 gain change: 43
+Max PCM sample at current gain: 1.255108
+Max mp3 global gain field: 127
+Min mp3 global gain field: 127
+
+apetag.c:494:36: runtime error: left shift of 1 by 31 places cannot be represented in type 'int'
+    #0 0x556f66ab7243 in WriteMP3GainAPETag (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xbd243)
+    #1 0x556f66a9e1d5 in main (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xa41d5)
+    #2 0x7f88c7891d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #3 0x7f88c7891e3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #4 0x556f66aa5fd4 in _start (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xabfd4)
+
+apetag.c:501:36: runtime error: left shift of 1 by 31 places cannot be represented in type 'int'
+    #0 0x556f66ab7590 in WriteMP3GainAPETag (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xbd590)
+    #1 0x556f66a9e1d5 in main (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xa41d5)
+    #2 0x7f88c7891d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #3 0x7f88c7891e3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #4 0x556f66aa5fd4 in _start (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xabfd4)
+
+
+Recommended "Album" dB change for all files: 64.820000
+Recommended "Album" mp3 gain change for all files: 43
+
+apetag.c:287:39: runtime error: left shift of 1 by 31 places cannot be represented in type 'int'
+    #0 0x558dd10acbfd in ReadMP3APETag (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xb7bfd)
+    #1 0x558dd10ae02a in ReadMP3GainAPETag (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xb902a)
+    #2 0x558dd1092956 in main (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0x9d956)
+    #3 0x7f8fd4e29d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x7f8fd4e29e3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #5 0x558dd10a0fd4 in _start (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xabfd4)
+
+                                                                                                    /data/ylwang/non-textfuzz/target/_poc/mp3gain/mpglibDBL_interface_c/vuln_001.mp3
+Applying mp3 gain change of 43 to /data/ylwang/non-textfuzz/target/_poc/mp3gain/mpglibDBL_interface_c/vuln_001.mp3...
+
+=== ASAN/UBSAN output from log files ===
+
+=== Analysis Summary ===
+Overflow confirmed by code analysis:
+  dsize = (4*4095+7)/8 = 2048 bytes
+  Available in bsspace from offset 544 = 1760 bytes
+  Overflow amount = 288 bytes into hybrid_block[] struct field
+
+ASAN detection status: The 288-byte overflow writes into hybrid_block[],
+which immediately follows bsspace[][] in the MPSTR struct. ASAN does not
+insert red zones between struct fields, only around the whole struct.
+Therefore ASAN does not detect the overflow despite it occurring.
+
+=== Final Status ===
+UNVERIFIED: Overflow confirmed by code analysis but ASAN did not detect it.
+  Reason: overflow target (hybrid_block) is within MPSTR struct bounds.
+--- Done ---

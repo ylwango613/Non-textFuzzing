@@ -1,0 +1,14 @@
+VERIFIED_CRASH
+Type: heap-buffer-overflow (READ)
+Tool: AddressSanitizer
+Binary: /data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain
+Input: vuln_002.mp3 (472 bytes)
+
+ASAN report (key lines):
+  ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000050
+  READ of size 4 at ... in ReadMP3APETag
+  0x502000000051 is located 0 bytes to the right of 1-byte region [0x502000000050,0x502000000051)
+  allocated by ... in ReadMP3APETag  (malloc(vsize+1) = malloc(1))
+
+Call chain confirmed:
+  main -> ReadMP3GainAPETag -> ReadMP3APETag  (apetag.c line ~247/251)

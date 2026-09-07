@@ -1,0 +1,7 @@
+VERIFIED_CRASH
+Crash type: ASAN hard_rss_limit exhausted (unbounded heap allocation / DoS)
+ASAN message: AddressSanitizer: hard rss limit exhausted (1024Mb vs 1159Mb)
+Trigger: tfra box entry_count=0x20000000 → AP4_TfraAtom::AP4_TfraAtom() → SetItemCount(0x20000000) → massive heap allocation
+Binary: /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+PoC file: vuln_005.mp4 (540 bytes)
+Note: System has 1TB RAM so bad_alloc is not thrown natively; ASAN hard_rss_limit_mb=1024 used to demonstrate the uncontrolled allocation exceeding 1GB (1159MB observed), confirming DoS via CWE-789 / CWE-400.

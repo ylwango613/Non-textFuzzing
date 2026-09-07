@@ -1,0 +1,13 @@
+## PoC Generation Summary
+
+| VULN # | Title | Status |
+|--------|-------|--------|
+| 001 | Off-by-one OOB heap read in ID3v2.2 frame size parsing (`id3_parse_v2_tag`) | **VERIFIED_CRASH** |
+
+**VULN 001** triggered ASAN `heap-buffer-overflow` (READ of size 1, 0 bytes past a 16-byte heap allocation) in `id3_parse_v2_tag` via the path `main → ReadMP3GainID3Tag → id3_search_tag → id3_parse_v2_tag`. The key was invoking `mp3gain -s i vuln_001.mp3` — the `-s i` flag sets `useId3=1`, which is required to reach the ID3 tag reading code path.
+
+All files are in `/data/ylwang/non-textfuzz/target/_poc/mp3gain/id3tag_c/`:
+- `vuln_001_gen.py` — constructs the malicious ID3v2.2 MP3
+- `vuln_001_run.sh` — runs the exploit and collects ASAN output
+- `vuln_001_notes.md` — PoC rationale and trigger path
+- `vuln_001_status.txt` — `VERIFIED_CRASH`

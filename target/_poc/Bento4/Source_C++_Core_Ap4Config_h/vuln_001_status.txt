@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+Error type : AddressSanitizer: heap-buffer-overflow
+Location   : AP4_CttsAtom::AP4_CttsAtom (Ap4CttsAtom.cpp)
+ASAN log   : asan_001.log.2550161
+Trigger    : ctts box with entry_count=0x20000000 (536870912); entry_count*8 wraps to 0 on 32-bit, allocating only 1 byte; parser then reads past that allocation.
+Summary    : SUMMARY: AddressSanitizer: heap-buffer-overflow in AP4_CttsAtom::AP4_CttsAtom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&)

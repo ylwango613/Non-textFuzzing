@@ -1,0 +1,2 @@
+Background tasks still running after 600s; terminating. Set CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 to wait indefinitely.
+Both subagents are running in background — one for VULN 001 (CDEF channel loop OOB read) and one for VULN 002 (BPCC bpcs array OOB read). I'll notify you with results when they complete.

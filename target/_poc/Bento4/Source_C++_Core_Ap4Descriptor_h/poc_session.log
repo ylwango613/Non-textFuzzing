@@ -1,0 +1,28 @@
+Both PoCs have been generated and executed. Here's the summary:
+
+## Results
+
+### VULN 001 — AP4_DecoderConfigDescriptor Integer Underflow (Ap4DecoderConfigDescriptor.cpp:92)
+**Status: UNVERIFIED**
+
+The underflow `1U - 13U = 0xFFFFFFF4` is triggered and an oversized SubStream is created, but ASAN/UBSAN don't report a crash because:
+- The parent SubStream's boundary check blocks seeks to offsets beyond 8 bytes, so no actual OOB memory access occurs
+- The system successfully allocates the ~256 MB fake descriptor (sufficient RAM)
+- UBSAN on this build does not instrument unsigned integer overflow
+
+### VULN 002 — AP4_EsDescriptor Integer Underflow (Ap4EsDescriptor.cpp:103)
+**Status: UNVERIFIED**
+
+The underflow `2U - 3U = 0xFFFFFFFF` is triggered and an oversized ~4 GB SubStream is created, cascading into a ~256 MB allocation attempt. However:
+- The 256 MB allocation succeeds (sufficient RAM, no OOM)
+- `fread()` past EOF returns 0 bytes gracefully with no heap write
+- Unsigned integer overflow is not instrumented by this build's UBSAN configuration
+
+## Common Limitation
+
+Both vulnerabilities are **real bugs** (the underflows fire as described in the audit report), but they produce `UNVERIFIED` status because:
+1. **No `-fsanitize=unsigned-integer-overflow`** — the ASAN+UBSAN build only catches signed UB by default; `AP4_Size` is unsigned, so the wrap is legal C++ and not flagged
+2. **Stream boundary protection** — `AP4_SubStream` and file EOF naturally cap how far the OOB read can go in practice
+3. **Sufficient system memory** — the DoS vector (OOM via huge allocation) doesn't trigger on a well-resourced machine
+
+All PoC files are in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Descriptor_h/`: `vuln_001_gen.py`, `vuln_001_run.sh`, `vuln_001_notes.md`, `vuln_001_status.txt`, `vuln_002_gen.py`, `vuln_002_run.sh`, `vuln_002_notes.md`, `vuln_002_status.txt`.

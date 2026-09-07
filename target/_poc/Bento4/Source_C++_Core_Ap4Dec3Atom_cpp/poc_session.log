@@ -1,0 +1,21 @@
+The PoC for the single vulnerability in `Ap4Dec3Atom.cpp` has been generated and **verified**.
+
+## Result: VERIFIED_CRASH
+
+**Vulnerability**: Heap OOB Read in `AP4_Dec3Atom::AP4_Dec3Atom()` (line 97)
+
+**Files created** in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Dec3Atom_cpp/`:
+- `vuln_001_gen.py` — constructs a 522-byte malicious MP4 with a crafted `dec3` box (size=13)
+- `vuln_001_run.sh` — runs the generator and invokes `mp42aac` under ASAN
+- `vuln_001_notes.md` — PoC design rationale
+- `vuln_001_status.txt` — `VERIFIED_CRASH`
+- `vuln_001.mp4` — the malicious input (generated on run)
+
+**ASAN confirmation**:
+```
+ERROR: AddressSanitizer: heap-buffer-overflow
+READ of size 1 at offset 0 bytes past 5-byte region
+in AP4_Dec3Atom::AP4_Dec3Atom()  Ap4Dec3Atom.cpp line 97
+```
+
+**Root cause**: The `dec3` box with size=13 gives a 5-byte payload. After 2 bytes are consumed as the EC3 header, `payload_size=3`. The loop guard `payload_size < 3` is false (3 is not < 3), so parsing continues. Payload byte `[4] = 0x0E` makes `num_dep_sub=7` (nonzero), causing line 97 to read `payload[3]` — exactly 1 byte past the end of the heap allocation. The subsequent unsigned underflow of `payload_size` (3 − 4 = 0xFFFFFFFF) would allow up to 7 further OOB iterations.

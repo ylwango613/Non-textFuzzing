@@ -1,0 +1,10 @@
+{
+	"InstallScripts" : 
+	[
+		"/data/ylwang/non-textfuzz/target/jasper/build_test/cmake_install.cmake",
+		"/data/ylwang/non-textfuzz/target/jasper/build_test/src/libjasper/cmake_install.cmake",
+		"/data/ylwang/non-textfuzz/target/jasper/build_test/src/appl/cmake_install.cmake",
+		"/data/ylwang/non-textfuzz/target/jasper/build_test/doc/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

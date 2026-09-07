@@ -1,0 +1,5 @@
+VERIFIED_CRASH
+ASAN: heap-buffer-overflow READ of size 1 in AP4_AvccAtom::Create(unsigned int, AP4_ByteStream&)
+Address: 0x502000000116
+Binary: /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+Input: vuln_001.mp4 (559 bytes, avcC box with size=8 / zero payload)

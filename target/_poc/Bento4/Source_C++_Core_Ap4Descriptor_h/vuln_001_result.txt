@@ -1,0 +1,3 @@
+Audio Track:
+  duration: 1000 ms
+  sample count: 1

@@ -1,0 +1,16 @@
+=== VULN 006 PoC Execution Result ===
+Vulnerability: AP4_TfraAtom Unchecked entry_count -> Unbounded SetItemCount
+Binary: /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+Input: vuln_006.mp4 (tfra box with entry_count=0x10000000)
+
+Process exit: SIGABRT (signal 6) — exit code 134
+Status: CRASH CONFIRMED
+
+=== ASAN Errors ===
+==3255832==AddressSanitizer: hard rss limit exhausted (512Mb vs 546Mb)
+==3256300==ERROR: AddressSanitizer failed to allocate 0xdfff0001000 (15392894357504) bytes at address 2008fff7000 (errno: 12)
+==3256949==ERROR: AddressSanitizer failed to allocate 0xdfff0001000 (15392894357504) bytes at address 2008fff7000 (errno: 12)
+
+=== Explanation ===
+SetItemCount(0x10000000) in AP4_TfraAtom constructor attempted to allocate
+268435456 entries. ASAN intercepted the allocation (15+ TB) and aborted.

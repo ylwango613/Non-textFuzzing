@@ -1,0 +1,18 @@
+Exif header 128 bytes long
+Exif section in Intel order
+(dir has 1 entries)
+    GPS Dir offset = 26
+    GPS info dir:(dir has 4 entries)
+        GPSLatitudeRef      ="N"
+        GPSLatitude         =89000000/1000000, 59000000/1000000, 59000000/1000000
+        GPSLongitudeRef     ="E"
+        GPSLongitude        =120000000/1000000, 30000000/1000000, 45000000/1000000
+JPEG image is 1w * 1h, 1 color components, 8 bits per sample
+File name    : vuln_002_input.jpg
+File size    : 169 bytes
+File date    : 2026:09:07 01:20:24
+Resolution   : 1 x 1
+Color/bw     : Black and white
+GPS Latitude : N 89.000000d 59.000000m 59.0000E 120.000000d 30.000000m 45.000
+GPS Longitude: E 120.000000d 30.000000m 45.000
+

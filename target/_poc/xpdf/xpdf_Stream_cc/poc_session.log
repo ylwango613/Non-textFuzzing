@@ -1,0 +1,9 @@
+Background tasks still running after 600s; terminating. Set CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 to wait indefinitely.
+The subagent is running in the background, constructing and testing the PoC for the single vulnerability found:
+
+**VULN-001: DCTStream Heap OOB Read via Overflowed Huffman Symbol Count**
+- Root: `readHuffmanTables()` — `sym` (Guchar) wraps at 256 when accumulating per-code-length symbol counts
+- Dereference site: `readHuffSym()` → `sym[firstSym[codeBits] + code]` can index up to 509, past the 256-entry `sym[]` array
+- Trigger: PDF with `/Filter /DCTDecode` image stream containing a malformed JPEG DHT marker (L1=2, L2=255 → 257 huffval bytes)
+
+The subagent is writing `vuln_001_gen.py`, `vuln_001_run.sh`, and `vuln_001_notes.md` to `/data/ylwang/non-textfuzz/target/_poc/xpdf/xpdf_Stream_cc/`, then running the PoC under ASAN and recording the result in `vuln_001_status.txt`. I'll report the outcome when the agent completes.

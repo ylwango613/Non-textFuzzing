@@ -1,0 +1,24 @@
+VERIFIED_CRASH
+
+Trigger: AP4_StcoAtom constructor integer underflow (Ap4StcoAtom.cpp lines 78-81)
+  stco box with declared size=12 causes:
+    (12 - AP4_FULL_ATOM_HEADER_SIZE - 4) / 4
+  = (12 - 12 - 4) / 4  [unsigned 32-bit]
+  = 0xFFFFFFFC / 4
+  = 0x3FFFFFFF   <-- max_entry_count (from underflow)
+
+  entry_count 0x3FFFFFFF is read from outside the box boundary (stream read
+  beyond declared size=12). The bounds check 0x3FFFFFFF > 0x3FFFFFFF is FALSE
+  (no clamping). Constructor then calls:
+    new AP4_UI32[0x3FFFFFFF]         -- ~4 GB mmap
+    new unsigned char[0xFFFFFFFC]    -- ~4 GB mmap
+
+Crash evidence:
+  ASAN log: (total_mmaped >> 20) < common_flags()->mmap_limit_mb
+  Process exit code: 1 (abort_on_error=0), 134 (abort_on_error=1)
+  The ASAN mmap_limit_mb=3072 option is required to force the crash on this
+  1 TB system; on memory-constrained systems the crash occurs as std::bad_alloc
+  without any ASAN option needed.
+
+ASAN log: asan.log.258274 (or whichever most-recent log file exists)
+Input:    vuln_003.mp4 (457 bytes)

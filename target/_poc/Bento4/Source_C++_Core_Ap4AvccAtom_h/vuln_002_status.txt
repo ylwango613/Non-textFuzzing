@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+Type: heap-buffer-overflow (READ 1 byte)
+Location: AP4_AvccAtom::Create(unsigned int, AP4_ByteStream&) in mp42aac+0x9fab74
+Detail: 0x502000000116 is located 0 bytes to the right of 6-byte region [0x502000000110,0x502000000116)
+Trigger: avcC box size=14, payload=0142001effe0, numSequenceParameterSets=0 -> OOB read at payload[6]
+ASAN SUMMARY: AddressSanitizer: heap-buffer-overflow in AP4_AvccAtom::Create(unsigned int, AP4_ByteStream&)

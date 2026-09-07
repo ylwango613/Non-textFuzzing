@@ -1,0 +1,31 @@
+I have gathered sufficient context. Let me now compile my findings.
+
+**Analysis Summary:**
+
+**File**: `Ap4DecoderConfigDescriptor.cpp`, line 92:
+```cpp
+AP4_SubStream* substream = new AP4_SubStream(stream, start+13, payload_size-13);
+```
+
+- `payload_size` is `AP4_Size` = `AP4_UI32` (unsigned 32-bit, from the MP4 file)
+- `13` is a plain `int` literal; the subtraction is `AP4_UI32 - int` → result is `AP4_UI32`
+- When `payload_size < 13` (attacker-controlled), `payload_size - 13` **wraps around** (unsigned underflow): e.g., `payload_size = 0` → result = `0xFFFFFFF3` ≈ 4 GB
+- `AP4_SubStream` stores this as `m_Size` (`AP4_LargeSize` = `AP4_UI64`), so `m_Size ≈ 0xFFFFFFF3ULL`
+- `AP4_SubStream::ReadPartial` clamps with `if (m_Position + bytes_to_read > m_Size)`, but with `m_Size ≈ 4 GB`, the clamp is effectively disabled
+- `CreateDescriptorFromStream` loops on the inflated substream, reading well beyond the `DecoderConfigDescriptor`'s actual payload boundary into adjacent stream data (neighboring descriptors / MP4 boxes)
+- Adjacent bytes are then parsed as `AP4_DecoderConfigDescriptor` sub-descriptors; `AP4_UnknownDescriptor` will call `m_Data.SetDataSize(payload_size)` + `stream.Read(buffer, payload_size)` on attacker-controlled `payload_size` values, enabling heap exhaustion / DoS; the seek chain through nested `AP4_SubStream` containers can be driven to access arbitrary positions in the parent stream up to its EOF
+
+## VULN: Integer Underflow in payload_size-13 Enables OOB Read in DecoderConfigDescriptor
+- **漏洞类别**: memory-safety
+- **函数**: AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor(AP4_ByteStream&, AP4_Size, AP4_Size)
+- **行号**: 92
+- **CWE**: CWE-191 (Integer Underflow) → CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 7.1 (AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac(input.mp4) → AP4_File::AP4_File() → AP4_AtomFactory → AP4_MoovAtom → AP4_TrakAtom → AP4_MdiaAtom → AP4_MinfAtom → AP4_StblAtom → AP4_StsdAtom → AP4_EsAtom → AP4_EsDescriptor::AP4_EsDescriptor() → AP4_DescriptorFactory::CreateDescriptorFromStream() [tag=0x04] → AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor(stream, header_size, payload_size) → line 92: new AP4_SubStream(stream, start+13, payload_size-13)
+- **描述**: `payload_size` 是 `AP4_Size`（即 `AP4_UI32`，无符号32位），直接来自 MP4 文件中的描述符长度字段。当攻击者将其设为小于 13 的值（如 0）时，`payload_size - 13` 发生无符号整数下溢，绕回为约 `0xFFFFFFF3`（≈4 GB）。该值被存入 `AP4_SubStream::m_Size`（`AP4_UI64`），导致 `ReadPartial` 中的边界校验 `m_Position + bytes_to_read > m_Size` 实际失效。随后 `CreateDescriptorFromStream` 循环从该膨胀子流读取，越过 `DecoderConfigDescriptor` 本身的 `payload_size` 边界，将相邻流数据（邻近的描述符或 MP4 box 字节）作为子描述符解析。`AP4_UnknownDescriptor` 对解析到的任意 tag+payload_size 调用 `m_Data.SetDataSize(payload_size)` 并读取数据，触发不可控的堆分配与读取行为。
+- **触发条件**: 构造一个 MP4 文件，使其 `esds` box 内的 `DecoderConfigDescriptor`（tag=0x04）的 payload_size 字段编码为小于 13 的值（如 0、1、…、12），后跟精心布置的相邻字节（可伪造为合法的大 payload_size 未知描述符），以驱动大尺寸堆分配或越界读。
+- **安全影响**: 最坏情况下：（1）堆内存耗尽 / 进程崩溃（DoS）；（2）将相邻 MP4 box 数据暴露为"描述符内容"导致堆外数据泄露（信息泄露）；（3）若后续描述符解析代码对由此读入的数据存在写越界路径，则可能升级为堆破坏（RCE）。
+
+<!-- AUDIT_PROMPT_VERSION: 1 -->

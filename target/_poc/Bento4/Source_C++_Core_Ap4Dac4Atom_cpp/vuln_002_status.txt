@@ -1,0 +1,16 @@
+VERIFIED_CRASH
+
+ASAN reported: heap-buffer-overflow in AP4_BitReader::ReadBits
+Triggered by: AP4_Dac4Atom::Create -> AP4_Dac4Atom::AP4_Dac4Atom
+
+Root cause confirmed: integer underflow at Ap4Dac4Atom.cpp line 49.
+  payload_size = 4 - 8 = 0xFFFFFFF8 (unsigned wrap-around)
+The oversized payload_size is then passed to AP4_BitReader, which tries to
+read 0xFFFFFFF8 bytes from a 12-byte buffer, causing heap-buffer-overflow.
+
+Crash location:
+  #0 AP4_BitReader::ReadBits(unsigned int)         [mp42aac+0x93d2cf]
+  #1 AP4_Dac4Atom::AP4_Dac4Atom(unsigned int, ...)  [mp42aac+0xaad05a]
+  #2 AP4_Dac4Atom::Create(unsigned int, ...)        [mp42aac+0xaaf3ca]
+
+ASAN log: asan.log.3407136

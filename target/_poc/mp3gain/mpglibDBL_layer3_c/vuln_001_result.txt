@@ -1,0 +1,48 @@
+mpglibDBL/layer3.c:403:58: runtime error: index 24 out of bounds for type 'short int [23]'
+=================================================================
+==562435==ERROR: AddressSanitizer: global-buffer-overflow on address 0x55e603bf4d58 at pc 0x55e603bd3f85 bp 0x7ffc5a112d70 sp 0x7ffc5a112d60
+READ of size 4 at 0x55e603bf4d58 thread T0
+    #0 0x55e603bd3f84 in III_dequantize_sample (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0x117f84)
+    #1 0x55e603be0fb9 in do_layer3 (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0x124fb9)
+    #2 0x55e603bb68d7 in decodeMP3 (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xfa8d7)
+    #3 0x55e603b6133a in main (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xa533a)
+    #4 0x7f19b061dd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x7f19b061de3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #6 0x55e603b67fd4 in _start (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0xabfd4)
+
+0x55e603bf4d58 is located 40 bytes to the left of global variable 'pretab1' defined in 'mpglibDBL/layer3.c:650:18' (0x55e603bf4d80) of size 88
+0x55e603bf4d58 is located 0 bytes to the right of global variable 'pretab2' defined in 'mpglibDBL/layer3.c:651:18' (0x55e603bf4d00) of size 88
+SUMMARY: AddressSanitizer: global-buffer-overflow (/data/ylwang/non-textfuzz/target/mp3gain/build_test/mp3gain+0x117f84) in III_dequantize_sample
+Shadow bytes around the buggy address:
+  0x0abd40776950: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0abd40776960: 00 00 00 00 f9 f9 f9 f9 00 00 00 00 00 00 00 00
+  0x0abd40776970: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0abd40776980: 00 00 03 f9 f9 f9 f9 f9 00 00 00 00 f9 f9 f9 f9
+  0x0abd40776990: 00 00 00 00 00 00 00 00 00 f9 f9 f9 f9 f9 f9 f9
+=>0x0abd407769a0: 00 00 00 00 00 00 00 00 00 00 00[f9]f9 f9 f9 f9
+  0x0abd407769b0: 00 00 00 00 00 00 00 00 00 00 00 f9 f9 f9 f9 f9
+  0x0abd407769c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0abd407769d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0abd407769e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0abd407769f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==562435==ABORTING
