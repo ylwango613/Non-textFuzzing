@@ -1,0 +1,13 @@
+VERIFIED_CRASH
+
+Crash type: AddressSanitizer: heap-buffer-overflow
+Location: AP4_CttsAtom::AP4_CttsAtom (Ap4CttsAtom.cpp)
+Root cause: Integer overflow in `new unsigned char[entry_count*8]` — 32-bit multiply
+  0x20000001 * 8 = 8 (overflows AP4_UI32), allocating only 8 bytes.
+  Loop at i=1 reads buffer[8], one byte past the 8-byte allocation.
+ASAN report: heap-buffer-overflow READ of size 1 at 0 bytes past end of 8-byte region.
+  Call stack: AP4_CttsAtom::AP4_CttsAtom → AP4_CttsAtom::Create →
+              AP4_AtomFactory::CreateAtomFromStream → AP4_ContainerAtom::ReadChildren →
+              ... → AP4_File::AP4_File → main
+Input: vuln_001.mp4 — ctts box with entry_count=0x20000001 and 8 bytes of dummy entry data
+ASAN log: asan.log.9120 (second log in vuln_001_result.txt)

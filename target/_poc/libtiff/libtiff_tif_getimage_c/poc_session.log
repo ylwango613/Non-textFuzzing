@@ -1,0 +1,12 @@
+두 subagent 모두 완료되었습니다. 결과 요약:
+
+---
+
+## 취약점별 최종 상태
+
+| VULN | 제목 | 상태 | 사유 |
+|------|------|------|------|
+| 001 | gtTileContig heap OOB read (TIFFTileSize overflow) | **SKIPPED** | tiffsplit은 `TIFFRGBAImageBegin()`/`TIFFRGBAImageGet()`을 호출하지 않음. 실제 경로는 `cpTiles()` → `TIFFReadRawTile()`. 또한 libtiff가 `TIFFReadDirectory` 단계에서 tile size 오버플로를 검출해 `TIFFOpen()` 자체가 NULL 반환 |
+| 002 | gtStripContig heap OOB read (TIFFStripSize overflow) | **SKIPPED** | tiffsplit은 `TIFFRGBAImage` API를 사용하지 않음. 경로는 `tiffcp()` → `cpStrips()` → `TIFFReadRawStrip()` / `TIFFWriteRawStrip()` 로 한정됨 |
+
+**공통 근본 원인**: 두 취약점 모두 `tif_getimage.c`의 `TIFFRGBAImage` API(`TIFFRGBAImageBegin` → `PickContigCase` → `gtTileContig`/`gtStripContig`) 경로에 존재하는데, `tiffsplit` 바이너리는 이 API를 전혀 사용하지 않습니다. 취약점을 실제로 트리거하려면 `tiff2rgba` 등 `TIFFRGBAImageGet()`을 호출하는 별도 도구가 필요합니다.

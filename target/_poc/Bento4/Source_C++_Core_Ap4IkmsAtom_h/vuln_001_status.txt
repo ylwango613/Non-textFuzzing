@@ -1,0 +1,5 @@
+VERIFIED_CRASH
+ASAN aborted with assertion "(total_mmaped >> 20) < common_flags()->mmap_limit_mb".
+The iKMS atom with size=0xFFFFFFFF caused new char[0xFFFFFFF3] (~4 GB allocation)
+inside AP4_IkmsAtom constructor, triggering ASAN's mmap_limit_mb=2000 guard.
+This confirms CWE-789: Memory Allocation with Excessive Size Value in Ap4IkmsAtom.cpp:77.

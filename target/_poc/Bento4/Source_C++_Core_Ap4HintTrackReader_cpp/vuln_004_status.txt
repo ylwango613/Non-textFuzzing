@@ -1,0 +1,22 @@
+UNVERIFIED
+mp42aac output: "ERROR: unable to parse sample description" (no crash)
+Reason: mp42aac does NOT call AP4_RtpSampleData or AP4_RtpPacket constructors.
+  AP4_RtpPacket and AP4_RtpSampleData are NOT linked into the mp42aac binary
+  (confirmed via 'nm' - symbols absent). mp42aac only processes audio tracks
+  via WriteSamples(); it never invokes AP4_HintTrackReader or reads hint samples.
+Correct trigger binary: mp4rtphintinfo (Source/C++/Apps/Mp4RtpHintInfo/)
+  -- calls AP4_HintTrackReader::Create(*hint_track, *movie, ssrc, reader)
+  -- which calls GetRtpSample(0)
+  -- which creates AP4_RtpSampleData(stream, size)
+  -- which creates AP4_RtpPacket(stream) where the underflow occurs
+  -- this binary is NOT compiled in build_test/bin/
+Additional note: Even with mp4rtphintinfo, ASAN/UBSAN would NOT detect this bug:
+  - CWE-191 here is an unsigned subtraction wrap (defined behavior in C/C++)
+  - UBSAN's sub_overflow only handles SIGNED overflow; unsigned is not flagged
+  - ASAN has no out-of-bounds access at the underflow site
+Vulnerability confirmed by static analysis:
+  Ap4RtpHint.cpp:223-245: extra_length (AP4_UI32) -= entry_length (AP4_UI32)
+  With extra_length=12 and entry_length=0x10000000, result=0xF000000C (wrap).
+  Loop condition (0xF000000C > 0) = true, but next iteration exits via EOF read.
+PoC file vuln_004.mp4 (925 bytes) is correctly crafted and would trigger the
+unsigned underflow with mp4rtphintinfo.

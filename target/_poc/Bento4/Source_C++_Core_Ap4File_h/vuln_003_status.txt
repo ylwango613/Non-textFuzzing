@@ -1,0 +1,13 @@
+UNVERIFIED
+mp42aac exits normally with "no audio track found".
+No ASAN heap-buffer-overflow is reported.
+
+Reason: the buffer `new unsigned char[sample_count*4]` is correctly sized for 20
+bytes; the OOB is at the STREAM level (stream.Read consumes 12 bytes from the
+immediately-following stco box header), not at the heap level.  ASAN does not
+instrument file I/O system calls, so it cannot detect a stream-protocol OOB.
+
+Vulnerability path confirmed triggered:
+  stsz box_size=28, sample_count=5
+  Guard check: 5 > (28-8)/4 = 5 → FALSE (passes, should have been (28-20)/4=2)
+  stream.Read(buffer, 20): reads 8 legitimate bytes + 12 bytes from stco header

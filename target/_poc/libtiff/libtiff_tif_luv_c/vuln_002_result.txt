@@ -1,0 +1,19 @@
+=== VULN 002: LogL16Decode OOB Read ===
+TIFF: /data/ylwang/non-textfuzz/target/_poc/libtiff/libtiff_tif_luv_c/vuln_002.tif
+Tool: /data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit
+
+=== Step 1: tiffsplit ===
+(tiffsplit exit code: 0)
+
+=== Step 2: tiff2rgba (decode verification) ===
+vuln_002.tif: LogL16Decode: Not enough data at row 0 (short 1 pixels).
+
+=== ASAN/UBSAN Output ===
+(No ASAN/UBSAN errors detected)
+
+NOTE: The vulnerability is a logical OOB read (bp reads past tif_rawcc=1).
+ASAN does not catch it because TIFFroundup(1,1024) allocates 1024-byte buffer.
+The 'Not enough data at row 0' message from tiff2rgba confirms LogL16Decode
+is triggered and reads past the valid 1-byte strip boundary.
+
+=== Done ===

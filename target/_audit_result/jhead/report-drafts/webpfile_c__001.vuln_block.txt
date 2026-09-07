@@ -1,0 +1,13 @@
+## VULN: NULL Pointer Dereference via Unchecked malloc in WebP Chunk Reading
+- **漏洞类别**: memory-safety
+- **函数**: ReadWebpSections()
+- **行号**: 99-104
+- **CWE**: CWE-476 (NULL Pointer Dereference)
+- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted WebP file
+- **外部触发路径**: jhead main() -> ReadImgFile() -> ReadWebpSections() -> malloc(ReadLen) [NULL result] -> fread(NULL, 1, ReadLen, infile) [SIGSEGV]
+- **描述**: 在 `ReadWebpSections()` 的主解析循环中，对每个 WebP chunk 计算填充后读取长度 `ReadLen = (ChunkLen + 1) & ~1`，然后直接执行 `Data = malloc(ReadLen)` 并将结果传给 `fread(Data, 1, ReadLen, infile)`。该路径对 `malloc` 的返回值没有任何 NULL 检查。前置过滤 `if ((int)ChunkLen <= 0) continue` 仅屏蔽 `ChunkLen == 0` 及 `ChunkLen >= 0x80000000` 的情况，允许最大值 `ChunkLen = 0x7FFFFFFF` 通过。此时 `ReadLen = (0x7FFFFFFF + 1) & ~1 = 0x80000000`（2 GiB），在所有实际系统上 `malloc(0x80000000)` 均会失败并返回 NULL，随即 `fread(NULL, ...)` 触发 NULL 指针解引用（SIGSEGV）。
+- **触发条件**: 攻击者构造一个合法 RIFF/WEBP 容器，其中任意一个 chunk 的 4 字节 little-endian 长度字段值设为 `0x7FFFFFFF`（例如：文件头 `RIFF????WEBPEXIF\xff\xff\xff\x7f` 后跟任意 8 字节以上内容）。
+- **安全影响**: 进程因 SIGSEGV 崩溃，造成拒绝服务（DoS）。在将 jhead 集成于 Web/批处理管道的场景下（批量处理用户上传图片），可导致服务中断。
+

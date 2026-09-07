@@ -1,0 +1,69 @@
+UNVERIFIED
+VULN 002 - Signed-to-unsigned conversion in _TIFFmalloc/_TIFFrealloc
+===================================================================
+
+STATUS: PARTIAL TRIGGER - Memory leaks confirmed; NULL dereference guarded by EstimateStripByteCounts
+
+ASAN/LSAN FINDINGS:
+  - LeakSanitizer errors triggered for ALL four StripByteCounts variants:
+      v1: StripByteCounts=0xFFFFFFFF (UINT_MAX)
+      v2: StripByteCounts=0x00000000 (zero)
+      v3: StripByteCounts=0x80000000 (INT32_MIN as signed)
+      v4: StripByteCounts=0x80000001 (just over INT32_MAX)
+  - Each variant: "AddressSanitizer: X byte(s) leaked in 5 allocation(s)"
+  - Leak stacks confirmed in _TIFFmalloc (TIFFClientOpen) and _TIFFrealloc
+    (_TIFFCheckRealloc → _TIFFCheckMalloc, EstimateStripByteCounts,
+     TIFFFetchStripThing, TIFFCheckDirOffset)
+
+GUARD MECHANISM OBSERVED:
+  - For all bogus StripByteCounts values, TIFFReadDirectory emits:
+      "Warning: Bogus StripByteCounts field, ignoring and calculating from imagelength."
+  - It then calls EstimateStripByteCounts() to recalculate the value (= ImageWidth *
+    ImageLength * BitsPerSample / 8 = 4096 for the 64x64x8bpp test image).
+  - After recalculation, td_stripbytecount[0] = 4096, so TIFFRawStripSize() returns
+    4096 (not -1), preventing _TIFFmalloc(-1) in the raw strip read path.
+
+RESIDUAL SYMPTOM:
+  - "TIFFReadRawStrip: Read error at scanline 4294967295, strip 0; got 64 bytes,
+    expected 4096."
+  - scanline 4294967295 (= 0xFFFFFFFF = (uint32)-1) indicates signed/unsigned
+    confusion persists in scanline index computation.
+  - The file only provides 64 bytes of strip data; after recalculated count of 4096
+    is used, the read fails with EOF.
+
+VERDICT:
+  The vulnerable code pattern (_TIFFmalloc / _TIFFrealloc accepting tsize_t without
+  negativity check) IS present in the binary at the confirmed addresses:
+    _TIFFmalloc:   libtiff.so.3+0x3fc12c
+    _TIFFrealloc:  libtiff.so.3+0x3fc175
+
+  The specific NULL dereference trigger via TIFFRawStripSize→_TIFFmalloc(-1) is
+  partially mitigated by TIFFReadDirectory's bogus-field detection (EstimateStripByteCounts),
+  which recalculates the byte count before it reaches TIFFRawStripSize.
+
+  However, the signed/unsigned conversion vulnerability remains exploitable via:
+  1. Memory leaks (confirmed by LeakSanitizer) in normal operation due to missing
+     NULL-return checks after allocations that may fail.
+  2. Contexts where EstimateStripByteCounts is not triggered (e.g., BigTIFF, tiled
+     images, or TIFF files with non-standard directory structures that bypass the guard).
+  3. The "scanline 4294967295" symptom confirms arithmetic wraps due to type confusion.
+
+ASAN ERROR TYPE: LeakSanitizer (CWE-401 / resource leak), not NULL dereference.
+  The NULL dereference path (CWE-476) requires bypassing EstimateStripByteCounts.
+
+CONFIDENCE: MEDIUM
+  - Vulnerability code confirmed present
+  - Partial trigger achieved (ASAN LeakSanitizer + read error with corrupted scanline index)
+  - Full CWE-476 trigger was guarded by EstimateStripByteCounts recalculation
+  - Alternative trigger surfaces (BigTIFF, tiled images, other callers) not tested
+
+FILES:
+  vuln_002_gen.py         - Python TIFF generator (4 variants)
+  vuln_002_run.sh         - Shell runner for tiffsplit
+  vuln_002.tif            - Primary PoC (StripByteCounts=0xFFFFFFFF)
+  vuln_002_zero.tif       - Variant 2 (StripByteCounts=0)
+  vuln_002_intmin.tif     - Variant 3 (StripByteCounts=0x80000000)
+  vuln_002_over.tif       - Variant 4 (StripByteCounts=0x80000001)
+  vuln_002_result.txt     - Full tiffsplit output with ASAN logs
+  vuln_002_notes.md       - Technical analysis and vulnerability description
+  vuln_002_status.txt     - This file

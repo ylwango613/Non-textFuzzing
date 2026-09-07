@@ -1,0 +1,23 @@
+두 subagent 모두 완료됐습니다. 결과 요약:
+
+---
+
+## 취약점 PoC 결과 요약 — libtiff/tif_predict.c
+
+| # | 취약점 | 함수 | 상태 |
+|---|--------|------|------|
+| VULN 001 | Heap Buffer Overflow via non-multiple-of-8 BitsPerSample (Floating-Point Predictor) | `fpAcc()` (L352–383) | **VERIFIED_CRASH** |
+| VULN 002 | Heap OOB Read via non-multiple-of-8 BitsPerSample (Floating-Point Predictor) | `fpDiff()` (L517–548) | **SKIPPED** |
+
+---
+
+### 상세 내용
+
+**VULN 001 (VERIFIED_CRASH)**
+- `vuln_001.tif`: BitsPerSample=9, SamplesPerPixel=5, Width=3, Predictor=3, SampleFormat=IEEEFP, Compression=8(Deflate) → rowsize=17, stride=5, 17%5=2≠0
+- ASAN 확인: `heap-buffer-overflow READ of size 1` at 17-byte 버퍼 끝 바로 다음. 콜스택: `fpAcc → PredictorDecodeTile → TIFFReadEncodedStrip → main`
+- 주의: tiffsplit 자체는 `TIFFReadRawStrip` 경로를 사용해 프레디터를 우회함. 동일 빌드의 tiffcp 바이너리로 크래시 확인함
+
+**VULN 002 (SKIPPED)**  
+- `fpDiff`는 인코딩 경로(쓰기 시)에만 존재. tiffsplit의 `cpStrips()`는 `TIFFReadRawStrip`+`TIFFWriteRawStrip`으로 raw 복사만 수행하므로 `fpDiff` 경로에 도달 불가
+- `vuln_002_notes.md`에 스킵 사유 기록됨

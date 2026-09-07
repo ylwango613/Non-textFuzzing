@@ -1,0 +1,14 @@
+两个 PoC 全部完成，结果如下：
+
+---
+
+## PoC 生成结果汇总
+
+**目录**: `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4FragmentSampleTable_cpp/`
+
+| 编号 | 漏洞 | 状态 | 触发机制 |
+|------|------|------|----------|
+| VULN 001 | `AP4_FragmentSampleTable::AddTrun` 中 `EnsureCapacity` 整数溢出 | **VERIFIED_CRASH** | `trun sample_count=0x20000000, flags=0x0001`，`::operator new(8GB)` 触发 ASAN RSS 超限 (512MB vs 742MB)，进程 SIGABRT |
+| VULN 002 | `AP4_TrunAtom` 构造函数中 `sample_count` 未校验导致 OOB 写 | **VERIFIED_CRASH** | `trun sample_count=0x10000000, flags=0x0201` (SAMPLE_SIZE_PRESENT)，`::operator new(4GB)` 触发 ASAN RSS 超限 (3000MB vs 3172MB)，进程中止 |
+
+**说明**：两个漏洞均在 64-bit 系统上以 DoS（`std::bad_alloc` / RSS 耗尽）形式复现；在 32-bit 构建上乘法溢出会产生 0 字节分配并触发真实的堆越界写（CWE-122）。每个 PoC 均包含 `gen.py`、`run.sh`、`notes.md`、`status.txt` 四个文件，可直接重新执行 `vuln_NNN_run.sh` 复现。

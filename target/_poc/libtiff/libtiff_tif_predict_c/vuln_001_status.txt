@@ -1,0 +1,23 @@
+VERIFIED_CRASH
+
+Crash type: heap-buffer-overflow (READ) in fpAcc()
+ASAN summary: AddressSanitizer: heap-buffer-overflow in fpAcc
+Address: 0x503000000051 — 0 bytes past end of 17-byte heap buffer
+Function: fpAcc (libtiff.so.3+0x3d566b)
+Trigger binary: tiffcp (uses TIFFReadEncodedStrip → PredictorDecodeTile → fpAcc)
+PoC file: vuln_001.tif
+
+Note on tiffsplit: tiffsplit uses TIFFReadRawStrip() which reads the compressed
+bytes directly without invoking the predictor decode path. Therefore tiffsplit
+itself does not call fpAcc(). The TIFF file is accepted by tiffsplit without
+error but the heap overflow only manifests when a tool that decodes strips
+(e.g. tiffcp, thumbnail, tiff2pdf) processes the file. The vulnerability in
+fpAcc() itself is confirmed as described in the original report.
+
+Call stack (from ASAN):
+  fpAcc                    (libtiff.so.3)
+  PredictorDecodeTile      (libtiff.so.3)
+  TIFFReadEncodedStrip     (libtiff.so.3)
+  cpDecodedStrips          (tiffcp)
+  tiffcp                   (tiffcp)
+  main                     (tiffcp)

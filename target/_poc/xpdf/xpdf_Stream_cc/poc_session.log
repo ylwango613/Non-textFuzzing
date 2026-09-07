@@ -1,9 +1,30 @@
-Background tasks still running after 600s; terminating. Set CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 to wait indefinitely.
-The subagent is running in the background, constructing and testing the PoC for the single vulnerability found:
+완료되었습니다. 결과를 요약합니다.
 
-**VULN-001: DCTStream Heap OOB Read via Overflowed Huffman Symbol Count**
-- Root: `readHuffmanTables()` — `sym` (Guchar) wraps at 256 when accumulating per-code-length symbol counts
-- Dereference site: `readHuffSym()` → `sym[firstSym[codeBits] + code]` can index up to 509, past the 256-entry `sym[]` array
-- Trigger: PDF with `/Filter /DCTDecode` image stream containing a malformed JPEG DHT marker (L1=2, L2=255 → 257 huffval bytes)
+---
 
-The subagent is writing `vuln_001_gen.py`, `vuln_001_run.sh`, and `vuln_001_notes.md` to `/data/ylwang/non-textfuzz/target/_poc/xpdf/xpdf_Stream_cc/`, then running the PoC under ASAN and recording the result in `vuln_001_status.txt`. I'll report the outcome when the agent completes.
+## PoC 결과 보고: xpdf_Stream_cc
+
+### VULN-001: DCTStream Heap OOB Read via Overflowed Huffman Symbol Count
+
+**상태**: `UNVERIFIED`
+
+**생성된 파일** (`_poc/xpdf/xpdf_Stream_cc/`):
+| 파일 | 설명 |
+|------|------|
+| `vuln_001_gen.py` | 악성 JPEG(DHT nc[15]=2, nc[16]=255) 임베드 PDF 생성기 |
+| `vuln_001.pdf` | Image XObject 방식 PoC PDF |
+| `vuln_001b.pdf` | Inline image (BI/ID/EI) 방식 PoC PDF |
+| `vuln_001_run.sh` | ASAN 옵션으로 pdftotext 실행 스크립트 |
+| `vuln_001_notes.md` | 취약점 상세 분석 |
+| `vuln_001_status.txt` | UNVERIFIED |
+
+**OOB가 실제로 실행됨을 확인**:
+- `vuln_001b.pdf`(inline image)로 실행 시 `"missing 00 after ff"` 오류 발생
+- 이 오류는 `readHuffSym(dcHuffTable)` 완료 후 DCT scan 루프(`readBit()`)가 실행될 때만 발생
+- 즉 `sym[2 + 254] = sym[256]` OOB read가 실제로 실행됨
+
+**Sanitizer가 미탐하는 이유**:
+- **ASAN**: `sym[256]`이 `dcHuffTables[1].firstSym[0]`를 읽음 → 동일한 `DCTStream` 힙 블록 내부라 경계 위반으로 미탐
+- **UBSAN**: 컴파일러가 `table->sym[index]`(포인터를 통한 구조체 멤버 배열 접근)에 bounds check를 생성하지 않음 (`-fsanitize=bounds-strict` 필요)
+
+**탐지를 위한 빌드 권고**: `-fsanitize=address,undefined,bounds-strict` 또는 `sym[]`를 힙에 별도 할당하도록 리팩토링

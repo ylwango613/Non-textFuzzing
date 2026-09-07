@@ -1,0 +1,32 @@
+UNVERIFIED
+Reason: The unsigned integer underflow (AP4_Size(0) - AP4_Size(7) = 0xFFFFFFF9) is
+confirmed by source-code analysis and occurs at runtime, but is NOT caught by the
+current ASAN+UBSAN build (-fsanitize=address,undefined).
+
+Root cause of non-detection:
+  - UBSAN default (-fsanitize=undefined) only instruments SIGNED integer overflow;
+    unsigned subtraction wrap-around is defined C++ behavior and is not checked.
+  - The resulting huge AP4_SubStream (size=0xFFFFFFF9) delegates reads to
+    AP4_FileByteStream which returns AP4_ERROR_EOS at file end; no heap region
+    is overrun, so ASAN has nothing to report.
+
+Runtime observation:
+  - mp42aac exits with "ERROR: no audio track found" (exit code 1)
+  - No ASAN or UBSAN output in stderr or log files
+  - Binary completed in <1 second with no hang (the giant substream exhausts
+    the file quickly and the loop exits via EOS)
+
+To verify with sanitizers, rebuild with additional flag:
+  -fsanitize=unsigned-integer-overflow
+  Expected output: "runtime error: unsigned integer overflow: 0 - 7 cannot be
+  represented in type 'unsigned int'"
+
+Strategies tested:
+  Strategy A: OD descriptor (tag=0x01, payload_size=0) → substream size=0xFFFFFFFE
+  Strategy B: MP4_IOD descriptor (tag=0x10, payload_size=0) → substream size=0xFFFFFFF9
+  Both: UNVERIFIED (no sanitizer output)
+
+Files:
+  vuln_002.mp4        - crafted MP4 (Strategy B, MP4_IOD, 166 bytes)
+  vuln_002_result.txt - run output (shows "no audio track found", no ASAN/UBSAN)
+  vuln_002_notes.md   - detailed technical analysis

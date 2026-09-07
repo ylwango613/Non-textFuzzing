@@ -1,0 +1,13 @@
+## VULN: TIFFReadRawTile1 mmap bounds-check uint32 overflow → OOB read
+- **漏洞类别**: memory-safety
+- **函数**: TIFFReadRawTile1()
+- **行号**: 440-451
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 7.1 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted TIFF file
+- **外部触发路径**: tiffsplit main() → TIFFOpen() → tiffcp() → cpTiles() → TIFFReadRawTile() → TIFFReadRawTile1() (mmap 分支, line 440-451)
+- **描述**: 与 TIFFReadRawStrip1 存在完全相同的缺陷：第 440 行 `if (td->td_stripoffset[tile] + size > tif->tif_size)` 使用 uint32 模运算，当 `td_stripoffset[tile]` 接近 UINT32_MAX 时加法溢出导致边界检查失效。`TIFFFillTile`（第 535–544 行）同样有明确注释并已采用两步安全比较修复，而 `TIFFReadRawTile1` 的相应修复缺失。绕过检查后，第 451 行 `_TIFFmemcpy(buf, tif->tif_base + td->td_stripoffset[tile], size)` 将从远超文件映射边界的地址读取数据。
+- **触发条件**: 构造带瓦片格式（tiled TIFF）的文件，设置 `TileOffset[n]` 使得 `TileOffset[n] + TileByteCount[n]` 在 uint32 下溢出且结果 ≤ `tif_size`（如 TileOffset=0xFFFFFF00, TileByteCount=256, 文件大小=1024），tiffsplit 以瓦片图像调用 cpTiles 即可触发。
+- **安全影响**: 与 strip 变体相同：可靠 crash（SIGSEGV/DoS）；潜在任意地址 OOB read → 信息泄露或（32 位环境下）堆溢出利用。
+

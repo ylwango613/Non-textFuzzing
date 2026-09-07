@@ -1,0 +1,39 @@
+## PoC 生成完成
+
+**VULN 001 — AP4_HvccAtom Off-by-One Heap OOB Read**：`VERIFIED_CRASH` ✓
+
+### ASAN 报告摘要
+
+```
+==ERROR: AddressSanitizer: heap-buffer-overflow
+READ of size 1 at ...  thread T0
+  #0  AP4_HvccAtom::AP4_HvccAtom(unsigned int, unsigned char const*)
+      Ap4HvccAtom.cpp:282   ← payload[22] OOB read
+  #1  AP4_HvccAtom::Create(...)   ← size=30 传入
+
+"0 bytes to the right of 22-byte region [0x..., 0x...)"
+```
+
+### 触发机制
+
+| 关键点 | 值 |
+|--------|-----|
+| hvcC box size | `30`（= 8 header + 22 payload） |
+| payload_size | `30 - 8 = 22` |
+| 卫语句 `payload_size < 22` | `22 < 22` 为假，**绕过保护** |
+| OOB 读取位置 | `payload[22]`（第 282 行） |
+| ASAN 判定 | heap-buffer-overflow, READ 1 byte |
+
+### 生成文件
+
+```
+_poc/Bento4/Source_C++_Core_Ap4HvccAtom_h/
+├── vuln_001_gen.py        # Python MP4 构造器（hvcC size=30）
+├── vuln_001.mp4           # 586 字节恶意 MP4
+├── vuln_001_run.sh        # ASAN 运行脚本
+├── vuln_001_notes.md      # 漏洞原理说明
+├── vuln_001_result.txt    # 完整 ASAN 输出
+└── vuln_001_status.txt    # VERIFIED_CRASH
+```
+
+该报告中共有 **1 个漏洞**，已全部验证通过。

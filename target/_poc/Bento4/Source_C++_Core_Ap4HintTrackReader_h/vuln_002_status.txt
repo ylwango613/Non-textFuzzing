@@ -1,0 +1,8 @@
+UNVERIFIED
+Reason: mp42aac does not call AP4_HintTrackReader::Create() at any point in its
+execution. When given an MP4 with only a hint track (handler type 'hint'), it
+exits early with "ERROR: no audio track found" before any hint track reader is
+constructed. The vulnerable code path in Ap4HintTrackReader.cpp lines 67-70 is
+only reachable from Mp4RtpHintInfo, which is not present in build_test/bin/.
+The crafted MP4 (vuln_002.mp4) is correct and would trigger a NULL pointer
+dereference crash if processed by a binary that calls AP4_HintTrackReader::Create().

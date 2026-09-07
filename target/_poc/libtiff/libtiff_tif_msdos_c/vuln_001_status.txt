@@ -1,0 +1,9 @@
+VERIFIED_CRASH
+
+At least one ASAN/UBSAN error was detected.
+==2823222==ERROR: AddressSanitizer: requested allocation size 0xffffffffffffffff (0x800 after adjustments for alignment, red zones etc.) exceeds maximum supported size of 0x10000000000 (thread T0)
+SUMMARY: AddressSanitizer: allocation-size-too-big ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:164 in __interceptor_realloc
+==2823226==ERROR: LeakSanitizer: detected memory leaks
+SUMMARY: AddressSanitizer: 2434 byte(s) leaked in 5 allocation(s).
+==2823232==ERROR: LeakSanitizer: detected memory leaks
+SUMMARY: AddressSanitizer: 2938 byte(s) leaked in 5 allocation(s).

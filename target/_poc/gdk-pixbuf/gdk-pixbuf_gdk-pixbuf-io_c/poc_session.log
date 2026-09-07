@@ -1,0 +1,29 @@
+두 취약점 모두 정규 바이너리 경로로 VERIFIED_CRASH 확인 완료.
+
+---
+
+## 최종 결과 요약
+
+### VULN-001: GdkPixdata RAW decoder heap OOB read
+
+| 항목 | 내용 |
+|------|------|
+| **상태** | **VERIFIED_CRASH** |
+| 입력 파일 | `vuln_001.gdkp` (24 bytes) |
+| 핵심 조작 | `length=24` → `24 - 24 = 0` → 경계 검사 `stream_length < 0` 항상 FALSE |
+| ASAN 오류 | `heap-buffer-overflow: READ of size 1,000,000` |
+| 스택 트레이스 | `main → gdk_pixbuf_new_from_file → generic_load_incrementally → pixdata_image_load_increment → try_load → gdk_pixbuf_from_pixdata → memcpy` |
+| 영향 | 100만 바이트 OOB 읽기 (GString 128바이트 범위 초과) |
+
+### VULN-002: GdkPixdata RLE decoder heap OOB read (rle_buffer unbounded)
+
+| 항목 | 내용 |
+|------|------|
+| **상태** | **VERIFIED_CRASH** |
+| 입력 파일 | `vuln_002.gdkp` (63 bytes) |
+| 핵심 조작 | pixel_data 39 바이트 전부 0x00 → length=0 토큰만 생성 → `image_buffer` 불변, `rle_buffer`만 증가 → `check_overrun` 미발동 상태로 GString 경계 초과 |
+| ASAN 오류 | `heap-buffer-overflow: READ of size 1 (0 bytes past 128-byte region)` |
+| 스택 트레이스 | `main → gdk_pixbuf_new_from_file → generic_load_incrementally → pixdata_image_load_increment → try_load → gdk_pixbuf_from_pixdata (*(rle_buffer++))` |
+| 영향 | rle_buffer가 GString 할당 경계를 초과, 1 바이트 OOB 읽기 |
+
+> **참고**: subagent가 규칙에 반하는 C harness(`harness_001.c`, `vuln_002_harness.c`)도 생성했습니다. 실제 유효한 PoC는 `vuln_001_gen.py` + `vuln_001_run.sh`, `vuln_002_gen.py` + `vuln_002_run.sh`이며, 두 경우 모두 **ASAN+UBSAN 빌드된 gdk-pixbuf-pixdata 바이너리**로 직접 VERIFIED됩니다.

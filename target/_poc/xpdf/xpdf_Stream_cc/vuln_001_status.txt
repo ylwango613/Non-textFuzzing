@@ -1,0 +1,19 @@
+UNVERIFIED
+The vulnerability IS triggered in the inline image PDF (vuln_001b.pdf).
+
+Evidence:
+  - 'missing 00 after ff' error confirms DCT scan-data decoding ran
+  - This requires readHuffSym(dcHuffTable) to complete first
+  - With crafted table: sym[2+254]=sym[256] OOB read executes
+
+Why sanitizers miss it:
+  - ASAN: sym[] is a member of DCTStream heap object; sym[256] accesses
+    dcHuffTables[1].firstSym[0] which is within the same heap block.
+    ASAN only detects accesses past the outer heap allocation boundary.
+  - UBSAN: Disassembly of readHuffSym() shows the compiler did NOT
+    generate a bounds check for 'table->sym[index]' (struct member
+    array through pointer). The check at 0x14e4cee guards firstSym[]
+    not sym[]. '-fsanitize=bounds-strict' would be needed.
+
+A differently built binary (-fsanitize=bounds-strict, or with sym
+heap-allocated separately) would catch this OOB.

@@ -1,0 +1,2 @@
+vuln_001.tif: Warning, incorrect count for field "StripOffsets" (2, expecting 1073741825); tag ignored.
+vuln_001.tif: Failed to allocate memory for for strip array (1073741825 elements of 4 bytes each).

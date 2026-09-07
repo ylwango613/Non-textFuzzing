@@ -1,0 +1,31 @@
+PoC generation is complete. Here is the result summary:
+
+---
+
+## VULN 001 — Integer Underflow in `AP4_IproAtom` (bytes_available)
+
+**Status: `UNVERIFIED`**
+
+### What was done
+
+All PoC files were generated and the crafted MP4 was executed against the ASAN+UBSAN binary:
+
+| File | Description |
+|------|-------------|
+| `vuln_001_gen.py` | Constructs a 178-byte MP4 with an `ipro` box of size=12 inside `moov/udta` |
+| `vuln_001_run.sh` | Runs mp42aac with ASAN options, collects sanitizer output |
+| `vuln_001_notes.md` | Documents trigger path and expected behavior |
+| `vuln_001.mp4` | The crafted input |
+| `vuln_001_status.txt` | `UNVERIFIED` |
+
+### What actually happens
+
+The logical trigger **works as described in the report**:
+- `ipro` box with `size=12` passes the `size < 12` guard (12 is not < 12)
+- Constructor computes `bytes_available = 12 - 12 - 2 = 0xFFFFFFFE` (unsigned underflow confirmed)
+- `ReadUI16(entry_count)` reads 2 bytes **past** the ipro atom boundary (out-of-bounds in the logical file layout)
+- `entry_count=1` → `CreateAtomFromStream(stream, 0xFFFFFFFE, atom)` is called, parsing a `free` sub-atom from outside ipro's declared extent
+
+### Why ASAN did not fire
+
+ASAN cannot detect this class of out-of-bounds access because Bento4 reads data via **`fread()`** into correctly-sized stack buffers (e.g., `unsigned char buffer[2]`). ASAN tracks heap/stack pointer bounds, not logical MP4 stream positions — the file I/O abstraction hides the OOB from the sanitizer. UBSAN also does not flag unsigned integer underflow (it is defined behavior in C++). A sanitizer-visible crash would require the underflowed `0xFFFFFFFE` value to drive a heap allocation in a downstream code path, which does not occur in this specific execution.

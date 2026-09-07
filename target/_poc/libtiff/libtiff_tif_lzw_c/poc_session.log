@@ -1,0 +1,7 @@
+## 汇总
+
+| VULN 编号 | 漏洞名称 | 状态 |
+|-----------|----------|------|
+| 001 | LZWPreDecode OOB Read via 1-Byte LZW Strip at mmap EOF | **VERIFIED_CRASH** |
+
+**说明**：ASAN 在 `LZWPreDecode (tif_lzw.c:268)` 处触发 `unknown-crash (READ of size 1)`，确认越界读。需注意：`tiffsplit` 使用 `TIFFReadRawStrip`（绕过解码路径），实际触发需用 `tiffinfo -D -d`；PoC 已在 `_poc/libtiff/libtiff_tif_lzw_c/` 目录下生成完整的 `vuln_001_gen.py`、`vuln_001_run.sh`、`vuln_001_notes.md` 和 `vuln_001_status.txt`。

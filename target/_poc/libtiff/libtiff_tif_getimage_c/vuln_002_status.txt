@@ -1,0 +1,6 @@
+SKIPPED
+tiffsplit does not call TIFFRGBAImageBegin / TIFFRGBAImageGet / gtStripContig.
+It uses cpStrips() (raw strip copy) only. The gtStripContig OOB read path
+is unreachable from tiffsplit. No ASAN heap OOB error was produced;
+only an unrelated LeakSanitizer report appeared. Vulnerability is not
+triggerable via this tool.

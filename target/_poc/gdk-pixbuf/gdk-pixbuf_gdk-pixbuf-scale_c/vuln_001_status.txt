@@ -1,0 +1,5 @@
+SKIPPED
+Reason: gdk-pixbuf-pixdata does not call gdk_pixbuf_rotate_simple() or gdk_pixbuf_flip().
+The OFFSET macro overflow (gdk-pixbuf-scale.c:399) is only reachable via those functions.
+The trigger BMP was generated and the binary was exercised, but the vulnerable code path
+was not reached. See vuln_001_notes.md for the real trigger path.

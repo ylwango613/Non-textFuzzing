@@ -1,0 +1,29 @@
+SKIPPED
+
+Reason: FoFiType1C::getGlyphName() is a LATENT vulnerability.
+
+The function at FoFiType1C.cc:166-176 has a real OOB read bug:
+  GString *FoFiType1C::getGlyphName(int gid) {
+    ...                                         // line 170
+    getString(charset[gid], buf, &ok);         // line 171 -- NO BOUNDS CHECK
+    ...                                        
+  }
+  charset is gmallocn(nGlyphs, sizeof(Gushort)), so charset[gid] with
+  gid >= nGlyphs is a heap OOB read.
+
+However, getGlyphName() is declared in FoFiType1C.h but has exactly
+ZERO callers in the entire xpdf codebase (confirmed by grep).
+
+The actual pdftotext font processing path is:
+  SplashOutputDev::doUpdateFont()
+    -> Gfx8BitFont::getCodeToGIDMap(FoFiType1C*) [GfxFont.cc:1606]
+         -> ff->getNameToGIDMap()                 [FoFiType1C.cc:178]
+              iterates: for (gid = 0; gid < nGlyphs; ++gid)  <-- SAFE
+
+No PDF file can force pdftotext to call getGlyphName() with any gid value.
+The vulnerability requires a code change to either:
+  a) Add a missing bounds check in getGlyphName() itself, OR
+  b) Add a caller that passes an unchecked gid from PDF data
+
+CFF font was successfully parsed (nGlyphs=1 confirmed by build).
+No crash was observed (expected for a latent API-level issue).

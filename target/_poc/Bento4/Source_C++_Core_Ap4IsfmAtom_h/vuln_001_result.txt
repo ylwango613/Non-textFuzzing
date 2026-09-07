@@ -1,0 +1,58 @@
+/data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4IsmaCryp.cpp:214:47: runtime error: index 16 out of bounds for type 'unsigned char [16]'
+/data/ylwang/non-textfuzz/target/Bento4/Source/C++/Core/Ap4IsmaCryp.cpp:214:47: runtime error: load of address 0x7fff80d372c0 with insufficient space for an object of type 'AP4_UI08'
+0x7fff80d372c0: note: pointer points here
+ 11 0a 62 74  f0 75 d3 80 ff 7f 00 00  00 9e 69 8d 6a 55 00 00  b0 75 d3 80 ff 7f 00 00  8f 67 87 6c
+              ^ 
+=================================================================
+==600961==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7fff80d372c0 at pc 0x556a8d46068e bp 0x7fff80d371b0 sp 0x7fff80d371a0
+READ of size 1 at 0x7fff80d372c0 thread T0
+    #0 0x556a8d46068d in AP4_IsmaCipher::DecryptSampleData(AP4_DataBuffer&, AP4_DataBuffer&, unsigned char const*) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xb2768d)
+    #1 0x556a8d16a2b7 in main (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x8312b7)
+    #2 0x7f7a6c645d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #3 0x7f7a6c645e3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #4 0x556a8d16d834 in _start (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0x834834)
+
+Address 0x7fff80d372c0 is located in stack of thread T0 at offset 144 in frame
+    #0 0x556a8d45edcf in AP4_IsmaCipher::DecryptSampleData(AP4_DataBuffer&, AP4_DataBuffer&, unsigned char const*) (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xb25dcf)
+
+  This frame has 4 object(s):
+    [32, 40) 'bso_bytes' (line 198)
+    [64, 80) 'iv' (line 196)
+    [96, 112) 'zero' (line 207)
+    [128, 144) 'zero_enc' (line 208) <== Memory access at offset 144 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xb2768d) in AP4_IsmaCipher::DecryptSampleData(AP4_DataBuffer&, AP4_DataBuffer&, unsigned char const*)
+Shadow bytes around the buggy address:
+  0x10007019ee00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x10007019ee10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x10007019ee20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x10007019ee30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x10007019ee40: 00 00 00 00 00 00 f1 f1 f1 f1 00 f2 f2 f2 00 00
+=>0x10007019ee50: f2 f2 00 00 f2 f2 00 00[f3]f3 00 00 00 00 00 00
+  0x10007019ee60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x10007019ee70: 00 00 00 00 00 00 f1 f1 f1 f1 00 f2 f2 f2 00 f2
+  0x10007019ee80: f2 f2 00 00 00 00 f2 f2 f2 f2 00 00 00 00 f2 f2
+  0x10007019ee90: f2 f2 00 00 00 00 f2 f2 f2 f2 00 00 00 00 00 00
+  0x10007019eea0: f2 f2 f2 f2 00 00 00 00 00 00 f2 f2 f2 f2 07 f2
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==600961==ABORTING

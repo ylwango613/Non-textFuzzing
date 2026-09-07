@@ -1,0 +1,23 @@
+UNVERIFIED
+
+The PoC JP2 file was successfully crafted and the binary reached the vulnerable PCLR/CMAP
+processing code path (confirmed by the "error: invalid CMAP LUT index" message in
+vuln_002_result.txt). The codestream decoded without error and the decoder parsed both the
+PCLR box (numchans=1) and the CMAP box (pcol=200).
+
+However, the build_test binary was compiled from source that already includes a bounds check
+at jp2_dec.c:343-344:
+
+    if (dec->cmap->data.cmap.ents[i].pcol >= dec->pclr->data.pclr.numchans) {
+        jas_eprintf("error: invalid CMAP LUT index\n");
+        goto error;
+    }
+
+This check fires when pcol=200 >= numchans=1, causing the decoder to abort before reaching
+the OOB reads at lines 372 (lutdata access) and 377 (bpc access). No
+heap-buffer-overflow was reported by ASAN.
+
+The PoC correctly demonstrates the exploit trigger condition. In an unpatched build (without
+the line 343 check), the same JP2 file would cause ASAN to report heap-buffer-overflow at
+jp2_dec.c:372 and :377 when pclrd->lutdata[200 + i*1] and pclrd->bpc[200] are read 200
+entries past the end of their 1-element allocations.

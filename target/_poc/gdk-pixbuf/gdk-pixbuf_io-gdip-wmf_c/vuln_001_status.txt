@@ -1,0 +1,4 @@
+SKIPPED
+Reason: GDI+ loader (io-gdip-wmf.c / io-gdip-utils.c) is a Windows-only component not compiled into the Linux build.
+The loaders.cache is empty, no WMF/gdip .so modules exist in the build tree, and no gdip/wmf symbols appear in the binary or shared library.
+The vulnerable code path (gdip_bitmap_get_frame_delay) is unreachable on this platform.

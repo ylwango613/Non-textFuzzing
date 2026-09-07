@@ -1,0 +1,65 @@
+=================================================================
+==2427996==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000073 at pc 0x7fbd6263f5e5 bp 0x7fff65548520 sp 0x7fff65548510
+READ of size 1 at 0x502000000073 thread T0
+    #0 0x7fbd6263f5e4 in checkInkNamesString (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x2745e4)
+    #1 0x7fbd62646a4b in _TIFFVSetField (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x27ba4b)
+    #2 0x7fbd6264b05c in TIFFVSetField (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x28005c)
+    #3 0x7fbd6264af16 in TIFFSetField (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x27ff16)
+    #4 0x7fbd62679037 in TIFFFetchNormalTag (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x2ae037)
+    #5 0x7fbd6266714c in TIFFReadDirectory (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x29c14c)
+    #6 0x7fbd62776882 in TIFFClientOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3ab882)
+    #7 0x7fbd627c6f96 in TIFFFdOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fbf96)
+    #8 0x7fbd627c70f5 in TIFFOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc0f5)
+    #9 0x55f8e2acd8e4 in main (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit+0x38e4)
+    #10 0x7fbd62034d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #11 0x7fbd62034e3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #12 0x55f8e2acd604 in _start (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit+0x3604)
+
+0x502000000073 is located 0 bytes to the right of 3-byte region [0x502000000070,0x502000000073)
+allocated by thread T0 here:
+    #0 0x7fbd62be5c38 in __interceptor_realloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:164
+    #1 0x7fbd627c7175 in _TIFFrealloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc175)
+    #2 0x7fbd6262ed49 in _TIFFCheckRealloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x263d49)
+    #3 0x7fbd6262eea2 in _TIFFCheckMalloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x263ea2)
+    #4 0x7fbd62678cd3 in TIFFFetchNormalTag (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x2adcd3)
+    #5 0x7fbd6266714c in TIFFReadDirectory (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x29c14c)
+    #6 0x7fbd62776882 in TIFFClientOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3ab882)
+    #7 0x7fbd627c6f96 in TIFFFdOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fbf96)
+    #8 0x7fbd627c70f5 in TIFFOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc0f5)
+    #9 0x55f8e2acd8e4 in main (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit+0x38e4)
+    #10 0x7fbd62034d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x2745e4) in checkInkNamesString
+Shadow bytes around the buggy address:
+  0x0a047fff7fb0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a047fff7fc0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a047fff7fd0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a047fff7fe0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a047fff7ff0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x0a047fff8000: fa fa 00 fa fa fa 04 fa fa fa 04 fa fa fa[03]fa
+  0x0a047fff8010: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8020: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8030: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8040: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8050: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==2427996==ABORTING

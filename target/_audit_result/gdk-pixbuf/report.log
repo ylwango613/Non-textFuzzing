@@ -1,0 +1,7 @@
+[2026-09-08 02:13:17] wrote gdk-pixbuf_gdk-pixbuf_c_v2
+[2026-09-08 02:13:19] wrote gdk-pixbuf_gdk-pixbuf_c_v1
+[2026-09-08 02:13:38] wrote gdk-pixbuf_gdk-pixbuf-csource_c_v3
+[2026-09-08 02:13:39] wrote gdk-pixbuf_gdk-pixbuf-csource_c_v1
+[2026-09-08 02:13:41] wrote gdk-pixbuf_gdk-pixbuf-csource_c_v2
+[2026-09-08 02:13:41] DEDUP-SKIP gdk-pixbuf_gdk-pixbuf-io_c_v2 (key=`gdk_pixbuf_from_pixdata::CWE-125)
+[2026-09-08 02:13:41] DEDUP-SKIP gdk-pixbuf_gdk-pixbuf-pixdata_c_v2 (key=gdk_pixbuf_from_pixdata::CWE-125)

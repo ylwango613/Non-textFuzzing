@@ -3,3 +3,90 @@
 [2026-09-07 01:22:27] DONE: 0 new, 1 skipped, 0 vulns
 [2026-09-07 01:26:25] POC libtiff/tif_dirread.c: 0/2 verified
 [2026-09-07 01:27:23] POC libtiff/tif_dirread.c: 0/2 verified
+[2026-09-07 13:21:58] DONE: 0 new, 0 skipped, 0 vulns
+[2026-09-07 13:48:45] VULN libtiff/tif_dirwrite.c: 1 findings
+[2026-09-07 13:49:56] VULN libtiff/tif_dir.c: 1 findings
+[2026-09-07 13:52:35] VULN libtiff/tif_dumpmode.c: 1 findings
+[2026-09-07 13:52:46] POC libtiff/tif_dir.c: 1/1 verified
+[2026-09-07 13:56:49] POC libtiff/tif_dumpmode.c: 0/1 verified
+[2026-09-07 14:01:38] POC libtiff/tif_dirwrite.c: 0/1 verified
+[2026-09-07 14:05:22] VULN libtiff/tif_fax3.c: 1 findings
+[2026-09-07 14:05:54] VULN libtiff/tif_getimage.c: 2 findings
+[2026-09-07 14:07:18] VULN libtiff/tif_jbig.c: 1 findings
+[2026-09-07 14:11:09] POC libtiff/tif_getimage.c: 0/2 verified
+[2026-09-07 14:16:20] VULN libtiff/tif_luv.c: 3 findings
+[2026-09-07 14:17:53] VULN libtiff/tif_lzw.c: 1 findings
+[2026-09-07 14:24:56] POC libtiff/tif_luv.c: 0/3 verified
+[2026-09-07 14:24:56] VULN libtiff/tif_jpeg.c: 1 findings
+[2026-09-07 14:27:30] POC libtiff/tif_fax3.c: 0/1 verified
+[2026-09-07 14:27:32] VULN libtiff/tif_msdos.c: 2 findings
+[2026-09-07 14:29:06] POC libtiff/tif_jpeg.c: 0/1 verified
+[2026-09-07 14:30:37] VULN libtiff/tif_next.c: 1 findings
+[2026-09-07 14:35:19] POC libtiff/tif_msdos.c: 1/2 verified
+[2026-09-07 14:35:19] VULN libtiff/tif_ojpeg.c: 1 findings
+[2026-09-07 14:37:10] POC libtiff/tif_lzw.c: 1/1 verified
+[2026-09-07 14:38:45] VULN libtiff/tif_open.c: 1 findings
+[2026-09-07 15:02:06] POC libtiff/tif_next.c: 1/1 verified
+[2026-09-07 15:02:07] VULN libtiff/tif_packbits.c: 2 findings
+[2026-09-07 15:06:28] POC libtiff/tif_jbig.c: 1/1 verified
+[2026-09-07 15:06:28] VULN libtiff/tif_pixarlog.c: 1 findings
+[2026-09-07 15:14:19] POC libtiff/tif_open.c: 0/1 verified
+[2026-09-07 15:14:20] VULN libtiff/tif_predict.c: 2 findings
+[2026-09-07 15:16:00] POC libtiff/tif_ojpeg.c: 0/1 verified
+[2026-09-07 15:16:17] POC libtiff/tif_pixarlog.c: 0/1 verified
+[2026-09-07 15:19:52] POC libtiff/tif_packbits.c: 0/2 verified
+[2026-09-07 15:26:13] VULN libtiff/tif_print.c: 3 findings
+[2026-09-07 15:27:23] POC libtiff/tif_predict.c: 1/2 verified
+[2026-09-07 15:28:21] POC libtiff/tif_print.c: 0/3 verified
+[2026-09-07 15:38:08] VULN libtiff/tif_read.c: 2 findings
+[2026-09-07 15:41:26] POC ERR libtiff/tif_read.c: claude exit 0
+[2026-09-07 15:46:51] DONE: 70 new, 1 skipped, 27 vulns
+[2026-09-07 16:24:12] POC libtiff/tif_read.c: 2/2 verified
+[2026-09-07 16:37:00] VULN libtiff/tif_warning.c: 1 findings
+[2026-09-07 16:38:41] POC libtiff/tif_warning.c: 0/1 verified
+[2026-09-07 16:42:44] VULN libtiff/tif_win32.c: 1 findings
+[2026-09-07 16:42:50] VULN libtiff/tif_win3.c: 1 findings
+[2026-09-07 16:43:38] VULN libtiff/tif_strip.c: 2 findings
+[2026-09-07 16:44:01] POC libtiff/tif_win32.c: 0/1 verified
+[2026-09-07 16:44:22] POC libtiff/tif_win3.c: 0/1 verified
+[2026-09-07 16:45:24] POC libtiff/tif_strip.c: 0/2 verified
+[2026-09-07 16:49:07] VULN tools/bmp2tiff.c: 2 findings
+[2026-09-07 16:50:31] POC tools/bmp2tiff.c: 0/2 verified
+[2026-09-07 16:50:40] VULN libtiff/tif_write.c: 1 findings
+[2026-09-07 16:57:12] VULN tools/fax2ps.c: 1 findings
+[2026-09-07 17:00:21] POC tools/fax2ps.c: 1/1 verified
+[2026-09-07 17:01:49] POC libtiff/tif_write.c: 0/1 verified
+[2026-09-07 17:02:55] VULN tools/gif2tiff.c: 3 findings
+[2026-09-07 17:04:05] POC tools/gif2tiff.c: 0/3 verified
+[2026-09-07 17:04:33] VULN tools/pal2rgb.c: 2 findings
+[2026-09-07 17:07:12] VULN tools/fax2tiff.c: 1 findings
+[2026-09-07 17:08:10] VULN tools/ppm2tiff.c: 2 findings
+[2026-09-07 17:09:19] POC tools/fax2tiff.c: 0/1 verified
+[2026-09-07 17:10:55] POC tools/ppm2tiff.c: 0/2 verified
+[2026-09-07 17:11:05] VULN tools/raw2tiff.c: 2 findings
+[2026-09-07 17:12:24] POC tools/raw2tiff.c: 0/2 verified
+[2026-09-07 17:12:36] POC tools/pal2rgb.c: 2/2 verified
+[2026-09-07 17:14:16] VULN tools/ras2tiff.c: 2 findings
+[2026-09-07 17:15:49] POC tools/ras2tiff.c: 0/2 verified
+[2026-09-07 17:16:57] VULN tools/rgb2ycbcr.c: 1 findings
+[2026-09-07 17:20:46] VULN tools/sgisv.c: 1 findings
+[2026-09-07 17:21:19] POC tools/rgb2ycbcr.c: 0/1 verified
+[2026-09-07 17:21:58] POC tools/sgisv.c: 0/1 verified
+[2026-09-07 17:25:45] VULN tools/tiff2bw.c: 4 findings
+[2026-09-07 17:26:15] VULN tools/thumbnail.c: 4 findings
+[2026-09-07 17:29:36] POC ERR tools/thumbnail.c: claude exit 0
+[2026-09-07 17:29:39] POC ERR tools/tiff2bw.c: claude exit 0
+[2026-09-07 17:29:46] VULN tools/tiff2pdf.c: 3 findings
+[2026-09-07 17:29:49] POC ERR tools/tiff2pdf.c: claude exit 0
+[2026-09-07 17:31:45] DONE: 37 new, 34 skipped, 34 vulns
+[2026-09-07 21:55:46] VULN tools/tiffcmp.c: 1 findings
+[2026-09-07 22:03:12] VULN tools/tiff2ps.c: 2 findings
+[2026-09-07 22:10:53] VULN tools/tiff2rgba.c: 2 findings
+[2026-09-07 22:14:32] VULN tools/tiffcrop.c: 5 findings
+[2026-09-07 22:16:29] VULN tools/tiffcp.c: 1 findings
+[2026-09-07 22:17:23] VULN tools/tiffdither.c: 4 findings
+[2026-09-07 22:19:53] VULN tools/tiffgt.c: 1 findings
+[2026-09-07 22:32:16] VULN tools/tiffmedian.c: 2 findings
+[2026-09-07 22:41:38] VULN tools/tiffinfo.c: 1 findings
+[2026-09-07 22:41:38] VULN tools/tiffsplit.c: 2 findings
+[2026-09-07 22:41:38] DONE: 13 new, 58 skipped, 21 vulns

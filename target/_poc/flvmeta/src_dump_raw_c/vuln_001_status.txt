@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+ASAN confirmed stack-overflow: AddressSanitizer: stack-overflow detected in xml_amf_data_dump (recursive AMF dump triggered by deeply nested AMF objects in the crafted FLV Script tag).
+Trigger: 20000 levels of nested AMF objects (type 0x03) in Script tag causes unbounded recursion in xml_amf_data_dump (and underlying amf_data_read/amf_object_read chain).
+ASAN report: stack-overflow on address 0x7ffc848efff8, confirmed by ASAN log with full recursive backtrace.
+Exit code: 1 (abnormal termination due to stack exhaustion).
+CWE-674: Uncontrolled Recursion — no depth limit in AMF parsing/dumping code.

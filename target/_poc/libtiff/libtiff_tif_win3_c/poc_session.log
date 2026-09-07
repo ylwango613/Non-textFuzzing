@@ -1,0 +1,5 @@
+## 汇总
+
+| VULN 编号 | 状态 | 原因 |
+|-----------|------|------|
+| VULN 001 | **SKIPPED** | `tif_win3.c` 是 Windows 3.x 专属平台代码，未编译进 Linux 的 `tiffsplit` 二进制。Linux 构建使用 `tif_unix.c` 中的 `unixErrorHandler`/`unixWarningHandler`，`win3ErrorHandler` 和 `win3WarningHandler` 符号在二进制中完全不存在，无法通过命令行触发。

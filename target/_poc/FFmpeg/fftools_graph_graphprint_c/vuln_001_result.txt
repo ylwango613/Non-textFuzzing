@@ -1,0 +1,1780 @@
+=== VULN 001 PoC: NULL dereference in print_filter() ===
+Binary: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+Date: Mon Sep  7 07:46:17 PM +08 2026
+
+--- Attempt: baseline-split-both-connected ---
+CMD: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -y -print_graphs -i vuln_001_input.avi -filter_complex [0:v]split=2[a][b];[a]scale=8:8[o1];[b]scale=16:16[o2] -map [o1] -map [o2] -f null -
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:01.00, start: 0.000000, bitrate: 8 kb/s
+  Stream #0:0: Video: rawvideo, bgr24, 16x16, 1 fps, 1 tbr, 1 tbn
+Stream mapping:
+  Stream #0:0 (rawvideo) -> split:default
+  scale:default -> Stream #0:0 (wrapped_avframe)
+  scale:default -> Stream #0:1 (wrapped_avframe)
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: wrapped_avframe, bgr24(pc, gbr/unknown/unknown, progressive), 8x8, q=2-31, 200 kb/s, 1 fps, 1 tbn (default)
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+  Stream #0:1: Video: wrapped_avframe, bgr24(pc, gbr/unknown/unknown, progressive), 16x16, q=2-31, 200 kb/s, 1 fps, 1 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+[out#0/null @ 0x511000001080] video:1KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-0.0 Lq=-0.0 size=N/A time=00:00:01.00 bitrate=N/A speed=43.6x elapsed=0:00:00.02    
+{
+    "graphs": [
+        {
+            "graph_index": 0,
+            "name": "Graph 0.0",
+            "id": "Graph_0_0",
+            "description": "[0:v]split=2[a][b];[a]scale=8:8[o1];[b]scale=16:16[o2]",
+            "graph_inputs": [
+                {
+                    "input_index": 0,
+                    "link_label": "0:v",
+                    "filter_id": "G0_graph_0_input_from_stream_0_0",
+                    "filter_name": "buffer",
+                    "media_type": "video"
+                }
+            ],
+            "graph_outputs": [
+                {
+                    "output_index": 0,
+                    "name": "#0:0",
+                    "filter_id": "G0_out__0_0",
+                    "filter_name": "buffersink",
+                    "media_type": "video"
+                },
+                {
+                    "output_index": 1,
+                    "name": "#0:1",
+                    "filter_id": "G0_out__0_1",
+                    "filter_name": "buffersink",
+                    "media_type": "video"
+                }
+            ],
+            "filters": [
+                {
+                    "filter_name": "split",
+                    "description": "Pass on the input to N video outputs.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 2,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "in_0_v",
+                            "source_pad_name": "default",
+                            "filter_id": "G0_Parsed_split_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "G0_Parsed_scale_1",
+                            "output_index": 0,
+                            "pad_name": "output0",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_Parsed_split_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        },
+                        {
+                            "dest_filter_id": "G0_Parsed_scale_2",
+                            "output_index": 1,
+                            "pad_name": "output1",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_Parsed_split_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                },
+                {
+                    "filter_name": "scale",
+                    "description": "Scale the input video size and/or convert the image format.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 1,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "G0_Parsed_split_0",
+                            "source_pad_name": "output0",
+                            "filter_id": "G0_Parsed_scale_1",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "out__0_0",
+                            "output_index": 0,
+                            "pad_name": "default",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_Parsed_scale_1",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 8,
+                            "height": 8,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                },
+                {
+                    "filter_name": "scale",
+                    "description": "Scale the input video size and/or convert the image format.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 1,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "G0_Parsed_split_0",
+                            "source_pad_name": "output1",
+                            "filter_id": "G0_Parsed_scale_2",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "out__0_1",
+                            "output_index": 0,
+                            "pad_name": "default",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_Parsed_scale_2",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                },
+                {
+                    "filter_name": "buffer",
+                    "description": "Buffer video frames, and make them accessible to the filterchain.",
+                    "nb_inputs": 0,
+                    "nb_outputs": 1,
+                    "filter_inputs": [
+
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "G0_Parsed_split_0",
+                            "output_index": 0,
+                            "pad_name": "default",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_graph_0_input_from_stream_0_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                },
+                {
+                    "filter_name": "buffersink",
+                    "description": "Buffer video frames, and make them available to the end of the filter graph.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 0,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "G0_Parsed_scale_1",
+                            "source_pad_name": "default",
+                            "filter_id": "G0_out__0_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 8,
+                            "height": 8,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+
+                    ]
+                },
+                {
+                    "filter_name": "buffersink",
+                    "description": "Buffer video frames, and make them available to the end of the filter graph.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 0,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "G0_Parsed_scale_2",
+                            "source_pad_name": "default",
+                            "filter_id": "G0_out__0_1",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+
+                    ]
+                }
+            ]
+        }
+    ],
+    "inputfiles": [
+        {
+            "index": "0",
+            "demuxer_name": "avi",
+            "file_extension": "avi",
+            "url": "vuln_001_input.avi",
+            "inputstreams": [
+                {
+                    "id": "r_in_0_0",
+                    "name": "raw video",
+                    "index": "0",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "decoders": [
+        {
+            "source_id": "r_in_0_0",
+            "id": "in_0_0",
+            "name": "rawvideo",
+            "media_type": "video"
+        }
+    ],
+    "encoders": [
+        {
+            "id": "out__0_0",
+            "dest_id": "r_out__0_0",
+            "name": "wrapped_avframe",
+            "media_type": "video"
+        },
+        {
+            "id": "out__0_1",
+            "dest_id": "r_out__0_1",
+            "name": "wrapped_avframe",
+            "media_type": "video"
+        }
+    ],
+    "outputfiles": [
+        {
+            "index": "0",
+            "muxer_name": "null",
+            "url": "pipe:",
+            "outputstreams": [
+                {
+                    "id": "r_out__0_0",
+                    "name": "AVFrame to AVPacket passthrough",
+                    "index": "0",
+                    "media_type": "video"
+                },
+                {
+                    "id": "r_out__0_1",
+                    "name": "AVFrame to AVPacket passthrough",
+                    "index": "1",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "streamlinks": [
+
+    ]
+}
+    
+EXIT CODE: 0
+
+--- Attempt: select-dynamic-outputs-partial ---
+CMD: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -y -print_graphs -i vuln_001_input.avi -filter_complex [0:v]select='gte(n,0)':n=2[sel0][sel1];[sel0]scale=8:8[out] -map [out] -f null -
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:01.00, start: 0.000000, bitrate: 8 kb/s
+  Stream #0:0: Video: rawvideo, bgr24, 16x16, 1 fps, 1 tbr, 1 tbn
+[fc#0 @ 0x51a000000080] Filter 'select' has output 0 (sel1) unconnected
+Error binding filtergraph inputs/outputs: Invalid argument
+{
+    "graphs": [
+
+    ],
+    "inputfiles": [
+        {
+            "index": "0",
+            "demuxer_name": "avi",
+            "file_extension": "avi",
+            "url": "vuln_001_input.avi",
+            "inputstreams": [
+                {
+                    "id": "r_in_0_0",
+                    "name": "raw video",
+                    "index": "0",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "decoders": [
+
+    ],
+    "encoders": [
+        {
+            "id": "out__0_0",
+            "dest_id": "r_out__0_0",
+            "name": "wrapped_avframe",
+            "media_type": "video"
+        }
+    ],
+    "outputfiles": [
+        {
+            "index": "0",
+            "muxer_name": "null",
+            "url": "pipe:",
+            "outputstreams": [
+                {
+                    "id": "r_out__0_0",
+                    "name": "unknown",
+                    "index": "0",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "streamlinks": [
+
+    ]
+}
+    
+EXIT CODE: 234
+
+--- Attempt: select-n2-one-label-open-out ---
+CMD: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -y -print_graphs -i vuln_001_input.avi -filter_complex [0:v]select='gte(n,0)':n=2[out] -map [out] -f null -
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:01.00, start: 0.000000, bitrate: 8 kb/s
+  Stream #0:0: Video: rawvideo, bgr24, 16x16, 1 fps, 1 tbr, 1 tbn
+Stream mapping:
+  Stream #0:0 (rawvideo) -> select:default
+  select -> Stream #0:0 (wrapped_avframe)
+  select -> Stream #0:1 (wrapped_avframe)
+Press [q] to stop, [?] for help
+[vost#0:0/wrapped_avframe @ 0x517000000780] [enc:wrapped_avframe @ 0x511000001300] Could not open encoder before EOF
+[vost#0:0/wrapped_avframe @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/null @ 0x511000000e00] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lq=-0.0 size=       0KiB time=00:00:01.00 bitrate=   0.0kbits/s speed= 138x elapsed=0:00:00.00    
+{
+    "graphs": [
+        {
+            "graph_index": 0,
+            "name": "Graph 0.0",
+            "id": "Graph_0_0",
+            "description": "[0:v]select='gte(n,0)':n=2[out]",
+            "graph_inputs": [
+                {
+                    "input_index": 0,
+                    "link_label": "0:v",
+                    "filter_id": "G0_graph_0_input_from_stream_0_0",
+                    "filter_name": "buffer",
+                    "media_type": "video"
+                }
+            ],
+            "graph_outputs": [
+                {
+                    "output_index": 0,
+                    "name": "#0:1",
+                    "filter_id": "G0_out__0_1",
+                    "filter_name": "buffersink",
+                    "media_type": "video"
+                },
+                {
+                    "output_index": 1,
+                    "name": "#0:0",
+                    "filter_id": "G0_out__0_0",
+                    "filter_name": "buffersink",
+                    "media_type": "video"
+                }
+            ],
+            "filters": [
+                {
+                    "filter_name": "select",
+                    "description": "Select video frames to pass in output.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 2,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "in_0_v",
+                            "source_pad_name": "default",
+                            "filter_id": "G0_Parsed_select_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "out__0_1",
+                            "output_index": 0,
+                            "pad_name": "output0",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_Parsed_select_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        },
+                        {
+                            "dest_filter_id": "out__0_0",
+                            "output_index": 1,
+                            "pad_name": "output1",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_Parsed_select_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                },
+                {
+                    "filter_name": "buffer",
+                    "description": "Buffer video frames, and make them accessible to the filterchain.",
+                    "nb_inputs": 0,
+                    "nb_outputs": 1,
+                    "filter_inputs": [
+
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "G0_Parsed_select_0",
+                            "output_index": 0,
+                            "pad_name": "default",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_graph_0_input_from_stream_0_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                },
+                {
+                    "filter_name": "buffersink",
+                    "description": "Buffer video frames, and make them available to the end of the filter graph.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 0,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "G0_Parsed_select_0",
+                            "source_pad_name": "output0",
+                            "filter_id": "G0_out__0_1",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+
+                    ]
+                },
+                {
+                    "filter_name": "buffersink",
+                    "description": "Buffer video frames, and make them available to the end of the filter graph.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 0,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "G0_Parsed_select_0",
+                            "source_pad_name": "output1",
+                            "filter_id": "G0_out__0_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+
+                    ]
+                }
+            ]
+        }
+    ],
+    "inputfiles": [
+        {
+            "index": "0",
+            "demuxer_name": "avi",
+            "file_extension": "avi",
+            "url": "vuln_001_input.avi",
+            "inputstreams": [
+                {
+                    "id": "r_in_0_0",
+                    "name": "raw video",
+                    "index": "0",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "decoders": [
+        {
+            "source_id": "r_in_0_0",
+            "id": "in_0_0",
+            "name": "rawvideo",
+            "media_type": "video"
+        }
+    ],
+    "encoders": [
+        {
+            "id": "out__0_0",
+            "dest_id": "r_out__0_0",
+            "name": "wrapped_avframe",
+            "media_type": "video"
+        },
+        {
+            "id": "out__0_1",
+            "dest_id": "r_out__0_1",
+            "name": "wrapped_avframe",
+            "media_type": "video"
+        }
+    ],
+    "outputfiles": [
+        {
+            "index": "0",
+            "muxer_name": "null",
+            "url": "pipe:",
+            "outputstreams": [
+                {
+                    "id": "r_out__0_0",
+                    "name": "unknown",
+                    "index": "0",
+                    "media_type": "video"
+                },
+                {
+                    "id": "r_out__0_1",
+                    "name": "AVFrame to AVPacket passthrough",
+                    "index": "1",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "streamlinks": [
+
+    ]
+}
+    
+Conversion failed!
+EXIT CODE: 234
+
+--- Attempt: bm3d-single-input-dynamic ---
+CMD: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -y -print_graphs -i vuln_001_input.avi -filter_complex [0:v]bm3d=sigma=3[out] -map [out] -f null -
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:01.00, start: 0.000000, bitrate: 8 kb/s
+  Stream #0:0: Video: rawvideo, bgr24, 16x16, 1 fps, 1 tbr, 1 tbn
+Stream mapping:
+  Stream #0:0 (rawvideo) -> bm3d:source
+  bm3d:default -> Stream #0:0 (wrapped_avframe)
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: wrapped_avframe, gbrp(pc, gbr/unknown/unknown, progressive), 16x16, q=2-31, 200 kb/s, 1 fps, 1 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+[out#0/null @ 0x511000000e00] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:01.00 bitrate=N/A speed=25.9x elapsed=0:00:00.03    
+{
+    "graphs": [
+        {
+            "graph_index": 0,
+            "name": "Graph 0.0",
+            "id": "Graph_0_0",
+            "description": "[0:v]bm3d=sigma=3[out]",
+            "graph_inputs": [
+                {
+                    "input_index": 0,
+                    "link_label": "0:v",
+                    "filter_id": "G0_graph_0_input_from_stream_0_0",
+                    "filter_name": "buffer",
+                    "media_type": "video"
+                }
+            ],
+            "graph_outputs": [
+                {
+                    "output_index": 0,
+                    "name": "#0:0",
+                    "filter_id": "G0_out__0_0",
+                    "filter_name": "buffersink",
+                    "media_type": "video"
+                }
+            ],
+            "filters": [
+                {
+                    "filter_name": "bm3d",
+                    "description": "Block-Matching 3D denoiser.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 1,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "source",
+                            "source_filter_id": "G0_auto_scale_0",
+                            "source_pad_name": "default",
+                            "filter_id": "G0_Parsed_bm3d_0",
+                            "media_type": "video",
+                            "format": "gbrp",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "out__0_0",
+                            "output_index": 0,
+                            "pad_name": "default",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_Parsed_bm3d_0",
+                            "media_type": "video",
+                            "format": "gbrp",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                },
+                {
+                    "filter_name": "buffer",
+                    "description": "Buffer video frames, and make them accessible to the filterchain.",
+                    "nb_inputs": 0,
+                    "nb_outputs": 1,
+                    "filter_inputs": [
+
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "G0_auto_scale_0",
+                            "output_index": 0,
+                            "pad_name": "default",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_graph_0_input_from_stream_0_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                },
+                {
+                    "filter_name": "buffersink",
+                    "description": "Buffer video frames, and make them available to the end of the filter graph.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 0,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "G0_Parsed_bm3d_0",
+                            "source_pad_name": "default",
+                            "filter_id": "G0_out__0_0",
+                            "media_type": "video",
+                            "format": "gbrp",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+
+                    ]
+                },
+                {
+                    "filter_name": "scale",
+                    "description": "Scale the input video size and/or convert the image format.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 1,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "in_0_v",
+                            "source_pad_name": "default",
+                            "filter_id": "G0_auto_scale_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "G0_Parsed_bm3d_0",
+                            "output_index": 0,
+                            "pad_name": "default",
+                            "dest_pad_name": "source",
+                            "filter_id": "G0_auto_scale_0",
+                            "media_type": "video",
+                            "format": "gbrp",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "inputfiles": [
+        {
+            "index": "0",
+            "demuxer_name": "avi",
+            "file_extension": "avi",
+            "url": "vuln_001_input.avi",
+            "inputstreams": [
+                {
+                    "id": "r_in_0_0",
+                    "name": "raw video",
+                    "index": "0",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "decoders": [
+        {
+            "source_id": "r_in_0_0",
+            "id": "in_0_0",
+            "name": "rawvideo",
+            "media_type": "video"
+        }
+    ],
+    "encoders": [
+        {
+            "id": "out__0_0",
+            "dest_id": "r_out__0_0",
+            "name": "wrapped_avframe",
+            "media_type": "video"
+        }
+    ],
+    "outputfiles": [
+        {
+            "index": "0",
+            "muxer_name": "null",
+            "url": "pipe:",
+            "outputstreams": [
+                {
+                    "id": "r_out__0_0",
+                    "name": "AVFrame to AVPacket passthrough",
+                    "index": "0",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "streamlinks": [
+
+    ]
+}
+    
+EXIT CODE: 0
+
+--- Attempt: overlay-one-input-missing ---
+CMD: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -y -print_graphs -i vuln_001_input.avi -filter_complex [0:v]overlay[out] -map [out] -f null -
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:01.00, start: 0.000000, bitrate: 8 kb/s
+  Stream #0:0: Video: rawvideo, bgr24, 16x16, 1 fps, 1 tbr, 1 tbn
+[fc#0 @ 0x51a000000080] Cannot find an unused video input stream to feed the unlabeled input pad overlay.
+Error binding filtergraph inputs/outputs: Invalid argument
+{
+    "graphs": [
+
+    ],
+    "inputfiles": [
+        {
+            "index": "0",
+            "demuxer_name": "avi",
+            "file_extension": "avi",
+            "url": "vuln_001_input.avi",
+            "inputstreams": [
+                {
+                    "id": "r_in_0_0",
+                    "name": "raw video",
+                    "index": "0",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "decoders": [
+        {
+            "source_id": "r_in_0_0",
+            "id": "in_0_0",
+            "name": "rawvideo",
+            "media_type": "video"
+        }
+    ],
+    "encoders": [
+        {
+            "id": "out__0_0",
+            "dest_id": "r_out__0_0",
+            "name": "wrapped_avframe",
+            "media_type": "video"
+        }
+    ],
+    "outputfiles": [
+        {
+            "index": "0",
+            "muxer_name": "null",
+            "url": "pipe:",
+            "outputstreams": [
+                {
+                    "id": "r_out__0_0",
+                    "name": "unknown",
+                    "index": "0",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "streamlinks": [
+
+    ]
+}
+    
+EXIT CODE: 234
+
+--- Attempt: scale-nullsink-outputs ---
+CMD: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -y -print_graphs -i vuln_001_input.avi -filter_complex [0:v]scale=8:8[out] -map [out] -f null -
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:01.00, start: 0.000000, bitrate: 8 kb/s
+  Stream #0:0: Video: rawvideo, bgr24, 16x16, 1 fps, 1 tbr, 1 tbn
+Stream mapping:
+  Stream #0:0 (rawvideo) -> scale:default
+  scale:default -> Stream #0:0 (wrapped_avframe)
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: wrapped_avframe, bgr24(pc, gbr/unknown/unknown, progressive), 8x8, q=2-31, 200 kb/s, 1 fps, 1 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+[out#0/null @ 0x511000000e00] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:01.00 bitrate=N/A speed=60.7x elapsed=0:00:00.01    
+{
+    "graphs": [
+        {
+            "graph_index": 0,
+            "name": "Graph 0.0",
+            "id": "Graph_0_0",
+            "description": "[0:v]scale=8:8[out]",
+            "graph_inputs": [
+                {
+                    "input_index": 0,
+                    "link_label": "0:v",
+                    "filter_id": "G0_graph_0_input_from_stream_0_0",
+                    "filter_name": "buffer",
+                    "media_type": "video"
+                }
+            ],
+            "graph_outputs": [
+                {
+                    "output_index": 0,
+                    "name": "#0:0",
+                    "filter_id": "G0_out__0_0",
+                    "filter_name": "buffersink",
+                    "media_type": "video"
+                }
+            ],
+            "filters": [
+                {
+                    "filter_name": "scale",
+                    "description": "Scale the input video size and/or convert the image format.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 1,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "in_0_v",
+                            "source_pad_name": "default",
+                            "filter_id": "G0_Parsed_scale_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "out__0_0",
+                            "output_index": 0,
+                            "pad_name": "default",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_Parsed_scale_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 8,
+                            "height": 8,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                },
+                {
+                    "filter_name": "buffer",
+                    "description": "Buffer video frames, and make them accessible to the filterchain.",
+                    "nb_inputs": 0,
+                    "nb_outputs": 1,
+                    "filter_inputs": [
+
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "G0_Parsed_scale_0",
+                            "output_index": 0,
+                            "pad_name": "default",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_graph_0_input_from_stream_0_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                },
+                {
+                    "filter_name": "buffersink",
+                    "description": "Buffer video frames, and make them available to the end of the filter graph.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 0,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "G0_Parsed_scale_0",
+                            "source_pad_name": "default",
+                            "filter_id": "G0_out__0_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 8,
+                            "height": 8,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+
+                    ]
+                }
+            ]
+        }
+    ],
+    "inputfiles": [
+        {
+            "index": "0",
+            "demuxer_name": "avi",
+            "file_extension": "avi",
+            "url": "vuln_001_input.avi",
+            "inputstreams": [
+                {
+                    "id": "r_in_0_0",
+                    "name": "raw video",
+                    "index": "0",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "decoders": [
+        {
+            "source_id": "r_in_0_0",
+            "id": "in_0_0",
+            "name": "rawvideo",
+            "media_type": "video"
+        }
+    ],
+    "encoders": [
+        {
+            "id": "out__0_0",
+            "dest_id": "r_out__0_0",
+            "name": "wrapped_avframe",
+            "media_type": "video"
+        }
+    ],
+    "outputfiles": [
+        {
+            "index": "0",
+            "muxer_name": "null",
+            "url": "pipe:",
+            "outputstreams": [
+                {
+                    "id": "r_out__0_0",
+                    "name": "AVFrame to AVPacket passthrough",
+                    "index": "0",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "streamlinks": [
+
+    ]
+}
+    
+EXIT CODE: 0
+
+--- Attempt: invalid-filter-mid-parse ---
+CMD: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -y -print_graphs -i vuln_001_input.avi -filter_complex [0:v]split=2[a][b];[a]INVALID_FILTER_XXXXXXX[out] -map [out] -f null -
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[AVFilterGraph @ 0x510000000040] No such filter: 'INVALID_FILTER_XXXXXXX'
+Error : Filter not found
+EXIT CODE: 8
+
+--- Attempt: movie-dynamic-outputs-missing-stream ---
+CMD: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -y -print_graphs -filter_complex movie=vuln_001_input.avi:s=dv+da[v][a] -map [v] -f null -
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[Parsed_movie_0 @ 0x511000000040] No audio stream with index '-1' found
+[AVFilterGraph @ 0x510000000040] Error initializing filters
+Error : Invalid argument
+EXIT CODE: 1
+
+=================================================================
+==1899422==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 424 byte(s) in 1 object(s) allocated from:
+    #0 0x7fd27f38657c in __interceptor_posix_memalign ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:226
+    #1 0x55c12c22577b in av_malloc (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x140db77b)
+    #2 0x55c12c1c80d2 in av_frame_alloc (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x1407e0d2)
+    #3 0x55c124756ba5 in movie_common_init (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc60cba5)
+    #4 0x55c12465babd in avfilter_init_dict (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc511abd)
+    #5 0x55c124738c33 in avfilter_graph_segment_init (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc5eec33)
+    #6 0x55c12473ca4a in avfilter_graph_segment_apply (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc5f2a4a)
+    #7 0x55c12439e141 in graph_parse (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc254141)
+    #8 0x55c1243a96b7 in fg_create (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc25f6b7)
+    #9 0x55c124433f12 in ffmpeg_parse_options (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc2e9f12)
+    #10 0x55c1244d2a7e in main (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc388a7e)
+    #11 0x7fd27e83ad8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+SUMMARY: AddressSanitizer: 424 byte(s) leaked in 1 allocation(s).
+
+--- Attempt: ebur128-video-output-dynamic ---
+CMD: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -y -print_graphs -f lavfi -i aevalsrc=0:d=1:s=44100:c=stereo -filter_complex [0:a]ebur128=video=1[audio][video] -map [audio] -f null -
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, lavfi, from 'aevalsrc=0:d=1:s=44100:c=stereo':
+  Duration: N/A, start: 0.000000, bitrate: 5644 kb/s
+  Stream #0:0: Audio: pcm_f64le, 44100 Hz, stereo, dbl, 5644 kb/s
+[fc#0 @ 0x51a000000080] Filter 'ebur128' has output 1 (video) unconnected
+Error binding filtergraph inputs/outputs: Invalid argument
+{
+    "graphs": [
+
+    ],
+    "inputfiles": [
+        {
+            "index": "0",
+            "demuxer_name": "lavfi",
+            "url": "aevalsrc=0:d=1:s=44100:c=stereo",
+            "inputstreams": [
+                {
+                    "id": "r_in_0_0",
+                    "name": "PCM 64-bit floating point little-endian",
+                    "index": "0",
+                    "media_type": "audio"
+                }
+            ]
+        }
+    ],
+    "decoders": [
+
+    ],
+    "encoders": [
+        {
+            "id": "out__0_0",
+            "dest_id": "r_out__0_0",
+            "name": "wrapped_avframe",
+            "media_type": "video"
+        }
+    ],
+    "outputfiles": [
+        {
+            "index": "0",
+            "muxer_name": "null",
+            "url": "pipe:",
+            "outputstreams": [
+                {
+                    "id": "r_out__0_0",
+                    "name": "unknown",
+                    "index": "0",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "streamlinks": [
+
+    ]
+}
+    
+EXIT CODE: 234
+
+--- Attempt: format-change-reinit ---
+CMD: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -y -print_graphs -i vuln_001_input.avi -vf scale=iw*2:ih*2,null -f null -
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:01.00, start: 0.000000, bitrate: 8 kb/s
+  Stream #0:0: Video: rawvideo, bgr24, 16x16, 1 fps, 1 tbr, 1 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (rawvideo (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: wrapped_avframe, bgr24(pc, gbr/unknown/unknown, progressive), 32x32, q=2-31, 200 kb/s, 1 fps, 1 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+[out#0/null @ 0x511000000a40] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:01.00 bitrate=N/A speed=46.8x elapsed=0:00:00.02    
+{
+    "graphs": [
+        {
+            "graph_index": -1,
+            "name": "Graph 0.-1",
+            "id": "Graph_0_-1",
+            "description": "scale=iw*2:ih*2,null",
+            "graph_inputs": [
+                {
+                    "input_index": 0,
+                    "filter_id": "G0_graph__1_input_from_stream_0_0",
+                    "filter_name": "buffer",
+                    "media_type": "video"
+                }
+            ],
+            "graph_outputs": [
+                {
+                    "output_index": 0,
+                    "name": "#0:0",
+                    "filter_id": "G0_out__0_0",
+                    "filter_name": "buffersink",
+                    "media_type": "video"
+                }
+            ],
+            "filters": [
+                {
+                    "filter_name": "scale",
+                    "description": "Scale the input video size and/or convert the image format.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 1,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "in_0_0",
+                            "source_pad_name": "default",
+                            "filter_id": "G0_Parsed_scale_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "G0_Parsed_null_1",
+                            "output_index": 0,
+                            "pad_name": "default",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_Parsed_scale_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 32,
+                            "height": 32,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                },
+                {
+                    "filter_name": "null",
+                    "description": "Pass the source unchanged to the output.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 1,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "G0_Parsed_scale_0",
+                            "source_pad_name": "default",
+                            "filter_id": "G0_Parsed_null_1",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 32,
+                            "height": 32,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "out__0_0",
+                            "output_index": 0,
+                            "pad_name": "default",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_Parsed_null_1",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 32,
+                            "height": 32,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                },
+                {
+                    "filter_name": "buffer",
+                    "description": "Buffer video frames, and make them accessible to the filterchain.",
+                    "nb_inputs": 0,
+                    "nb_outputs": 1,
+                    "filter_inputs": [
+
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "G0_Parsed_scale_0",
+                            "output_index": 0,
+                            "pad_name": "default",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_graph__1_input_from_stream_0_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                },
+                {
+                    "filter_name": "buffersink",
+                    "description": "Buffer video frames, and make them available to the end of the filter graph.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 0,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "G0_Parsed_null_1",
+                            "source_pad_name": "default",
+                            "filter_id": "G0_out__0_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 32,
+                            "height": 32,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+
+                    ]
+                }
+            ]
+        }
+    ],
+    "inputfiles": [
+        {
+            "index": "0",
+            "demuxer_name": "avi",
+            "file_extension": "avi",
+            "url": "vuln_001_input.avi",
+            "inputstreams": [
+                {
+                    "id": "r_in_0_0",
+                    "name": "raw video",
+                    "index": "0",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "decoders": [
+        {
+            "source_id": "r_in_0_0",
+            "id": "in_0_0",
+            "name": "rawvideo",
+            "media_type": "video"
+        }
+    ],
+    "encoders": [
+        {
+            "id": "out__0_0",
+            "dest_id": "r_out__0_0",
+            "name": "wrapped_avframe",
+            "media_type": "video"
+        }
+    ],
+    "outputfiles": [
+        {
+            "index": "0",
+            "muxer_name": "null",
+            "url": "pipe:",
+            "outputstreams": [
+                {
+                    "id": "r_out__0_0",
+                    "name": "AVFrame to AVPacket passthrough",
+                    "index": "0",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "streamlinks": [
+
+    ]
+}
+    
+EXIT CODE: 0
+
+--- Attempt: open-output-label-unresolved ---
+CMD: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -y -print_graphs -i vuln_001_input.avi -filter_complex [0:v]scale=8:8 -f null -
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:01.00, start: 0.000000, bitrate: 8 kb/s
+  Stream #0:0: Video: rawvideo, bgr24, 16x16, 1 fps, 1 tbr, 1 tbn
+Stream mapping:
+  Stream #0:0 (rawvideo) -> scale:default
+  scale:default -> Stream #0:0 (wrapped_avframe)
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: wrapped_avframe, bgr24(pc, gbr/unknown/unknown, progressive), 8x8, q=2-31, 200 kb/s, 1 fps, 1 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+[out#0/null @ 0x511000000e00] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:01.00 bitrate=N/A speed=  65x elapsed=0:00:00.01    
+{
+    "graphs": [
+        {
+            "graph_index": 0,
+            "name": "Graph 0.0",
+            "id": "Graph_0_0",
+            "description": "[0:v]scale=8:8",
+            "graph_inputs": [
+                {
+                    "input_index": 0,
+                    "link_label": "0:v",
+                    "filter_id": "G0_graph_0_input_from_stream_0_0",
+                    "filter_name": "buffer",
+                    "media_type": "video"
+                }
+            ],
+            "graph_outputs": [
+                {
+                    "output_index": 0,
+                    "name": "#0:0",
+                    "filter_id": "G0_out__0_0",
+                    "filter_name": "buffersink",
+                    "media_type": "video"
+                }
+            ],
+            "filters": [
+                {
+                    "filter_name": "scale",
+                    "description": "Scale the input video size and/or convert the image format.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 1,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "in_0_v",
+                            "source_pad_name": "default",
+                            "filter_id": "G0_Parsed_scale_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "out__0_0",
+                            "output_index": 0,
+                            "pad_name": "default",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_Parsed_scale_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 8,
+                            "height": 8,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                },
+                {
+                    "filter_name": "buffer",
+                    "description": "Buffer video frames, and make them accessible to the filterchain.",
+                    "nb_inputs": 0,
+                    "nb_outputs": 1,
+                    "filter_inputs": [
+
+                    ],
+                    "filter_outputs": [
+                        {
+                            "dest_filter_id": "G0_Parsed_scale_0",
+                            "output_index": 0,
+                            "pad_name": "default",
+                            "dest_pad_name": "default",
+                            "filter_id": "G0_graph_0_input_from_stream_0_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 16,
+                            "height": 16,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ]
+                },
+                {
+                    "filter_name": "buffersink",
+                    "description": "Buffer video frames, and make them available to the end of the filter graph.",
+                    "nb_inputs": 1,
+                    "nb_outputs": 0,
+                    "filter_inputs": [
+                        {
+                            "input_index": 0,
+                            "pad_name": "default",
+                            "source_filter_id": "G0_Parsed_scale_0",
+                            "source_pad_name": "default",
+                            "filter_id": "G0_out__0_0",
+                            "media_type": "video",
+                            "format": "bgr24",
+                            "width": 8,
+                            "height": 8,
+                            "sar": "0:1",
+                            "color_range": "pc",
+                            "color_space": "gbr",
+                            "sample_rate": "1/1"
+                        }
+                    ],
+                    "filter_outputs": [
+
+                    ]
+                }
+            ]
+        }
+    ],
+    "inputfiles": [
+        {
+            "index": "0",
+            "demuxer_name": "avi",
+            "file_extension": "avi",
+            "url": "vuln_001_input.avi",
+            "inputstreams": [
+                {
+                    "id": "r_in_0_0",
+                    "name": "raw video",
+                    "index": "0",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "decoders": [
+        {
+            "source_id": "r_in_0_0",
+            "id": "in_0_0",
+            "name": "rawvideo",
+            "media_type": "video"
+        }
+    ],
+    "encoders": [
+        {
+            "id": "out__0_0",
+            "dest_id": "r_out__0_0",
+            "name": "wrapped_avframe",
+            "media_type": "video"
+        }
+    ],
+    "outputfiles": [
+        {
+            "index": "0",
+            "muxer_name": "null",
+            "url": "pipe:",
+            "outputstreams": [
+                {
+                    "id": "r_out__0_0",
+                    "name": "AVFrame to AVPacket passthrough",
+                    "index": "0",
+                    "media_type": "video"
+                }
+            ]
+        }
+    ],
+    "streamlinks": [
+
+    ]
+}
+    
+EXIT CODE: 0
+
+--- Attempt: lavfi-split-partial-map ---
+CMD: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -y -print_graphs -f lavfi -i color=c=black:s=16x16:r=1:d=1 -filter_complex [0:v]split=2[a][b];[a]null[out] -map [out] -vsync drop -f null -
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Unrecognized option 'vsync'.
+Error splitting the argument list: Option not found
+EXIT CODE: 8
+
+EXIT=0

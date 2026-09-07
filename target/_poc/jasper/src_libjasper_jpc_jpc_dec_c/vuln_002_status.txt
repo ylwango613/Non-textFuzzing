@@ -1,0 +1,22 @@
+VERIFIED_CRASH
+exit_code=1
+asan_log_found=1
+asan_log_file=asan.log.<pid>
+poc_file=vuln_002.jp2
+command=imginfo --max-samples 0 -f vuln_002.jp2
+overflow_events_observed=12289
+
+reason=ASAN (LeakSanitizer) triggered: 1048576 bytes leaked in jpc_dec_process_siz()
+  (jas_alloc2 -> jpc_dec_process_siz -> jpc_decode -> jp2_decode -> jas_image_decode).
+  The missing return -1 on line 1283 (after jas_safe_size_add overflow) causes the
+  function to continue with a corrupted num_samples value. With --max-samples 0,
+  the subsequent sample-limit guard is also bypassed. The cumulative overflow fires
+  12,289 times (one per component after ~component 4095), printing "image too large"
+  each time but never returning. The allocated component array (1 MB) is then leaked
+  because the function eventually returns an error without freeing it. The bug is
+  confirmed triggered: execution continues past both safety checks.
+
+asan_summary=LeakSanitizer: 1048576 byte(s) leaked in 1 object(s) in jpc_dec_process_siz
+vuln_root_cause=Missing return -1 at jpc_dec.c:1283 after jas_safe_size_add failure
+secondary_bypass=dec->max_samples == 0 disables sample-limit guard at line 1287
+fix=Add "return -1;" after jas_eprintf("image too large\n") at line 1283

@@ -1,0 +1,28 @@
+PoC 工作完成。结果如下：
+
+## 漏洞报告总结
+
+**VULN 001**: NULL Pointer Dereference in `gdk_pixbuf_apply_embedded_orientation` (gdk-pixbuf-util.c:327-337)
+
+**状态: `SKIPPED`**
+
+**原因**: 该漏洞无法通过 `gdk-pixbuf-pixdata` 触发，因为调用链中根本不包含 `gdk_pixbuf_apply_embedded_orientation()`：
+
+```
+main()
+  -> gdk_pixbuf_new_from_file()   # 仅解码图像
+  -> gdk_pixdata_from_pixbuf()    # 格式转换
+  -> gdk_pixdata_serialize()
+  -> g_file_set_contents()
+```
+
+漏洞触发需要两个条件同时满足：
+1. 调用方显式调用 `gdk_pixbuf_apply_embedded_orientation()`（Nautilus/EOG 等 GTK 应用才会这样做）
+2. 系统内存不足，导致 `gdk_pixbuf_rotate_simple()` 内部 `g_try_malloc_n` 返回 NULL，进而将 NULL 传给 `gdk_pixbuf_flip()`，在 `src->colorspace` 处触发 SIGSEGV
+
+**已生成的文件**:
+- `vuln_001_gen.py` — 用 struct/bytes 构造带 EXIF orientation=5 的最小 JPEG（155 字节）
+- `vuln_001.jpeg` — 生成的图像文件
+- `vuln_001_run.sh` — 调用 gdk-pixbuf-pixdata 的运行脚本（实际返回 "unrecognized format"，无崩溃）
+- `vuln_001_notes.md` — 完整的漏洞分析和真实触发场景说明
+- `vuln_001_status.txt` — 第一行: `SKIPPED`

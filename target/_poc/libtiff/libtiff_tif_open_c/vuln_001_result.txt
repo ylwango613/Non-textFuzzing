@@ -1,0 +1,2 @@
+vuln_001.tif: Failed to allocate memory for to read TIFF directory (0 elements of 12 bytes each).
+TIFFReadDirectory: vuln_001.tif: Failed to read directory at offset 0.

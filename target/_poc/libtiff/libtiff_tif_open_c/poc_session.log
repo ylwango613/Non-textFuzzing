@@ -1,0 +1,5 @@
+**Summary:**
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| VULN-001: uint16 wrap-around OOB heap write in TIFFCheckDirOffset | **UNVERIFIED** | Two blockers prevent triggering via `tiffsplit`: (1) IFDs with 0 entries cause `TIFFReadDirectory` to return 0 immediately after the first call (the do-while loop never iterates past the first IFD), and (2) even with valid multi-entry IFDs, `tiffsplit` has a hard `MAXFILES = 17,576` limit — well below the 65,536 calls needed for the uint16 wrap. The vulnerability exists in the code but is not reachable through `tiffsplit` alone without a harness that bypasses these constraints.

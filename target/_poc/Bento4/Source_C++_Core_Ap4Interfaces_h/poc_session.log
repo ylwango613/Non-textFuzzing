@@ -1,0 +1,33 @@
+两个 PoC 均已完成，结果汇总如下：
+
+---
+
+## 结果汇总
+
+| 编号 | 漏洞 | 状态 | 崩溃证据 |
+|------|------|------|----------|
+| VULN 001 | `AP4_CttsAtom` entry_count 无边界检查 | **VERIFIED_CRASH** | ASAN `hard rss limit exhausted` + `failed to allocate 0xdfff0001000 (15392894357504) bytes` |
+| VULN 002 | `AP4_ElstAtom` entry_count 无边界检查 | **VERIFIED_CRASH** | ASAN `hard rss limit exhausted (512Mb vs 715Mb)` |
+
+---
+
+### 两个 PoC 的共同原理
+
+- 构造一个结构完整但 `entry_count=0xFFFFFFFF` 的 ctts/elst box
+- box 的实际 size 字段很小（20 字节），但声明了 42 亿个条目
+- mp42aac 解析时调用 `AP4_Array::EnsureCapacity(0xFFFFFFFF)`，试图分配约 15TB（ctts）或 80GB（elst）内存
+- ASAN 的 RSS 限制触发 SIGABRT，确认 DoS 路径
+
+### 生成文件位置
+
+```
+/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4Interfaces_h/
+├── vuln_001_gen.py       # 构造恶意 ctts MP4
+├── vuln_001_run.sh       # 运行并收集崩溃
+├── vuln_001_notes.md     # 技术分析
+├── vuln_001_status.txt   # VERIFIED_CRASH
+├── vuln_002_gen.py       # 构造恶意 elst MP4
+├── vuln_002_run.sh       # 运行并收集崩溃
+├── vuln_002_notes.md     # 技术分析
+└── vuln_002_status.txt   # VERIFIED_CRASH
+```

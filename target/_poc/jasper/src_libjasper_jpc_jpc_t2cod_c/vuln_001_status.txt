@@ -1,0 +1,10 @@
+VERIFIED_CRASH
+--- UBSAN output ---
+jpc_dec.c:777:35: runtime error: signed integer overflow: 46342 * 46341 cannot be represented in type 'int'
+    #0 in jpc_dec_tileinit
+    #1 in jpc_dec_process_sod
+    #2 in jpc_decode
+    #3 in jp2_decode
+    #4 in jas_image_decode
+    #5 in main
+imginfo exit code: 1

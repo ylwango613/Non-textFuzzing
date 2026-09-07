@@ -1,0 +1,18 @@
+SKIPPED
+Reason: tiffsplit uses TIFFReadRawStrip() (line 251 of tools/tiffsplit.c) which
+copies raw compressed bytes without invoking the decompressor.
+LogLuvDecode24() is registered as tif->tif_decodestrip and is only called via
+TIFFReadEncodedStrip / TIFFReadScanline, neither of which tiffsplit uses.
+
+The crafted TIFF (vuln_001.tif) is structurally correct and has StripByteCounts=2
+to trigger the OOB read (bp[2]) at tif_luv.c:263, but this path cannot be reached
+through tiffsplit alone.
+
+Run evidence:
+  Command : tiffsplit vuln_001.tif /tmp/tiffsplit_001_
+  Exit code: 0
+  ASAN log : none generated
+  Stderr   : (empty)
+
+To verify the crash, use a tool that calls TIFFReadEncodedStrip or
+TIFFReadScanline (e.g. tiff2rgba, tiffcp without -c none, or a custom harness).

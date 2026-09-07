@@ -1,1 +1,56 @@
 [2026-09-07 01:32:49] DONE: 1 new, 0 skipped, 0 vulns
+[2026-09-07 13:21:58] DONE: 0 new, 0 skipped, 0 vulns
+[2026-09-07 16:25:27] VULN gdk-pixbuf/gdk-pixbuf-data.c: 1 findings
+[2026-09-07 16:33:32] POC gdk-pixbuf/gdk-pixbuf-data.c: 0/1 verified
+[2026-09-07 16:36:56] VULN gdk-pixbuf/gdk-pixbuf.c: 4 findings
+[2026-09-07 16:37:18] VULN gdk-pixbuf/gdk-pixbuf-io.c: 2 findings
+[2026-09-07 16:40:09] VULN gdk-pixbuf/gdk-pixbuf-csource.c: 3 findings
+[2026-09-07 16:46:11] VULN gdk-pixbuf/gdk-pixbuf-pixdata.c: 2 findings
+[2026-09-07 16:50:19] POC gdk-pixbuf/gdk-pixbuf.c: 2/4 verified
+[2026-09-07 16:51:02] VULN gdk-pixbuf/gdk-pixbuf-util.c: 1 findings
+[2026-09-07 16:52:28] POC gdk-pixbuf/gdk-pixbuf-csource.c: 3/3 verified
+[2026-09-07 16:55:48] VULN gdk-pixbuf/gdk-pixdata.c: 2 findings
+[2026-09-07 16:57:08] POC gdk-pixbuf/gdk-pixbuf-util.c: 0/1 verified
+[2026-09-07 16:57:09] VULN gdk-pixbuf/gdk-pixbuf-scale.c: 1 findings
+[2026-09-07 16:58:34] POC gdk-pixbuf/gdk-pixbuf-io.c: 2/2 verified
+[2026-09-07 17:02:22] POC gdk-pixbuf/gdk-pixbuf-scale.c: 0/1 verified
+[2026-09-07 17:06:21] POC gdk-pixbuf/gdk-pixbuf-pixdata.c: 2/2 verified
+[2026-09-07 17:10:13] VULN gdk-pixbuf/io-gdip-animation.c: 2 findings
+[2026-09-07 17:11:56] VULN gdk-pixbuf/io-ani-animation.c: 1 findings
+[2026-09-07 17:14:06] POC gdk-pixbuf/io-gdip-animation.c: 0/2 verified
+[2026-09-07 17:16:29] VULN gdk-pixbuf/io-gdip-gif.c: 2 findings
+[2026-09-07 17:17:11] VULN gdk-pixbuf/io-gdip-bmp.c: 2 findings
+[2026-09-07 17:17:35] POC gdk-pixbuf/io-ani-animation.c: 0/1 verified
+[2026-09-07 17:18:58] VULN gdk-pixbuf/io-gdip-ico.c: 2 findings
+[2026-09-07 17:21:11] POC gdk-pixbuf/io-gdip-bmp.c: 0/2 verified
+[2026-09-07 17:21:13] VULN gdk-pixbuf/io-gdip-jpeg.c: 2 findings
+[2026-09-07 17:21:13] POC gdk-pixbuf/io-gdip-gif.c: 0/2 verified
+[2026-09-07 17:21:55] VULN gdk-pixbuf/io-gdip-tiff.c: 2 findings
+[2026-09-07 17:23:02] POC gdk-pixbuf/io-gdip-jpeg.c: 0/2 verified
+[2026-09-07 17:24:23] POC gdk-pixbuf/io-gdip-ico.c: 0/2 verified
+[2026-09-07 17:25:43] VULN gdk-pixbuf/io-gdip-wmf.c: 2 findings
+[2026-09-07 17:25:49] VULN gdk-pixbuf/io-gdip-utils.c: 1 findings
+[2026-09-07 17:26:07] POC gdk-pixbuf/io-gdip-tiff.c: 0/2 verified
+[2026-09-07 17:29:02] POC gdk-pixbuf/io-gdip-wmf.c: 0/2 verified
+[2026-09-07 17:29:36] POC ERR gdk-pixbuf/io-gdip-utils.c: claude exit 0
+[2026-09-07 17:29:52] POC ERR gdk-pixbuf/gdk-pixdata.c: claude exit 0
+[2026-09-07 17:33:22] VULN gdk-pixbuf/io-gif.c: 1 findings
+[2026-09-07 17:33:22] DONE: 47 new, 0 skipped, 33 vulns
+[2026-09-07 17:33:24] POC ERR gdk-pixbuf/io-gif.c: claude exit 0
+[2026-09-07 21:55:42] VULN gdk-pixbuf/io-icns.c: 2 findings
+[2026-09-07 21:57:20] VULN gdk-pixbuf/io-ico.c: 2 findings
+[2026-09-07 21:59:18] VULN gdk-pixbuf/io-jasper.c: 1 findings
+[2026-09-07 22:03:09] VULN gdk-pixbuf/io-jpeg.c: 2 findings
+[2026-09-07 22:04:02] VULN gdk-pixbuf/io-pcx.c: 4 findings
+[2026-09-07 22:05:03] VULN gdk-pixbuf/io-pixdata.c: 2 findings
+[2026-09-07 22:08:28] VULN gdk-pixbuf/io-qtif.c: 1 findings
+[2026-09-07 22:11:20] VULN gdk-pixbuf/io-png.c: 1 findings
+[2026-09-07 22:14:35] VULN gdk-pixbuf/io-tga.c: 1 findings
+[2026-09-07 22:21:39] VULN gdk-pixbuf/io-tiff.c: 2 findings
+[2026-09-07 22:29:04] VULN gdk-pixbuf/io-wbmp.c: 1 findings
+[2026-09-07 22:30:35] VULN gdk-pixbuf/io-pnm.c: 1 findings
+[2026-09-07 22:38:43] VULN gdk-pixbuf/io-xpm.c: 1 findings
+[2026-09-07 22:40:47] VULN gdk-pixbuf/io-ras.c: 1 findings
+[2026-09-07 22:48:12] VULN gdk-pixbuf/pixops/pixops.c: 1 findings
+[2026-09-07 22:48:12] VULN gdk-pixbuf/test-gdk-pixbuf.c: 2 findings
+[2026-09-07 22:48:12] DONE: 20 new, 27 skipped, 25 vulns

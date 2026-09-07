@@ -1,0 +1,2 @@
+SKIPPED
+Reason: tiffsplit does not call TIFFPrintDirectory(). The vulnerability in tif_print.c:478-481 requires calling TIFFPrintDirectory() with TIFFPRINT_CURVES flag, which is only done by tiffinfo (tools/tiffinfo.c). The tiffsplit binary only copies TIFF strips/tiles between files and never invokes TIFFPrintDirectory.

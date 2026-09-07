@@ -1,0 +1,29 @@
+两个子代理均已完成。最终结果如下：
+
+---
+
+## PoC 生成结果汇总
+
+| 编号 | 漏洞 | 状态 | 原因 |
+|------|------|------|------|
+| VULN-001 | Heap OOB Read in `gdip_bitmap_get_frame_delay` (CWE-125) | **SKIPPED** | GDI+ 后端未编译 + 工具路径不可达 |
+| VULN-002 | NULL Ptr Deref via unchecked `g_try_malloc` (CWE-476) | **SKIPPED** | GDI+ 后端未编译 + 工具路径不可达 |
+
+---
+
+### 根本原因（两个漏洞共同）
+
+**双重不可触发性：**
+
+1. **平台不匹配**：`io-gdip-tiff.c` 和 `io-gdip-utils.c` 实现的是 Win32 GDI+ 后端，依赖 `GdipGetPropertyItemSize` / `GdipGetPropertyItem` 等 Windows 专有 API。当前 Linux 构建中：
+   - `libgdk_pixbuf-2.0.so` 内无任何 GDI+ 符号
+   - `build_test/` 下无 `libgdiplus` 依赖
+   - `io-gdip-*.c` 未被编译进构建产物
+
+2. **工具路径不匹配**：`gdk-pixbuf-pixdata` 是 pixdata 格式转换工具（等价于 `gdk-pixbuf-csource`），其调用链为 `gdk_pixdata_from_pixbuf` → `gdk_pixdata_serialize`，完全绕过 GDI+ TIFF/GIF 加载管道，永远不会进入 `gdk_pixbuf__gdip_image_stop_load` → `gdip_buffer_to_bitmap` → `gdip_bitmap_get_frame_delay` 这条漏洞路径。
+
+### 如需实际复现
+
+若要在真实环境中验证这两个漏洞，需要：
+- **Windows 环境**，或 Linux 上安装 `libgdiplus` 并重新编译 gdk-pixbuf（启用 `--with-gdktargets=gdip`）
+- 使用支持 TIFF/GIF 格式加载的工具（如 `gdk-pixbuf-thumbnailer` 或自定义 GTK 应用）

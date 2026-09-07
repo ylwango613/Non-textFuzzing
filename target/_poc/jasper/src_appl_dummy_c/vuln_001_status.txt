@@ -1,0 +1,20 @@
+VERIFIED_CRASH
+
+Sanitizer: AddressSanitizer (ASAN)
+Error:     heap-buffer-overflow on READ (8 bytes before a 1-byte malloc(0) allocation)
+Crash at:  jas_image_depalettize  [jas_image.c:997]
+Called by: jp2_decode             [jp2_dec.c:375]
+Root:      jas_alloc2 at jp2_dec.c:370 — unchecked return value
+           jas_alloc2(numlutents=0, sizeof(int_fast32_t))
+           => malloc(0) returns 1-byte allocation (ASAN)
+           => lutents[-1] accessed in jas_image_depalettize loop
+              when pixel value (128) >= numlutents (0) => v = -1
+
+Trigger:   evil.jp2 (285 bytes)
+           PCLR box: NE=0, NPC=1, Bi[0]=0x07
+           CMAP box: CMP=0, MTYP=1 (JP2_CMAP_PALETTE), PCOL=0
+           CDEF box: numchans=1, channo=0, type=0, assoc=1
+
+Command:   imginfo -f evil.jp2
+Exit code: 134 (SIGABRT from ASAN halt_on_error)
+ASAN log:  asan.log.*

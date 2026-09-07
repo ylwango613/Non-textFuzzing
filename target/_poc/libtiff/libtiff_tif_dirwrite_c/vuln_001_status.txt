@@ -1,0 +1,9 @@
+SKIPPED
+Reason: The vulnerability in TIFFWriteRationalArray() requires dir->tdir_count >= 0x80000000
+to trigger 32-bit integer overflow, but the read path (_TIFFCheckMalloc with count*4 ~= 8 GB)
+fails before TIFFSetField() is ever called, so the tag is never stored in td_customValues and
+TIFFWriteRationalArray() is never reached via a crafted TIFF file.
+Confirmed: tiffsplit prints "Failed to allocate memory for to fetch tag value (2147483649 elements
+of 4 bytes each)" and exits cleanly — no sanitizer errors, no crash.
+Triggering this bug requires programmatic custom-tag registration (TIFFMergeFieldInfo + TIFFSetField)
+or equivalent, not achievable via a crafted TIFF file alone.

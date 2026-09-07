@@ -1,0 +1,14 @@
+## 汇总结果
+
+| VULN 编号 | 漏洞名称 | 状态 |
+|---|---|---|
+| VULN 001 | NeXTDecode OOB Read via Exhausted Compressed Data and cc==-1 Check Bypass | **VERIFIED_CRASH** |
+
+**ASAN 确认**: `heap-buffer-overflow` READ of size 1 at `tif_next.c:69` — `0 bytes to the right of 1024-byte region`，调用栈为 `NeXTDecode <- TIFFReadEncodedStrip <- cpDecodedStrips <- tiffcp main`。
+
+**PoC 文件**（均在 `_poc/libtiff/libtiff_tif_next_c/`）：
+- `vuln_001_gen.py` — 用 Python struct 构造恶意 TIFF（NeXT 压缩，StripByteCounts 恰好用尽于第一行）
+- `vuln_001_run.sh` — 调用 tiffsplit/tiffcp 触发漏洞，收集 ASAN 日志
+- `vuln_001.tif` — 构造好的恶意 TIFF 文件
+- `vuln_001_status.txt` — `VERIFIED_CRASH`
+- `vuln_001_notes.md` — 触发路径与 PoC 思路说明

@@ -1,0 +1,13 @@
+## VULN: LZWPreDecode OOB Read via 1-Byte LZW Strip at mmap EOF
+- **漏洞类别**: memory-safety
+- **函数**: LZWPreDecode()
+- **行号**: 268
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted TIFF file
+- **外部触发路径**: tiffsplit main() → TIFFOpen() → TIFFReadEncodedStrip() / TIFFReadScanline() → TIFFFillStrip() → TIFFStartStrip() → LZWPreDecode()
+- **描述**: `LZWPreDecode()` の行268において、`tif->tif_rawcc >= 2` の事前チェックなしに `tif->tif_rawdata[0]` と `tif->tif_rawdata[1]` の両バイトを参照する。`TIFFFillStrip()` は `bytecount <= 0` のみを拒否し（行276-282）、`bytecount = 1` は通過する。メモリマップ読み込みパス（`isMapped(tif)` が真かつ fillOrder/NOBITREV 条件を満たす場合）では `tif_rawdata = tif_base + td_stripoffset[strip]` が設定され（行327）、`tif_rawdatasize = 1` となる。Strip がファイル末尾（`stripoffset == file_size - 1`）に配置されている場合、`tif_rawdata[1]` はファイルマップ範囲外のアドレス（`tif_base + file_size`）を参照し、SIGBUS を引き起こす。非 mmap パスでは `TIFFroundup(1, 1024) = 1024` バイトのヒープバッファが確保されるため直接クラッシュしないが、`rawdata[1]` の未初期化（または前ストリップの残留）バイトが旧式デコーダ（`LZWDecodeCompat`）の選択ロジックに影響し、誤ったデコードパスが選択される可能性がある。
+- **触发条件**: 攻击者需构造一个 LZW 压缩 TIFF 文件，满足以下条件：(1) `Compression = 5 (LZW)`；(2) 某一 strip 的 `StripByteCount[i] = 1`；(3) 该 strip 数据（单字节）值为 `0x00`（使 `rawdata[0] == 0` 触发第二字节的访问）；(4) `StripOffset[i] = file_size - 1`（strip 位于文件最末一字节），使得 mmap 路径下 `rawdata[1]` 落在映射区域外。
+- **安全影响**: 最坏情况下（mmap 路径 + Strip 位于文件末字节），`tif->tif_rawdata[1]` 访问触发 SIGBUS 信号，导致进程崩溃（DoS）。在非 mmap 路径下，读取堆上的陈旧/未初始化字节，使 libtiff 错误地激活向后兼容解码器（`LZWDecodeCompat`），可能导致解码输出异常或后续处理中的行为偏差（信息侧信道）。
+

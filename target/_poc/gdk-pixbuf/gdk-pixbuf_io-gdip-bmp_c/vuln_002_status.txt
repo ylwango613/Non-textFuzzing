@@ -1,0 +1,13 @@
+SKIPPED
+Reason: The io-gdip loader (io-gdip-utils.c, io-gdip-bmp.c) is not compiled into this Linux build.
+- 'strings gdk-pixbuf-pixdata | grep -i gdip' returns no output.
+- 'find build_test/ -name "*gdip*"' returns no files.
+The vulnerable functions (gdip_bitmap_get_property_as_string, gdip_bitmap_get_frame_delay,
+gdip_bitmap_get_n_loops) wrap Windows GDI+ APIs (GdipGetPropertyItemSize,
+GdipGetPropertyItem) which are absent on Linux. The crafted BMP was processed by
+gdk-pixbuf-pixdata which reported "Couldn't recognize the image file format" (exit 0)
+with no ASAN/UBSAN output and no crash, confirming the io-gdip code path is
+unreachable. Additionally, even if the loader were present, triggering this specific
+vulnerability requires either an OOM condition or a GDI+-accepted image whose metadata
+reports an extremely large item_size, neither of which can be reliably constructed as a
+crafted input file alone.

@@ -1,0 +1,7 @@
+UNVERIFIED
+Run produced no ASAN/UBSAN errors.
+tiffsplit output: "Failed to allocate memory for to read TIFF directory (0 elements of 12 bytes each)"
+Root cause: IFDs with 0 entries cause _TIFFCheckMalloc(0) to return NULL in TIFFFetchDirectory,
+so TIFFReadDirectory fails on the very first IFD (after TIFFOpen calls it) and returns 0.
+TIFFOpen then returns NULL, the do-while loop never executes, and TIFFCheckDirOffset
+is only called once — far short of the 65536 calls needed for the uint16 wrap-around.

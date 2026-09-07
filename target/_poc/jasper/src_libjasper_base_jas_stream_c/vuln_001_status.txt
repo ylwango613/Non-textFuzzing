@@ -1,0 +1,4 @@
+UNVERIFIED
+Vulnerability confirmed in source (dead newpos<0 check in mem_seek).
+Trigger via imginfo+JP2 not achieved: component stream seeks are bounded
+by image dimensions; JasPer's jpc_sot_getparms rejects Psot=0.

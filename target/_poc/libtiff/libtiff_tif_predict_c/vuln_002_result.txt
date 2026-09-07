@@ -1,0 +1,27 @@
+=== VULN 002 PoC Run ===
+Date: Mon Sep  7 03:21:37 PM +08 2026
+
+[*] Generating vuln_002.tif ...
+[*] row_size = 17 bytes
+[*] stride   = 5
+[*] row_size % stride = 2 (must be != 0 to trigger OOB)
+[*] compressed strip size = 11 bytes
+[+] Written 169 bytes to /data/ylwang/non-textfuzz/target/_poc/libtiff/libtiff_tif_predict_c/vuln_002.tif
+[*] Strip data offset in file: 0x9e (158)
+
+[!] IMPORTANT: tiffsplit uses TIFFReadRawStrip + TIFFWriteRawStrip
+[!] These bypass the predictor encoding path (fpDiff is never called).
+[!] fpDiff is only reachable via TIFFWriteEncodedStrip -> PredictorEncodeRow.
+[!] Expected result: tiffsplit will process the file WITHOUT triggering the OOB.
+
+[*] Running tiffsplit on vuln_002.tif ...
+
+[*] Checking for ASAN reports ...
+
+[RESULT] No crash detected.
+[INFO] tiffsplit uses TIFFReadRawStrip/TIFFWriteRawStrip which bypass
+[INFO] the predictor encoding path (PredictorEncodeRow -> fpDiff).
+[INFO] fpDiff is only reachable via TIFFWriteEncodedStrip.
+[RESULT] SKIPPED - fpDiff not reachable through tiffsplit
+
+=== Done ===

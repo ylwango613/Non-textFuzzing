@@ -1,0 +1,15 @@
+[2026-09-07 13:56:40] WRITTEN Bug1 <- jhead_c#001 [CRASH]
+[2026-09-07 13:56:49] WRITTEN Bug2 <- imgfile_c#001 [CRASH]
+[2026-09-07 13:56:54] WRITTEN Bug3 <- gpsinfo_c#001 [CRASH]
+[2026-09-07 13:57:24] WRITTEN Bug4 <- jpgfile_c#001 [CRASH]
+[2026-09-07 13:57:26] WRITTEN Bug5 <- exif_c#001 [CRASH]
+[2026-09-07 13:57:37] WRITTEN Bug6 <- webpfile_c#001 [CRASH]
+[2026-09-07 14:00:56] WRITTEN Bug1 <- jhead_c#001 [CRASH]
+[2026-09-07 14:00:59] WRITTEN Bug2 <- imgfile_c#001 [CRASH]
+[2026-09-07 14:01:04] WRITTEN Bug3 <- gpsinfo_c#001 [CRASH]
+[2026-09-07 14:01:38] WRITTEN Bug4 <- jpgfile_c#001 [CRASH]
+[2026-09-07 14:01:43] WRITTEN Bug5 <- webpfile_c#001 [CRASH]
+[2026-09-07 14:03:00] WRITTEN Bug6 <- exif_c#001 [CRASH]
+[2026-09-08 02:12:58] DEDUP-SKIP exif_c#001 (key=ProcessGpsInfo::CWE-125)
+[2026-09-08 02:12:58] DEDUP-SKIP gpsinfo_c#001 (key=ProcessGpsInfo::CWE-125)
+[2026-09-08 02:12:58] DEDUP-SKIP jpgfile_c#001 (key=ProcessGpsInfo::CWE-125)

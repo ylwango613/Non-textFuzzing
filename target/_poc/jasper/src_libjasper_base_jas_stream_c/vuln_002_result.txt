@@ -1,0 +1,15 @@
+=== Trying variant 1 ===
+[+] Variant 1: 1x1 + PCLR/CMAP (known-good codestream)
+[+] Written 277 bytes to /data/ylwang/non-textfuzz/target/_poc/jasper/src_libjasper_base_jas_stream_c/vuln_002.jp2
+
+--- Running imginfo ---
+/data/ylwang/non-textfuzz/target/jasper/src/libjasper/jp2/jp2_dec.c:364:9: runtime error: member access within null pointer of type 'struct jp2_box_t'
+jp2 1 1 1 8 1
+
+=== ASAN/UBSAN output ===
+(no ASAN log files found)
+
+[!] CRASH/ERROR detected in variant 1
+
+=== Final summary ===
+CRASH DETECTED

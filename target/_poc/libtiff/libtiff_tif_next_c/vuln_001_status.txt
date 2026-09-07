@@ -1,0 +1,4 @@
+VERIFIED_CRASH
+ASAN: heap-buffer-overflow READ of size 1 in NeXTDecode (tif_next.c:69)
+Exact ASAN summary: "heap-buffer-overflow ... 0 bytes to the right of 1024-byte region"
+Call stack: NeXTDecode <- TIFFReadEncodedStrip <- cpDecodedStrips <- tiffcp main

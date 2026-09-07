@@ -1,0 +1,25 @@
+I have all the context I need. The vulnerability is clear and confirmed.
+
+**Analysis summary:**
+
+In `JBIGDecode()` (tif_jbig.c:77-128):
+- Line 82: `(void) size, (void) s;` — the `size` parameter (byte-count of the destination `buffer`) is **explicitly discarded**.
+- Lines 105–106: the raw JBIG bitstream (`tif->tif_rawdata`) is fed to `jbg_dec_in()`. The JBIG BIE header in the compressed data (fully attacker-controlled) specifies the output image dimensions and therefore the output size.
+- Line 125: `_TIFFmemcpy(buffer, pImage, jbg_dec_getsize(&decoder))` — copies the JBIG-decoded bytes into `buffer` using the **decoder-reported size**, with no check against `size`.
+
+Call chain: `TIFFReadEncodedStrip(tif, strip, buf, size)` allocates/passes a buffer whose capacity is derived from the TIFF IFD dimensions (`TIFFVStripSize()`), then calls `JBIGDecode(tif, buf, size, ...)`. Because `JBIGDecode` discards `size` and copies `jbg_dec_getsize()` bytes (set by the JBIG BIE header inside the compressed data), an attacker can put a small IFD (`ImageWidth`=10, `ImageLength`=10 → 13-byte buffer) alongside a JBIG bitstream whose BIE header claims 4096×4096 → `jbg_dec_getsize` ≫ allocated size → heap buffer overflow.
+
+## VULN: JBIGDecode ignores size parameter leading to heap buffer overflow
+- **漏洞类别**: memory-safety
+- **函数**: JBIGDecode()
+- **行号**: 77-128 (核心溢出在 line 125)
+- **CWE**: CWE-122 (Heap-Based Buffer Overflow)
+- **CVSS v3.1**: 7.8 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted TIFF file with JBIG compression
+- **外部触发路径**: tiffsplit main() -> TIFFOpen() -> TIFFReadDirectory() -> TIFFReadEncodedStrip() -> TIFFFillStrip() -> TIFFStartStrip() -> JBIGDecode(tif, buf, size, s) [line 125: _TIFFmemcpy(buffer, pImage, jbg_dec_getsize(&decoder)) overflows buf]
+- **描述**: `JBIGDecode()` 在 line 82 通过 `(void) size` 显式丢弃了 `size` 参数（该参数表示 `buffer` 的字节容量），随后在 line 125 以 `jbg_dec_getsize(&decoder)` 作为 `_TIFFmemcpy` 的长度参数直接写入 `buffer`。`jbg_dec_getsize()` 返回的大小来自 JBIG BIE 头部（位于攻击者提供的压缩数据流中），完全由攻击者控制，与 TIFF IFD 中的图像维度标签无关。上层调用者 `TIFFReadEncodedStrip()` 依据 TIFF IFD 的 `ImageWidth`/`ImageLength` 通过 `TIFFVStripSize()` 计算并限制 `size`，但此边界信息在 `JBIGDecode` 中被完全忽略。当 JBIG BIE 头声明的输出尺寸远大于 TIFF IFD 描述的尺寸时，`_TIFFmemcpy` 将越过 `buffer` 的末端写入堆，造成堆缓冲区溢出。
+- **触发条件**: 攻击者构造一个 TIFF 文件，满足：(1) Compression tag = COMPRESSION_JBIG (34661)；(2) IFD 中 ImageWidth 和 ImageLength 设置为极小值（如 8×8），使 `TIFFVStripSize()` 返回的 buffer 分配尺寸很小（如 8 字节）；(3) StripByteCounts 和 StripOffsets 指向一段合法可解码的 JBIG BIE 数据，但该 BIE 头中的 X_D / Y_D 字段指定远大于 IFD 的图像尺寸（如 4096×4096），使 `jbg_dec_getsize()` 返回 2 MB 以上；(4) 向 tiffsplit 或调用了 `TIFFReadEncodedStrip` 的应用传入该文件。
+- **安全影响**: 攻击者可将任意字节写入堆上 `buffer` 末端之后的区域，覆盖相邻堆对象（如函数指针、vtable 指针、heap metadata），在最坏情况下可实现任意代码执行（RCE）；最低限度造成进程崩溃（DoS）。
+
+<!-- AUDIT_PROMPT_VERSION: 1 -->

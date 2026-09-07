@@ -1,0 +1,11 @@
+UNVERIFIED
+Execution: mp42aac ran and exited cleanly (no crash, no ASAN report).
+Output: "ERROR: unable to parse sample description"
+Explanation: VULN 004 is a stream-level logical OOB read. The stss parser reads 4 bytes
+beyond its own box boundary (into stco's size field = 0x00000014 = 20) and stores that
+value as a sync sample number. This is a semantic/logical violation, not a C++ memory-
+safety fault, so ASAN does not flag it. The fabricated sync-sample-number (20) may cause
+downstream logic errors (wrong frame marked as sync, seek corruption) but the process
+exits gracefully. Confirmed that the malicious stss box (size=16, entry_count=1, no entry
+data) was accepted by the parser due to the AP4_ATOM_HEADER_SIZE vs
+AP4_FULL_ATOM_HEADER_SIZE bounds-check bug.

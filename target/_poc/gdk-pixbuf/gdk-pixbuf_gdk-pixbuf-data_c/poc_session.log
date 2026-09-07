@@ -1,0 +1,29 @@
+All files are in place. Here is the final report:
+
+---
+
+## VULN-001 — Integer Overflow in `gdk_pixbuf_new_from_bytes` (gdk-pixbuf-data.c:113)
+
+**Status: `SKIPPED`**
+
+### Why this vulnerability cannot be triggered via `gdk-pixbuf-pixdata`
+
+Two independent blockers prevent exploitation through the allowed PoC path:
+
+1. **No image loader calls `gdk_pixbuf_new_from_bytes`** — grep across all `io-*.c` loaders returns zero matches. Every loader uses `gdk_pixbuf_new()` or `gdk_pixbuf_new_from_data()` instead. The `gdk_pixbuf_new_from_bytes` function is a public API, not an internal loader helper.
+
+2. **This build has only the pixdata loader compiled in** — `nm` on the binary shows only `_gdk_pixbuf__pixdata_fill_vtable`; no BMP/PNG/JPEG/GIF loaders are present. So even if a hypothetical loader did call `gdk_pixbuf_new_from_bytes`, it is absent here.
+
+### Files produced
+
+| File | Purpose |
+|---|---|
+| `vuln_001_gen.py` | Constructs a 58-byte BMP claiming 32768×32768 with only 4 bytes of pixel data |
+| `vuln_001_run.sh` | Runs generator + ASAN binary; captures output |
+| `vuln_001_result.txt` | Actual run output: "Couldn't recognize the image file format" |
+| `vuln_001_notes.md` | Full analysis of the overflow mechanism and real attack surface |
+| `vuln_001_status.txt` | `SKIPPED` |
+
+### Real attack surface
+
+The vulnerability is real and exploitable in applications that call `gdk_pixbuf_new_from_bytes(small_gbytes, RGB, TRUE, 8, 32768, 32768, 131072)` — where `width × height × 4 = 4,294,967,296` wraps to 0 in signed 32-bit arithmetic, passing the size guard. Any subsequent pixel access (`pixels + y × rowstride + x × 4`) causes heap OOB. A crafted image whose loader extracts attacker-controlled width/height and passes the raw bytes as a `GBytes` to this API would be the real trigger path.

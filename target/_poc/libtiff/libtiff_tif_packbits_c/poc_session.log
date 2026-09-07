@@ -1,0 +1,12 @@
+Both subagents have completed. Here is the final summary:
+
+---
+
+## PoC Results — `libtiff/libtiff_tif_packbits_c`
+
+| VULN | Description | Status | Reason |
+|------|-------------|--------|--------|
+| 001 | PackBitsDecode literal-copy branch heap OOB read (up to 127 bytes) | **UNVERIFIED** | `tiffsplit` calls `TIFFReadRawStrip()` which transfers compressed bytes verbatim without decoding — `PackBitsDecode` is never invoked. TIFF structure is confirmed correct (`tiffinfo -d` shows the warning "discarding 123 bytes to avoid buffer overrun"), but the vulnerable code path requires a decoding API like `TIFFReadEncodedStrip`. |
+| 002 | PackBitsDecode run-length branch missing input guard (1-byte heap OOB read) | **SKIPPED** | Same root cause: `tiffsplit` exclusively uses `TIFFReadRawStrip()` → `TIFFWriteRawStrip()`, never calling `PackBitsDecode`. |
+
+**Key finding:** Both vulnerabilities are real but unreachable via `tiffsplit`. The binary splits TIFF strips by copying raw (compressed) bytes without decompression. These vulnerabilities would be triggered by tools that decode the strips — e.g., `tiff2rgba`, `tiff2bw`, or `tiffcp`.

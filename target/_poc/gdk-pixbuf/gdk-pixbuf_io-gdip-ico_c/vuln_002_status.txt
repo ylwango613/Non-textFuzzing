@@ -1,0 +1,7 @@
+SKIPPED
+Reason: GDI+ loader (io-gdip-utils.c, io-gdip-ico.c) is not compiled into this Linux build.
+The vulnerability in gdip_bitmap_get_frame_delay(), gdip_bitmap_get_n_loops(), and
+gdip_bitmap_get_property_as_string() (io-gdip-utils.c lines 409-410, 493-494, 521-523)
+requires GDI+ (gdiplus.dll) which is Windows-specific.
+No gdip_bitmap_* symbols present in libgdk_pixbuf-2.0.so on this Linux target.
+Platform: Linux (native loaders only — io-ico.c, io-gif.c used instead)

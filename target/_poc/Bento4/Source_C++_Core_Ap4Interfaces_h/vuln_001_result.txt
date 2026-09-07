@@ -1,0 +1,12 @@
+mp42aac exit code: 124
+CRASH_INDICATOR: process did not terminate within 20s (DoS / allocation hang)
+timeout: the monitored command dumped core
+--- ulimit run ---
+timeout: the monitored command dumped core
+/bin/bash: line 29: 238270 Aborted                 ASAN_OPTIONS="abort_on_error=0:log_path=${POC_DIR}/asan_001b.log" timeout 10 "$BINARY" "$POC_DIR/vuln_001.mp4" /dev/null
+
+=== ASAN log (hard_rss_limit run) ===
+==235492==AddressSanitizer: hard rss limit exhausted (512Mb vs 519Mb)
+
+=== ASAN log (ulimit run) ===
+==238271==ERROR: AddressSanitizer failed to allocate 0xdfff0001000 (15392894357504) bytes at address 2008fff7000 (errno: 12)

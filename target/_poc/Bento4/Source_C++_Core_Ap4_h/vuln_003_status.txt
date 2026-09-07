@@ -1,0 +1,8 @@
+VERIFIED_CRASH
+
+ASAN: heap-buffer-overflow in AP4_Stz2Atom::AP4_Stz2Atom
+Trigger path: stsc OOB read consumes 4 bytes from stco, misaligning the stream position for all subsequent atom parsing. Downstream, AP4_Stz2Atom allocates a 1-byte buffer based on a corrupted size and immediately reads 1 byte past the end → heap-buffer-overflow.
+
+Root cause confirmed: AP4_StscAtom bounds check uses AP4_ATOM_HEADER_SIZE=8 instead of AP4_FULL_ATOM_HEADER_SIZE=12, allowing a 24-byte stsc box with entry_count=1 to pass validation and read 4 bytes beyond the stsc box boundary into stco.
+
+ASAN log: asan.log.4173880

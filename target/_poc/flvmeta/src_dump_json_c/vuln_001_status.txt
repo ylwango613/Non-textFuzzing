@@ -1,0 +1,2 @@
+VERIFIED_CRASH
+AddressSanitizer: stack-overflow in amf_data_read (flvmeta+0xc3d78) — 248+ recursive frames observed. Triggered by 50000-level nested AMF object in vuln_001.flv.

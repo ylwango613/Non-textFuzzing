@@ -1,0 +1,8 @@
+Both subagents have completed. Here is the final summary:
+
+| VULN | Function | Status |
+|------|----------|--------|
+| 001 | TIFFReadRawStrip1 mmap bounds-check uint32 overflow → OOB read | **VERIFIED_CRASH** |
+| 002 | TIFFReadRawTile1 mmap bounds-check uint32 overflow → OOB read | **VERIFIED_CRASH** |
+
+Both PoCs successfully triggered AddressSanitizer SEGV crashes at `mmap_base + 0xFFFFFF00`, confirming that the uint32 overflow in the bounds check (`offset + size > tif_size`) is bypassed when `StripOffset`/`TileOffset` is set to `0xFFFFFF00` with `ByteCount=256`. All files are in `/data/ylwang/non-textfuzz/target/_poc/libtiff/libtiff_tif_read_c/`.

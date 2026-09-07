@@ -1,0 +1,13 @@
+## VULN: Heap Buffer Overflow in fpAcc via Non-Multiple-of-8 BitsPerSample with Floating-Point Predictor
+- **漏洞类别**: memory-safety
+- **函数**: fpAcc()
+- **行号**: 352-383
+- **CWE**: CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 8.8 (AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted TIFF file
+- **外部触发路径**: tiffsplit main() → TIFFOpen() → TIFFReadDirectory() → PredictorSetupDecode() → [tile/strip decode] → PredictorDecodeTile() / PredictorDecodeRow() → fpAcc()
+- **描述**: `fpAcc()` 用于 PREDICTOR_FLOATINGPOINT (predictor=3) 的解码路径。`PredictorSetup()` 对 predictor=3 仅检查 `td_sampleformat == SAMPLEFORMAT_IEEEFP`，不检查 `td_bitspersample`。`fpAcc` 计算 `bps = td_bitspersample / 8`（整数除法），当攻击者将 `td_bitspersample` 设为非 8 的倍数（如 9、10、11 等）时 `bps ≥ 1`（无除零），但 `rowsize = TIFFhowmany8(td_bitspersample × tilewidth × samplesperpixel)` 因向上取整而不是 `stride = samplesperpixel` 的整数倍。此时累积循环 `while (count > stride) { REPEAT4(stride, cp[stride] += cp[0]; cp++) ... }` 最后一次 REPEAT4 迭代中 `cp[stride]` 的写入索引超过 `cc-1`，产生堆越界写入。以 `td_bitspersample=9, stride=5, tilewidth=3` 为例：`rowsize=17`，在 count=7 的最后一次 REPEAT4 执行 op2~op4 时写入 `cp0[17]`, `cp0[18]`, `cp0[19]`，超出 17 字节缓冲区 3 字节。当 `stride` 较大（如 65535）时溢出可达数万字节。
+- **触发条件**: 攻击者构造一个 TIFF 文件，设置 PREDICTOR 标签值为 3（浮点预测器）、SAMPLEFORMAT 为 SAMPLEFORMAT_IEEEFP（6）、BITSPERSAMPLE 为非 8 的整数倍（如 9、10、17、25 等，须 ≥8 避免除零）、SAMPLESPERPIXEL ≥ 2、PLANARCONFIG = PLANARCONFIG_CONTIG（1），并包含有效的压缩条带/瓦片数据（可为 LZW 或 Deflate 压缩）以触发解码路径。
+- **安全影响**: 堆上相邻分配的元数据或对象被写入攻击者影响的值（累积差分计算结果），在可利用的堆布局下可实现远程代码执行（RCE）；至少可导致进程崩溃（DoS）。
+

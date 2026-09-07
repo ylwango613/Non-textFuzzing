@@ -1,0 +1,21 @@
+全部 3 个 PoC 均已完成，结果汇总如下：
+
+---
+
+## 最终结果
+
+| 漏洞 | 状态 | 触发方式 | ASAN 报告 |
+|------|------|----------|-----------|
+| **VULN 001** — Heap Buffer Overflow (CWE-122) | ✅ **VERIFIED_CRASH** | 29 字节 `.gdkp`，RLE 字节 `0x80`（零长度常量游程，do-while 无符号下溢 UINT_MAX） | `heap-buffer-overflow` WRITE of size 4 in `gdk_pixbuf_from_pixdata` |
+| **VULN 002** — OOB Heap Read (CWE-125) | ✅ **VERIFIED_CRASH** | 29 字节 `.gdkp`，100×100 大图但 pixel_data 仅 5 字节，RLE 耗尽后 rle_buffer 越界读堆 | `unknown-crash` READ of size 4，越过 128-byte 分配末端 2 字节 |
+| **VULN 003** — Off-by-Header-Length Bypass (CWE-131) | ✅ **VERIFIED_CRASH** | 24 字节 `.gdkp`（仅 header），声明 `length=48`（K=24 最大旁路窗口），RAW 编码触发 40000 字节 memcpy 越界读 | `heap-buffer-overflow` READ of size 40000 in `gdk_pixbuf_from_pixdata` |
+
+所有 PoC 文件位于：
+```
+/data/ylwang/non-textfuzz/target/_poc/gdk-pixbuf/gdk-pixbuf_gdk-pixbuf-csource_c/
+  vuln_001_gen.py / vuln_001_run.sh / vuln_001_notes.md / vuln_001_status.txt
+  vuln_002_gen.py / vuln_002_run.sh / vuln_002_notes.md / vuln_002_status.txt
+  vuln_003_gen.py / vuln_003_run.sh / vuln_003_notes.md / vuln_003_status.txt
+```
+
+**值得注意的细节**（VULN 003）：初始用 RLE+1×1 方案时 GString 内部缓冲预分配了 128 字节，位置 24 处仍在 ASAN 可访问区内，改用 **RAW 编码 + 100×100 大图**后，40000 字节的 memcpy 才可靠地逃出 128 字节分配，触发 ASAN 检测。

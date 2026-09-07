@@ -1,0 +1,20 @@
+=== VULN 001 PoC Run ===
+Date: Mon Sep  7 04:45:34 PM +08 2026
+
+[*] Generating crafted MP4...
+[+] Written 798 bytes to /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4HintTrackReader_h/vuln_001.mp4
+[+] tref/hint sub-atom has size=8 (no track IDs) -- triggers OOB in GetTrackIds()[0]
+
+[*] MP4 file: /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4HintTrackReader_h/vuln_001.mp4 (798 bytes)
+
+[*] Running mp42aac with ASAN enabled...
+ERROR: unable to parse sample description
+
+[*] mp42aac exited.
+
+[*] Checking ASAN log files...
+[*] No ASAN crash detected in log files.
+
+[*] No ASAN log files were created.
+
+=== Done ===

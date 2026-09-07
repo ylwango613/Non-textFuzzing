@@ -1,0 +1,33 @@
+两个漏洞均已成功验证，汇总如下：
+
+---
+
+## PoC 验证结果
+
+| # | 漏洞 | 状态 | ASAN 报告 |
+|---|------|------|-----------|
+| VULN-001 | Heap Buffer Overflow via RLE 0x80 (CWE-787) | **VERIFIED_CRASH** | `heap-buffer-overflow` · WRITE 3 bytes · `gdk_pixbuf_from_pixdata` |
+| VULN-002 | OOB Read — Missing rle_buffer Bounds Check (CWE-125) | **VERIFIED_CRASH** | `READ of size 1` · 0 bytes past 128-byte region · `gdk_pixbuf_from_pixdata` |
+
+---
+
+### VULN-001 触发机制
+- 构造 28 字节 `.gdkp` 文件（`GdkP` magic + RLE/RGB 头 + pixel_data = `\x80\xff\x00\x00`）
+- 控制字节 `0x80` → `length = 128 - 128 = 0`（guint），do-while 首次执行后 `--0` 下溢为 `UINT_MAX`，触发约 42 亿次堆写
+
+### VULN-002 触发机制
+- 构造 127 字节文件：RLE 数据仅 103 字节，但 `rowstride×height = 168` 字节需要填充
+- 利用 GLib `GString` 内部 128 字节固定缓冲区，在 `rle_buffer` 耗尽后继续读取，命中 ASAN 红区
+
+### 生成文件
+```
+_poc/gdk-pixbuf/gdk-pixbuf_gdk-pixbuf-pixdata_c/
+├── vuln_001_gen.py       # 构造 .gdkp 文件
+├── vuln_001_run.sh       # 运行 + ASAN 检测
+├── vuln_001_status.txt   # VERIFIED_CRASH
+├── vuln_001_notes.md
+├── vuln_002_gen.py
+├── vuln_002_run.sh
+├── vuln_002_status.txt   # VERIFIED_CRASH
+└── vuln_002_notes.md
+```

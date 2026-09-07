@@ -1,0 +1,14 @@
+## 결과 요약
+
+3개 VULN에 대한 PoC 생성 및 실행 완료:
+
+| VULN | 함수 | 상태 | 비고 |
+|------|------|------|------|
+| 001 | `LogLuvDecode24()` | **SKIPPED** | `tiffsplit`은 `TIFFReadRawStrip()`을 사용해 압축 해제 경로를 완전히 우회. 디코더 자체가 호출되지 않음 |
+| 002 | `LogL16Decode()` | **UNVERIFIED** | 디코더 경로 도달 확인 (에러 메시지: "Not enough data at row 0"), OOB read 로직 진입 확인. ASAN 미발동 이유: `TIFFroundup(1, 1024)`가 raw buffer를 1024바이트로 패딩하여 `bp[1]` 접근이 malloc 경계 안에 위치 |
+| 003 | `LogLuvDecode32()` | **UNVERIFIED** | VULN 002와 동일 구조. 1바이트 strip(0x80)으로 run 분기 진입, `bp[1]` OOB read 로직 확인. 동일한 1024바이트 패딩으로 ASAN 미발동 |
+
+**공통 원인 분석**:
+- `tiffsplit`은 스트립을 `TIFFReadRawStrip()`으로만 복사하므로, LUV/LogL 디코더(`tif_decodestrip`)가 호출되는 경로 자체가 없음
+- VULN 002/003은 `tiff2rgba`로 디코더 진입 경로 자체는 확인되었으나, `TIFFroundup(1, 1024)` 패딩으로 인해 logical OOB가 물리적 malloc 범위 내에 위치 → ASAN 불검출
+- 실제 탐지를 위해서는 MSan(MemorySanitizer) 또는 Valgrind가 필요

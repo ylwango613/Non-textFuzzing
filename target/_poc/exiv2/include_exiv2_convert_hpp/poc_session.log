@@ -1,0 +1,18 @@
+The subagent has completed. Here is the final summary:
+
+---
+
+## PoC Generation Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | OOB Read via `.front()` on Empty GPS Reference String in `cnvExifGPSCoord` | **VERIFIED_CRASH** |
+
+**VULN 001** was confirmed as a real crash. A crafted TIFF/JPEG with `GPSLatitudeRef` (tag 0x0001) set to ASCII type with `count=0` causes `Converter::cnvExifGPSCoord()` at `src/convert.cpp:836` to call `refPos->toString().front()` on an empty string, triggering an abort via the ASAN-instrumented `__replacement_assert`. Trigger command: `exiv2 -eX vuln_001_input.tiff`.
+
+All files written to `/data/ylwang/non-textfuzz/target/_poc/exiv2/include_exiv2_convert_hpp/`:
+- `vuln_001_gen.py` — generates malformed TIFF/JPEG
+- `vuln_001_run.sh` — runs the PoC
+- `vuln_001_result.txt` — crash output with backtrace
+- `vuln_001_status.txt` — `VERIFIED_CRASH`
+- `vuln_001_notes.md` — explanation

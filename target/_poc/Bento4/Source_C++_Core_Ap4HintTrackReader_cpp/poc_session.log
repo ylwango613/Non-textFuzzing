@@ -1,0 +1,41 @@
+全部 4 个 subagent 已完成。以下是汇总结果：
+
+---
+
+## PoC 生成结果汇总
+
+| 编号 | 漏洞 | 状态 | 原因 |
+|------|------|------|------|
+| VULN 001 | OOB Read via Empty tref/hint Track ID Array | **UNVERIFIED** | 见下 |
+| VULN 002 | NULL Pointer Dereference via Unvalidated GetTrack Return | **UNVERIFIED** | 见下 |
+| VULN 003 | Integer Underflow in AP4_RtpSampleData Constructor | **UNVERIFIED** | 见下 |
+| VULN 004 | Integer Underflow in extra_length (Unbounded Reads) | **UNVERIFIED** | 见下 |
+
+---
+
+## 根本原因（4 个漏洞共同）
+
+所有 4 个漏洞均 **UNVERIFIED**，原因一致：
+
+**`mp42aac` 未链接漏洞代码**。通过 `nm mp42aac` 确认：
+- `AP4_HintTrackReader`：不存在于 `mp42aac` 二进制
+- `AP4_RtpSampleData`：不存在
+- `AP4_RtpPacket`：不存在
+
+`Mp42Aac.cpp` 仅调用 `movie->GetTrack(AP4_Track::TYPE_AUDIO)`，只处理音频 track，从不触碰 hint track 处理代码。
+
+漏洞审计报告中的外部触发路径 `mp42aac main() → AP4_HintTrackReader::Create()` 是**错误的**——实际触发二进制应为 `mp4rtphintinfo`（源码位于 `Source/C++/Apps/Mp4RtpHintInfo/Mp4RtpHintInfo.cpp`），它显式调用 `AP4_HintTrackReader::Create()`，但该二进制**未在 `build_test/bin/` 中编译**。
+
+---
+
+## 已生成文件
+
+所有 PoC 文件已写入 `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4HintTrackReader_cpp/`：
+- `vuln_001_gen.py` / `vuln_001_run.sh` / `vuln_001_notes.md` / `vuln_001_status.txt`
+- `vuln_002_gen.py` / `vuln_002_run.sh` / `vuln_002_notes.md` / `vuln_002_status.txt`
+- `vuln_003_gen.py` / `vuln_003_run.sh` / `vuln_003_notes.md` / `vuln_003_status.txt`
+- `vuln_004_gen.py` / `vuln_004_run.sh` / `vuln_004_notes.md` / `vuln_004_status.txt`
+
+构造的 MP4 结构均正确，若对 `mp4rtphintinfo` 运行则预期触发对应崩溃。
+
+**建议**：编译 `mp4rtphintinfo`（`cmake` 后该 target 应存在），或在漏洞报告中将触发二进制从 `mp42aac` 修正为 `mp4rtphintinfo`。

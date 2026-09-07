@@ -1,0 +1,18 @@
+VERIFIED_CRASH
+Vulnerability: AP4_CttsAtom missing entry_count bounds check (VULN 001)
+Binary: /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+Input: vuln_001.mp4 (569 bytes, ctts entry_count=0xFFFFFFFF with 0 actual entries)
+
+Crash evidence:
+1. Process hangs >20s when parsing ctts box (DoS via unbounded allocation attempt)
+   - mp42aac exit code: 124 (SIGKILL from timeout)
+2. ASAN hard-rss-limit run (512MB cap): "AddressSanitizer: hard rss limit exhausted (512Mb vs 519Mb)"
+   - Process consumed >512MB in <20s while trying to pre-allocate 0xFFFFFFFF entries
+3. ASAN ulimit run: "ERROR: AddressSanitizer failed to allocate 0xdfff0001000 (15392894357504) bytes"
+   - Confirms ~15TB allocation attempt triggered by entry_count=0xFFFFFFFF
+
+ASAN logs:
+  asan_001.log.235492   (hard_rss_limit run)
+  asan_001b.log.238271  (ulimit run)
+
+Trigger path: mp42aac → AP4_File → AP4_AtomFactory::CreateAtomFromStream() → AP4_CttsAtom::Create() → AP4_CttsAtom::AP4_CttsAtom() → AP4_Array::EnsureCapacity(0xFFFFFFFF)

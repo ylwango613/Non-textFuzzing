@@ -1,0 +1,9 @@
+All 3 subagents have completed. Summary:
+
+| VULN | 名称 | 状态 |
+|------|------|------|
+| 001 | Heap Buffer Overflow in LZW Output via Missing Per-Write Bounds Check in process() | **SKIPPED** |
+| 002 | Global BSS OOB Write in readraster() via Unvalidated datasize | **SKIPPED** |
+| 003 | Global BSS OOB Write in process() via Unbounded avail | **SKIPPED** |
+
+**跳过原因（三个漏洞相同）：** 报告中的全部漏洞均位于 `tools/gif2tiff.c`，触发路径为 `gif2tiff` 工具读取 GIF 文件时的 LZW 解析逻辑（`readraster()` / `process()`）。唯一可用的二进制 `tiffsplit` 是 TIFF 文件分割工具，与 gif2tiff 的 GIF 处理代码不存在任何共享代码路径，无法通过传入构造的 TIFF 文件来到达漏洞函数，因此全部命中"需要修改源码才能到达"的跳过条件。

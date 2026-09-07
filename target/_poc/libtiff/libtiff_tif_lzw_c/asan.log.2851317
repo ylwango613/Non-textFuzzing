@@ -1,0 +1,50 @@
+=================================================================
+==2851317==ERROR: AddressSanitizer: unknown-crash on address 0x7fc554e3f000 at pc 0x7fc5589c46de bp 0x7fff680a7e70 sp 0x7fff680a7e60
+READ of size 1 at 0x7fc554e3f000 thread T0
+    #0 0x7fc5589c46dd in LZWPreDecode (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x36c6dd)
+    #1 0x7fc558a47062 in TIFFStartStrip (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3ef062)
+    #2 0x7fc558a42a01 in TIFFFillStrip (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3eaa01)
+    #3 0x7fc558a3fb65 in TIFFReadEncodedStrip (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3e7b65)
+    #4 0x560d5ac71a5c in TIFFReadContigStripData (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffinfo+0x6a5c)
+    #5 0x560d5ac72a36 in TIFFReadData (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffinfo+0x7a36)
+    #6 0x560d5ac73829 in tiffinfo (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffinfo+0x8829)
+    #7 0x560d5ac71024 in main (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffinfo+0x6024)
+    #8 0x7fc5582c1d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #9 0x7fc5582c1e3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #10 0x560d5ac70744 in _start (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffinfo+0x5744)
+
+Address 0x7fc554e3f000 is a wild pointer.
+SUMMARY: AddressSanitizer: unknown-crash (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x36c6dd) in LZWPreDecode
+Shadow bytes around the buggy address:
+  0x0ff92a9bfdb0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0ff92a9bfdc0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0ff92a9bfdd0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0ff92a9bfde0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0ff92a9bfdf0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x0ff92a9bfe00:[fe]fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+  0x0ff92a9bfe10: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+  0x0ff92a9bfe20: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+  0x0ff92a9bfe30: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+  0x0ff92a9bfe40: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+  0x0ff92a9bfe50: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==2851317==ABORTING

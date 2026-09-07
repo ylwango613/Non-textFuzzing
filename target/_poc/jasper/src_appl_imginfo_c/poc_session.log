@@ -1,0 +1,45 @@
+**VULN-001 PoC 결과: VERIFIED_CRASH**
+
+---
+
+## 결과 요약
+
+### 취약점: Signed Integer Overflow in `numprcs` → Heap OOB Read/Write
+
+**상태: `VERIFIED_CRASH`** — UBSAN + Assertion Failure 두 가지 오류 모두 실제 확인됨
+
+### 트리거된 오류
+
+| 오류 | 위치 | 내용 |
+|------|------|------|
+| **UBSAN signed integer overflow** | `jpc_dec.c:777` | `65537 * 65537 cannot be represented in type 'int'` |
+| **Assertion failure / SIGABRT** | `jpc_t2cod.c:305` | `pi->prcno < pi->pirlvl->numprcs` 위반 → 프로세스 비정상 종료 |
+
+### PoC 취약점 체인 확인
+
+```
+SIZ: 65537×65537 단일 타일 (XTsiz=YTsiz=65537)
+COD: numDecompLvls=0, RPCL 진행, precinct_size=0x00 (1×1 pixel precincts)
+  → numhprcs = numvprcs = 65537
+  → numprcs = 65537 × 65537 = 4,295,098,369 > INT_MAX → 오버플로 → 131073 으로 잘림
+  → band->prcs 및 prclyrnos 를 131073 엔트리만 할당 (심각한 부족)
+RPCL 이터레이터: prcvind=1, prchind=65536 시 prcno=131073 ≥ 131073 → OOB → CRASH
+```
+
+### 생성된 파일 (PoC 디렉토리)
+
+| 파일 | 설명 |
+|------|------|
+| `vuln_001_gen.py` | 악성 JP2 바이트 시퀀스 생성 스크립트 |
+| `vuln_001.jp2` | 150,167 바이트 악성 JP2 파일 |
+| `vuln_001_run.sh` | 실행 스크립트 (`--max-samples 0` 필요) |
+| `vuln_001_notes.md` | PoC 설계 메모 |
+| `vuln_001_result.txt` | ASAN/UBSAN 오류 로그 |
+| `vuln_001_status.txt` | **VERIFIED_CRASH** |
+
+### 주요 구성 포인트
+
+- **QCD 마커 필수**: 없으면 `jpc_dec_cp_isvalid()` 실패로 tileinit 미호출
+- **`--max-samples 0`**: JasPer 내장 67M 샘플 제한 우회 필요
+- **약 34 GB RAM 필요**: 65537×65537 타일 구성 행렬 할당
+- 3회 시도 끝에 성공 (QCD 마커 추가 + numDecompLvls=0 조정)

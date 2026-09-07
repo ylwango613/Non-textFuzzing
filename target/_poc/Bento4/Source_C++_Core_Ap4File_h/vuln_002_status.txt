@@ -1,0 +1,8 @@
+VERIFIED_CRASH
+Type: heap-buffer-overflow (AddressSanitizer)
+Tool: mp42aac
+PoC: vuln_002.mp4 (437 bytes)
+Crash site: AP4_CttsAtom::AP4_CttsAtom (Ap4CttsAtom.cpp:80-96)
+ASAN summary: READ of size 1 at 0x5020000000f1 (0 bytes past end of 1-byte alloc)
+Root cause: integer overflow entry_count*8 = 0x20000000*8 = 0x100000000 truncated to 0
+            new unsigned char[0] -> 1-byte allocation; loop reads OOB immediately

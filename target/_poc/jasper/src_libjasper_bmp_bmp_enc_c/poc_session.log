@@ -1,0 +1,11 @@
+The subagent completed. Here's the summary:
+
+**vuln_001** — Stack Buffer Over-Index in `bmp_putdata` (bmp_enc.c:284-342)
+
+**Status: SKIPPED**
+
+**Reason:** The audit report explicitly states that `imginfo` does not invoke `bmp_encode`, making the vulnerable code path (`bmp_encode` → `bmp_putdata` → `bufs[cmpts[cmptno]]` OOB) unreachable via the permitted binary. The correct trigger requires `jasper -f crafted.jp2 -T bmp -o out.bmp`, which is outside the allowed PoC scope.
+
+**Files written to** `/data/ylwang/non-textfuzz/target/_poc/jasper/src_libjasper_bmp_bmp_enc_c/`:
+- `vuln_001_status.txt` — first line: `SKIPPED`
+- `vuln_001_notes.md` — full explanation of why, plus the out-of-scope trigger path for reference

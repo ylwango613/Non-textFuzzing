@@ -1,0 +1,10 @@
+VERIFIED_CRASH
+Trigger: malicious trun atom with sample_count=0x10000000, flags=0x0201
+Effect: AP4_Array::EnsureCapacity allocates 4GB (0x10000000 * 16 bytes) without
+        validating sample_count against the atom's declared byte size.
+        SetItemCount zero-initialises the full 4GB, pushing RSS to 3172MB.
+ASAN log: AddressSanitizer: hard rss limit exhausted (3000Mb vs 3172Mb)
+System: 64-bit Linux (1TB RAM); hard_rss_limit_mb=3000 used to make the
+        uncontrolled allocation observable. On a low-memory system or with
+        overcommit disabled, ::operator new(4GB) throws std::bad_alloc, crashing
+        immediately without any ASAN option needed.

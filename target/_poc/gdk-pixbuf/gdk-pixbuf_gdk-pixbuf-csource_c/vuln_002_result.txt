@@ -1,0 +1,60 @@
+[*] stdout/stderr:
+=== ASAN LOG ===
+=================================================================
+==133124==ERROR: AddressSanitizer: unknown-crash on address 0x50c00000083e at pc 0x7f0b8466ef9d bp 0x7ffc285af8c0 sp 0x7ffc285af8b0
+READ of size 4 at 0x50c00000083e thread T0
+    #0 0x7f0b8466ef9c in gdk_pixbuf_from_pixdata (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0xacf9c)
+    #1 0x7f0b846894fb in try_load (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0xc74fb)
+    #2 0x7f0b8468a302 in pixdata_image_load_increment (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0xc8302)
+    #3 0x7f0b84649305 in generic_load_incrementally (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0x87305)
+    #4 0x7f0b846497ab in _gdk_pixbuf_generic_image_load (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0x877ab)
+    #5 0x7f0b84649b46 in gdk_pixbuf_new_from_file (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0x87b46)
+    #6 0x55f78817c6de in main (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata+0x36de)
+    #7 0x7f0b8384dd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x7f0b8384de3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #9 0x55f78817c3a4 in _start (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata+0x33a4)
+
+0x50c000000840 is located 0 bytes to the right of 128-byte region [0x50c0000007c0,0x50c000000840)
+allocated by thread T0 here:
+    #0 0x7f0b847dfc38 in __interceptor_realloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:164
+    #1 0x7f0b842a1d7f in g_realloc (/lib/x86_64-linux-gnu/libglib-2.0.so.0+0x5ed7f)
+    #2 0x7f0b846491e8 in generic_load_incrementally (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0x871e8)
+    #3 0x7f0b846497ab in _gdk_pixbuf_generic_image_load (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0x877ab)
+    #4 0x7f0b84649b46 in gdk_pixbuf_new_from_file (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0x87b46)
+    #5 0x55f78817c6de in main (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata+0x36de)
+    #6 0x7f0b8384dd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+SUMMARY: AddressSanitizer: unknown-crash (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0xacf9c) in gdk_pixbuf_from_pixdata
+Shadow bytes around the buggy address:
+  0x0a187fff80b0: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fa
+  0x0a187fff80c0: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x0a187fff80d0: fd fd fd fd fd fd fd fd fa fa fa fa fa fa fa fa
+  0x0a187fff80e0: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x0a187fff80f0: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+=>0x0a187fff8100: 00 00 00 00 00 00 00[00]fa fa fa fa fa fa fa fa
+  0x0a187fff8110: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a187fff8120: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a187fff8130: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a187fff8140: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a187fff8150: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==133124==ABORTING

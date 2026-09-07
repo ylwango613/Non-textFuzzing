@@ -1,0 +1,15 @@
+The subagent has finished. Here are the results:
+
+## VULN-001 — OFFSET Macro Signed Integer Overflow
+
+**Status: SKIPPED**
+
+**Reason:** `gdk-pixbuf-pixdata` does not call `gdk_pixbuf_rotate_simple()` or `gdk_pixbuf_flip()` — it only uses `gdk_pixbuf_new_from_file()` + `gdk_pixdata_from_pixbuf()`. The vulnerable code path is unreachable through the allowed binary.
+
+**Files generated in** `_poc/gdk-pixbuf/gdk-pixbuf_gdk-pixbuf-scale_c/`:
+- `vuln_001_gen.py` — BMP with `width=1, height=600000000, 32bpp` (confirms overflow condition: `(600000000-1)*4 = 2,399,999,996 > INT_MAX`)
+- `vuln_001_run.sh` — runs gen + invokes binary with ASAN_OPTIONS
+- `vuln_001_notes.md` — analysis of actual trigger path and ~2.15 GB memory requirement
+- `vuln_001_status.txt` — `SKIPPED`
+
+**What a real PoC would need:** An application that loads the image and then calls `gdk_pixbuf_rotate_simple()` or `gdk_pixbuf_flip()` on it (e.g., a GNOME image viewer with rotation support, or a custom harness). The binary also rejected the truncated BMP with "Couldn't recognize the image file format" since the file contained no pixel data rows.

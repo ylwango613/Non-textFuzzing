@@ -1,0 +1,5 @@
+**Summary**
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| 001 — DumpModeSeek Integer Overflow → OOB Read | **SKIPPED** | `tiffsplit` uses `TIFFReadRawStrip`/`TIFFReadRawTile` exclusively (bypassing all decode codecs); `DumpModeSeek` and `DumpModeDecode` are only reachable via `TIFFReadScanline`, which `tiffsplit` never calls. Even if the path were reachable, sequential row access (nrows always 0 or 1) would never produce the ~1.4-billion-row jump needed to overflow `nrows * tif_scanlinesize`. |

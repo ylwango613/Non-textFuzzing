@@ -1,0 +1,9 @@
+[*] --- PRIMARY: tiffsplit ---
+[!] tiffsplit: no ASAN crash (uses TIFFReadRawStrip, G4 decoder not called)
+[*] --- FALLBACK: tiffinfo -d (calls TIFFReadEncodedStrip) ---
+[*] Found ASAN log from tiffinfo: /data/ylwang/non-textfuzz/target/_poc/libtiff/libtiff_tif_fax3_c/asan_tiffinfo.log.2738906
+==2738906==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x515000000280 at pc 0x7f77ab330697 bp 0x7fff26654df0 sp 0x7fff26654de0
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x2f0696) in Fax4Decode
+---
+tiffsplit ASAN: 0
+tiffinfo  ASAN: 1

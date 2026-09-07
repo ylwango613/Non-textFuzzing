@@ -1,0 +1,21 @@
+SKIPPED
+
+Reason: The io-gdip-gif loader (io-gdip-utils.c / io-gdip-bmp.c) is a Windows-only
+GDI+ loader and is NOT compiled on Linux builds.
+
+Evidence:
+1. configure.ac line: AM_CONDITIONAL(BUILD_GDIPLUS_LOADERS, [ test x$os_win32 = xyes && test x$with_gdiplus != xno ])
+   - BUILD_GDIPLUS_LOADERS requires os_win32=yes; this is a Linux system.
+2. No *gdip* files exist in the build output directory:
+   /data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/
+3. The loaders.cache at build_test/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache is empty
+   (comment: "dynamic loading of modules not supported" and no loaders registered).
+4. `strings gdk-pixbuf-pixdata | grep -i gdip` returns nothing.
+5. `nm -D libgdk_pixbuf-2.0.so | grep -i gdip` returns nothing.
+6. Running the crafted GIF through gdk-pixbuf-pixdata produces:
+   "Couldn't recognize the image file format" - confirms no GIF/gdip loader is registered.
+
+The vulnerable code path (gdip_bitmap_get_frame_delay in io-gdip-utils.c:491-499)
+is unreachable on this Linux build. PoC files are provided for documentation only;
+the vulnerability would only be triggerable on a Windows build of gdk-pixbuf with
+GDI+ enabled.

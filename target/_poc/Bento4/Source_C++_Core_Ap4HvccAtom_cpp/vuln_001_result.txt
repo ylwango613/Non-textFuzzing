@@ -1,0 +1,19 @@
+=== Step 1: Generate PoC MP4 ===
+Written 597 bytes to /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4HvccAtom_cpp/vuln_001.mp4
+hvcC atom: total size=30, payload=22 bytes
+Payload size computed: 30 - 8 = 22
+Guard check: (22 < 22) = False -> does NOT return
+OOB read: payload[22] reads 1 byte past end of 22-byte buffer
+hvc1 content: 108 bytes (should be 108)
+  - SampleEntry fields: 8 bytes
+  - VisualSampleEntry fields: 70 bytes
+  - hvcC child: 30 bytes
+
+=== Step 2: Run mp42aac with ASAN ===
+
+=== Step 3: ASAN/UBSAN errors ===
+==161262==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5030000002c6 at pc 0x55cd64d5532e bp 0x7ffdb1f96f50 sp 0x7ffdb1f96f40
+READ of size 1 at 0x5030000002c6 thread T0
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac+0xb0a32d) in AP4_HvccAtom::AP4_HvccAtom(unsigned int, unsigned char const*)
+
+=== Done ===

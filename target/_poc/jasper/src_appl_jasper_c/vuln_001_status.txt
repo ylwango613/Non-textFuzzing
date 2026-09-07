@@ -1,0 +1,9 @@
+VERIFIED_CRASH
+
+ASAN reported heap-buffer-overflow READ of size 8 in jp2_decode.
+The CDEF ents[] buffer was allocated for 1 entry (24 bytes on this 64-bit platform:
+1 jp2_cdefchan_t = 3 x uint_fast16_t = 3 x 8 bytes).
+The loop at jp2_dec.c:403 iterates dec->numchans=3 times (from CMAP box),
+accessing ents[1] which is 0 bytes past the end of the 24-byte buffer.
+Crash site: jp2_decode (+0x52cfe5), called from jas_image_decode -> main.
+Allocation site: jp2_cdef_getdata -> jas_alloc2 (CDEF box parsing).

@@ -1,0 +1,36 @@
+두 subagent 모두 완료되었습니다. 최종 결과를 요약합니다.
+
+---
+
+## PoC 생성 결과 — `gdk-pixbuf/io-gdip-bmp.c`
+
+| VULN | 이름 | 상태 | 이유 |
+|------|------|------|------|
+| 001 | Heap OOB Read in `gdip_bitmap_get_frame_delay` | **SKIPPED** | io-gdip loader가 Linux 빌드에 없음 |
+| 002 | NULL Ptr Deref via unchecked `g_try_malloc` | **SKIPPED** | io-gdip loader가 Linux 빌드에 없음 |
+
+---
+
+### 핵심 원인: io-gdip loader는 Windows 전용
+
+두 취약점 모두 `io-gdip-utils.c`의 Windows GDI+ (`gdiplus.dll`) 의존 코드에 위치합니다. Linux 빌드에서는 컴파일 자체가 되지 않습니다:
+
+- **증거**: `configure.ac`의 빌드 조건 — `os_win32=yes`일 때만 `BUILD_GDIPLUS_LOADERS` 활성화
+- **확인**: `build_test/` 아래 `*gdip*` 파일 전무, `loaders.cache` 비어 있음
+- **실행 결과**: `gdk-pixbuf-pixdata`가 GIF/BMP를 "Couldn't recognize the image file format"로 거부
+
+### 생성된 파일 (참고용)
+
+```
+_poc/gdk-pixbuf/gdk-pixbuf_io-gdip-bmp_c/
+├── vuln_001_gen.py       # GIF 구조 생성 스크립트 (Windows용 참고)
+├── vuln_001_run.sh       # 실행 스크립트
+├── vuln_001_notes.md     # 취약점 분석 노트
+├── vuln_001_status.txt   # SKIPPED
+├── vuln_002_gen.py       # BMP 구조 생성 스크립트
+├── vuln_002_run.sh       # 실행 스크립트
+├── vuln_002_notes.md     # 취약점 분석 노트
+└── vuln_002_status.txt   # SKIPPED
+```
+
+두 취약점은 **코드상 실제로 존재하는 결함**이지만, Linux 환경에서 `gdk-pixbuf-pixdata`로는 재현 불가능합니다. Windows GDI+ 빌드 환경이 있어야 PoC 검증이 가능합니다.

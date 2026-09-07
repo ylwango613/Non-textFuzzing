@@ -1,0 +1,13 @@
+VULN|tools/tiffcmp.c|tools_tiffcmp_c|/data/ylwang/non-textfuzz/target/_audit_result/libtiff/tools_tiffcmp_c.md|1
+VULN|tools/tiff2ps.c|tools_tiff2ps_c|/data/ylwang/non-textfuzz/target/_audit_result/libtiff/tools_tiff2ps_c.md|2
+VULN|tools/tiff2rgba.c|tools_tiff2rgba_c|/data/ylwang/non-textfuzz/target/_audit_result/libtiff/tools_tiff2rgba_c.md|2
+VULN|tools/tiffcrop.c|tools_tiffcrop_c|/data/ylwang/non-textfuzz/target/_audit_result/libtiff/tools_tiffcrop_c.md|5
+VULN|tools/tiffcp.c|tools_tiffcp_c|/data/ylwang/non-textfuzz/target/_audit_result/libtiff/tools_tiffcp_c.md|1
+VULN|tools/tiffdither.c|tools_tiffdither_c|/data/ylwang/non-textfuzz/target/_audit_result/libtiff/tools_tiffdither_c.md|4
+VULN|tools/tiffgt.c|tools_tiffgt_c|/data/ylwang/non-textfuzz/target/_audit_result/libtiff/tools_tiffgt_c.md|1
+CLEAN|tools/tiffdump.c|tools_tiffdump_c|/data/ylwang/non-textfuzz/target/_audit_result/libtiff/tools_tiffdump_c.md|0
+CLEAN|tools/tiffset.c|tools_tiffset_c|/data/ylwang/non-textfuzz/target/_audit_result/libtiff/tools_tiffset_c.md|0
+VULN|tools/tiffmedian.c|tools_tiffmedian_c|/data/ylwang/non-textfuzz/target/_audit_result/libtiff/tools_tiffmedian_c.md|2
+CLEAN|tools/ycbcr.c|tools_ycbcr_c|/data/ylwang/non-textfuzz/target/_audit_result/libtiff/tools_ycbcr_c.md|0
+VULN|tools/tiffinfo.c|tools_tiffinfo_c|/data/ylwang/non-textfuzz/target/_audit_result/libtiff/tools_tiffinfo_c.md|1
+VULN|tools/tiffsplit.c|tools_tiffsplit_c|/data/ylwang/non-textfuzz/target/_audit_result/libtiff/tools_tiffsplit_c.md|2

@@ -1,0 +1,23 @@
+=== VULN 001 Run Script ===
+Date: Mon Sep  7 05:13:04 PM +08 2026
+
+[*] Generating PoC file...
+[+] Generated: /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4IodsAtom_h/vuln_001.mp4
+[+] File size: 214 bytes
+
+=== Descriptor structure (Variant A - double underflow) ===
+  IOD  (tag=0x10, payload=64 bytes)
+    ES  tag=0x03, DECLARED payload_size=2
+        constructor reads 3 bytes anyway (ES_ID+flags)
+        => ES child SubStream size underflow: 2-3 = 0xFFFFFFFF
+      DC  (tag=0x04, payload_size=0x00)
+          => DC child SubStream size underflow: 0-13 = 0xFFFFFFF3
+      + 50 padding bytes visible to DC's huge SubStream
+
+[*] Running mp42aac with ASAN+UBSAN...
+ERROR: no audio track found
+
+[*] Collecting sanitizer logs...
+(no separate ASAN log files found; output above may contain inline reports)
+
+=== Done ===

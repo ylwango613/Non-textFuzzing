@@ -1,0 +1,8 @@
+Both subagents complete. Here is the final summary:
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | Stack overflow via unbounded recursion in AMF parsing (`amf_data_read`) | **VERIFIED_CRASH** |
+| 002 | Stack overflow via unbounded recursion in YAML AMF dump (`amf_data_yaml_dump`) | **VERIFIED_CRASH** |
+
+Both vulnerabilities were confirmed by ASAN reporting `stack-overflow` / `DEADLYSIGNAL (SIGSEGV)` when processing crafted FLV files with deeply nested AMF strict-array chains. All PoC files are under `/data/ylwang/non-textfuzz/target/_poc/flvmeta/src_dump_yaml_c/`.

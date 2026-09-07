@@ -1,0 +1,11 @@
+/data/ylwang/non-textfuzz/target/xpdf/xpdf/XRef.cc:1258:19: runtime error: load of value 3200171710, which is not a valid value for type 'CryptAlgorithm'
+    #0 0x55810af90124 in XRef::fetch(int, int, Object*, int) [clone .cold] (/data/ylwang/non-textfuzz/target/xpdf/build_test/bin/pdftotext+0xef8124)
+    #1 0x55810b13334c in Catalog::Catalog(PDFDoc*) (/data/ylwang/non-textfuzz/target/xpdf/build_test/bin/pdftotext+0x109b34c)
+    #2 0x55810b50de08 in PDFDoc::setup2(GString*, GString*, int) (/data/ylwang/non-textfuzz/target/xpdf/build_test/bin/pdftotext+0x1475e08)
+    #3 0x55810b50e75c in PDFDoc::setup(GString*, GString*) (/data/ylwang/non-textfuzz/target/xpdf/build_test/bin/pdftotext+0x147675c)
+    #4 0x55810b50f9ae in PDFDoc::PDFDoc(char*, GString*, GString*, PDFCore*) (/data/ylwang/non-textfuzz/target/xpdf/build_test/bin/pdftotext+0x14779ae)
+    #5 0x55810afa4334 in main (/data/ylwang/non-textfuzz/target/xpdf/build_test/bin/pdftotext+0xf0c334)
+    #6 0x7f0b60d27d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7f0b60d27e3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #8 0x55810afa6a84 in _start (/data/ylwang/non-textfuzz/target/xpdf/build_test/bin/pdftotext+0xf0ea84)
+

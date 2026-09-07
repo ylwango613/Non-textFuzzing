@@ -1,0 +1,4 @@
+vuln_001.tif: Integer overflow in TIFFScanlineSize.
+vuln_001.tif: Integer overflow in TIFFTileRowSize.
+vuln_001.tif: Integer overflow in TIFFScanlineSize.
+TIFFReadDirectory: vuln_001.tif: cannot handle zero scanline size.

@@ -1,0 +1,30 @@
+全部 3 个 subagent 已完成。汇总结果如下：
+
+---
+
+## PoC 生成汇总 — `Source_C++_Core_Ap4IodsAtom_h`
+
+| 编号 | 漏洞 | 状态 | 说明 |
+|------|------|------|------|
+| **001** | DecoderConfigDescriptor 下溢 (payload_size < 13) | **UNVERIFIED** | 代码路径已触发，MP4 214字节 |
+| **002** | ObjectDescriptor/IOD 下溢 (payload_size < 2/7) | **UNVERIFIED** | 代码路径已触发，MP4 166字节 |
+| **003** | EsDescriptor 下溢 (payload_size < 3) | **UNVERIFIED** | 代码路径已触发，MP4 162字节 |
+
+所有 PoC 文件均已生成在 `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4IodsAtom_h/`。
+
+---
+
+### 共同原因：为何均为 UNVERIFIED
+
+三个漏洞的根本问题相同——**无符号整数下溢**（unsigned wrap-around）：
+
+- `AP4_Size` = `uint32_t`，无符号减法（如 `0u - 13u = 0xFFFFFFF3u`）在 C++ 中是**定义行为**，不是 UB。
+- 当前构建使用 `-fsanitize=address,undefined`，其中 `undefined` **不包含** `-fsanitize=unsigned-integer-overflow`，因此 UBSAN 不会报错。
+- ASAN 也未触发，因为失控的 SubStream（~4.3GB）读操作遇到文件末尾后返回 `AP4_FAILURE`/`EOS`，没有越界堆访问。
+
+### 建议修复验证方式
+
+重新以 `-fsanitize=address,undefined,unsigned-integer-overflow` 编译 Bento4，三个 PoC 均会立即触发类似：
+```
+runtime error: unsigned integer overflow: 0 - 13 cannot be represented in type 'unsigned int'
+```

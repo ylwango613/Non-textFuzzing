@@ -2,3 +2,24 @@
 [2026-09-06 23:29:41] DONE: 0 new, 0 skipped, 0 vulns
 [2026-09-06 23:55:45] DONE: 1 new, 0 skipped, 0 vulns
 [2026-09-07 00:21:16] DONE: 1 new, 0 skipped, 0 vulns
+[2026-09-07 13:21:58] DONE: 0 new, 0 skipped, 0 vulns
+[2026-09-07 19:23:29] VULN include/exiv2/convert.hpp: 1 findings
+[2026-09-07 19:29:54] POC include/exiv2/convert.hpp: 1/1 verified
+[2026-09-07 19:32:23] VULN include/exiv2/crwimage.hpp: 1 findings
+[2026-09-07 19:35:58] VULN include/exiv2/cr2image.hpp: 1 findings
+[2026-09-07 19:42:56] POC include/exiv2/crwimage.hpp: 1/1 verified
+[2026-09-07 19:49:35] POC ERR include/exiv2/cr2image.hpp: claude exit 0
+[2026-09-07 19:53:30] DONE: 163 new, 2 skipped, 3 vulns
+[2026-09-07 21:56:44] VULN include/exiv2/futils.hpp: 1 findings
+[2026-09-07 22:07:12] VULN include/exiv2/image.hpp: 1 findings
+[2026-09-07 22:07:31] VULN include/exiv2/exif.hpp: 1 findings
+[2026-09-07 22:22:46] VULN include/exiv2/mrwimage.hpp: 1 findings
+[2026-09-07 22:27:25] VULN include/exiv2/orfimage.hpp: 1 findings
+[2026-09-07 23:00:09] VULN include/exiv2/rw2image.hpp: 1 findings
+[2026-09-07 23:07:17] VULN include/exiv2/tiffimage.hpp: 1 findings
+[2026-09-07 23:14:13] VULN include/exiv2/types.hpp: 1 findings
+[2026-09-07 23:32:35] VULN src/convert.cpp: 1 findings
+[2026-09-07 23:40:43] VULN src/crwimage.cpp: 1 findings
+[2026-09-07 23:41:41] VULN src/crwimage_int.hpp: 1 findings
+[2026-09-07 23:42:52] VULN src/crwimage_int.cpp: 1 findings
+[2026-09-07 23:56:28] DONE: 150 new, 15 skipped, 12 vulns

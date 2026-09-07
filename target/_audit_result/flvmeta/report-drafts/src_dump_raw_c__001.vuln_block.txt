@@ -1,0 +1,13 @@
+## VULN: Uncontrolled Recursion in amf_data_read Causes Stack Overflow
+- **漏洞类别**: memory-safety
+- **函数**: amf_data_read() / amf_object_read() / amf_array_read()
+- **行号**: 303-352 (amf_object_read), 413-450 (amf_array_read), 466-500 (amf_data_read)
+- **CWE**: CWE-674 (Uncontrolled Recursion)
+- **CVSS v3.1**: 6.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted FLV file
+- **外部触发路径**: flvmeta main() -> dump_raw_file() -> flv_parse() -> [FLV_TAG_TYPE_META] -> flv_read_metadata() -> amf_data_file_read() -> amf_data_read() -> amf_object_read() -> amf_data_read() -> amf_object_read() -> ... (unbounded)
+- **描述**: `amf_data_read()` and `amf_object_read()` are mutually recursive with no depth limit. `amf_object_read` loops calling `amf_data_read` for each object value (line 325), and `amf_data_read` dispatches back to `amf_object_read` (line 479) or `amf_array_read` (line 489) for nested containers. `amf_array_read` similarly calls `amf_data_read` inside a loop (line 434). There is no maximum nesting counter anywhere in the chain. Each pair of nested frames consumes stack space for local pointers and error codes, and the recursion continues until the stack segment is exhausted, producing a SIGSEGV.
+- **触发条件**: 攻击者构造一个 FLV 文件，其 Script Tag 中包含深度嵌套的 AMF object（类型字节 0x03）或 strict array（0x0A），每层嵌套最少需要 3 字节（1B 类型 + 2B 空字符串名 + 1B 值类型）。在典型 8MB 栈上，约 10 000–50 000 层嵌套即可使栈耗尽。
+- **安全影响**: 程序因 stack exhaustion 产生 SIGSEGV（DoS）；在关闭栈金丝雀的构建中，精心对齐的嵌套可能覆盖返回地址，进而可能实现 RCE。
+

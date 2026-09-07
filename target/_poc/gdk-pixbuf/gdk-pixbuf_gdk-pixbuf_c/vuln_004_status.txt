@@ -1,0 +1,13 @@
+UNVERIFIED
+Type: Infinite Loop DoS (no ASAN crash via binary path)
+Binary path: gdk-pixbuf-pixdata rejects the file with "Image pixel data corrupt"
+Reason: pixdata_get_length() in io-pixdata.c validates RLE literal-run lengths before
+        calling gdk_pixbuf_from_pixdata(), blocking zero-length literal runs (0x00 byte).
+        This guard prevents the gdk-pixbuf-pixdata binary from reaching the vulnerable
+        code path in gdk_pixbuf_from_pixdata().
+Underlying bug: Confirmed to exist in gdk_pixbuf_from_pixdata() itself — the function
+        lacks its own zero-length guard — but it is not reachable via the standard
+        file-loading path through gdk-pixbuf-pixdata.
+Note: A custom C harness calling gdk_pixdata_deserialize()+gdk_pixbuf_from_pixdata()
+      directly triggers ASAN heap-buffer-overflow READ, but custom harnesses are
+      outside the scope of this PoC (rules prohibit compiling new C code).

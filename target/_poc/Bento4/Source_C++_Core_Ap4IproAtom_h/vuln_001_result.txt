@@ -1,0 +1,12 @@
+[*] Step 1: Generating malicious MP4...
+[+] Written 186 bytes to /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4IproAtom_h/vuln_001.mp4
+    ftyp: 20 bytes
+    moov: 166 bytes (mvhd=108, udta=50)
+    ipro size field = 12 -> underflow: 12-12-2 = 0xFFFFFFFE
+
+[*] Step 2: Running mp42aac under ASAN/UBSAN...
+ERROR: no audio track found
+
+[*] Step 3: Checking for ASAN/UBSAN errors...
+
+[-] No ASAN/UBSAN errors found in logs.

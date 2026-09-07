@@ -1,0 +1,13 @@
+## VULN: APE Tag MP3GAIN_UNDO/MINMAX Heap Buffer Over-Read via Undersized vsize
+- **漏洞类别**: memory-safety
+- **函数**: ReadMP3APETag()
+- **行号**: 226-253 (apetag.c)
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 6.1 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:L)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP3 file
+- **外部触发路径**: mp3gain main() -> ReadMP3GainAPETag() -> ReadMP3APETag() -> MP3GAIN_UNDO/MINMAX branch (apetag.c:226)
+- **描述**: 在 ReadMP3APETag() 解析 APE 标签条目时，对 `vsize` 字段只做了上界校验（`vsize > MAX_FIELD_SIZE`），未做下界校验。当攻击者构造含 `MP3GAIN_UNDO`（或 `MP3GAIN_MINMAX` / `MP3GAIN_ALBUM_MINMAX`）键名且 `vsize=0` 的 APE 条目时，`value = malloc(vsize+1) = malloc(1)`，仅分配 1 字节堆空间。随后代码对 `MP3GAIN_UNDO` 执行 `memcpy(tmpString, vp, 4)`（读 4 字节）、再偏移 5 字节后再 `memcpy(tmpString, vp+5, 4)`、最后 `*vp` 在 vp+10 处解引用，共向堆分配边界之外读取最多 10 字节。对 `MP3GAIN_MINMAX` 执行 `memcpy(tmpString, vp, 3)` 后 `vp+4` 处再读 3 字节，同样越界 6 字节以上。越界读取的字节内容由堆布局决定，可能泄露相邻堆块内的敏感数据，或在边界恰为未映射内存时导致进程崩溃。
+- **触发条件**: 构造含 APEv1/v2 标签的 MP3 文件，其中包含键名为 `MP3GAIN_UNDO`（或 `MP3GAIN_MINMAX`）、`vsize` 字段为 0（或小于所需长度）的 APE 条目；`isize+1+vsize` 不超过 `remaining`，校验通过后直接进入危险路径。
+- **安全影响**: 堆越界读取可用于信息泄露（结合其他漏洞可绕过 ASLR），或引发进程崩溃（DoS）。
+

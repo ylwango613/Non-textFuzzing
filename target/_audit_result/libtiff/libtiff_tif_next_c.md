@@ -1,0 +1,37 @@
+I now have all the context needed for a complete analysis. Let me trace the critical paths:
+
+**Finding 1 — outer-loop type-byte read without `cc > 0` guard (line 69)**
+
+`cc = tif->tif_rawcc = td->td_stripbytecount[strip]` (file-controlled). In `NeXTDecode`, the outer loop immediately reads a type byte with no prior `cc > 0` check:
+```c
+for (row = buf; occ > 0; occ -= scanline, row += scanline) {
+    n = *bp++, cc--;        // line 69 — no cc>0 guard
+```
+If `cc == 0` when a new iteration starts, this reads 1 byte past `tif_rawdata + tif_rawcc`.
+
+**Finding 2 — `cc == 0` bypass in the `default` (run-length) case (line 119)**
+
+After the OOB read above, `cc` becomes `-1` (signed `int32_t`). The only safety net inside the default inner loop is:
+```c
+if (cc == 0)        // line 119
+    goto bad;
+n = *bp++, cc--;    // line 121
+```
+Because `cc` is now `-1`, the check `cc == 0` is **permanently false**. The inner for-ever loop continues to execute `n = *bp++, cc--` — advancing `bp` and decrementing `cc` to `-2`, `-3`, etc. — reading an unbounded number of bytes past the raw-data buffer until unmapped memory is hit (SIGSEGV / DoS) or `npixels >= imagewidth` is satisfied. With a crafted large `imagewidth` (file-controlled `td_imagewidth`), dozens or hundreds of sequential OOB heap reads occur before the crash.
+
+**Concrete trigger path**: craft a NeXT-compressed TIFF where `StripByteCount` encodes the compressed stream for `N-1` scanlines but `ImageLength` / `RowsPerStrip` imply `N` scanlines; the last outer-loop iteration enters with `cc == 0`, triggering the chain above.
+
+## VULN: NeXTDecode OOB Read via Exhausted Compressed Data and cc==-1 Check Bypass
+- **漏洞类别**: memory-safety
+- **函数**: NeXTDecode()
+- **行号**: 68-124
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 6.1 (AV:L/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted TIFF file
+- **外部触发路径**: tiffsplit main() -> TIFFOpen() -> TIFFReadDirectory() -> TIFFFillStrip() -> TIFFStartStrip() [sets tif_rawcc=StripByteCount from file] -> NeXTDecode() [line 69: n=*bp++,cc-- without cc>0 guard; line 119: if(cc==0) bypass when cc==-1]
+- **描述**: `NeXTDecode()` iterates over expected output scanlines (`occ` bytes). At the start of each iteration (line 69) it reads the per-scanline type byte unconditionally with `n = *bp++, cc--;` before checking whether any compressed data remains (`cc > 0`). If the raw compressed buffer is exhausted (`cc == 0`) while output scanlines are still expected (`occ > 0`), this performs a 1-byte out-of-bounds read past `tif_rawdata + tif_rawcc`. Worse, after that read `cc` becomes `-1` (signed `int32_t`). Inside the `default` (run-length) case the only guard is `if (cc == 0) goto bad;` (line 119); with `cc == -1` this check is permanently false. The inner loop continues executing `n = *bp++, cc--;` (line 121) on each code word needed to fill the scanline, reading arbitrarily far past the allocated raw-data buffer — the number of OOB reads is proportional to `imagewidth / (run_length_per_code)` where `imagewidth` is also attacker-controlled via the TIFF ImageWidth tag.
+- **触发条件**: 构造一个 NeXT (COMPRESSION=32766) 压缩的 TIFF 文件，其中 `StripByteCounts[0]` 设置为恰好比正确编码所有扫描行所需的字节数少若干字节（例如：设 ImageLength=2，RowsPerStrip=2，但 StripByteCount 仅包含第一行完整的压缩数据；第二行类型字节不存在），确保处理第一行后 `cc == 0` 而 `occ > 0`，且该文件头部的第一个 OOB 字节值不等于 0x00（LITERALROW）和 0x40（LITERALSPAN），即触发 default 分支并绕过 `cc == 0` 检查。
+- **安全影响**: 最坏情况下：(1) 读取堆中超出原始数据缓冲区的任意字节（信息泄露，可披露相邻堆内存内容，包括其他图像数据或内部指针）；(2) 当 `bp` 最终到达未映射内存页时，进程收到 SIGSEGV，造成拒绝服务（DoS）；若内存映射路径（`isMapped(tif)`）下 strip 恰在文件末尾，则 `bp[0]` 的单字节 OOB 读即直接触发 SIGSEGV。
+
+<!-- AUDIT_PROMPT_VERSION: 1 -->

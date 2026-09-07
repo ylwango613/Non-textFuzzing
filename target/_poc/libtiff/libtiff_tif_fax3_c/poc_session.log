@@ -1,0 +1,9 @@
+---
+
+## 최종 결과 요약
+
+| VULN # | 제목 | 상태 | 사유 |
+|--------|------|------|------|
+| VULN 001 | Heap Buffer Overflow via Unbounded pa Write in EXPAND2D (G3-2D/G4 Decoder) | **SKIPPED** | `tiffsplit`은 `TIFFReadRawStrip()`만 사용하여 G4 디코더(`Fax4Decode`/`EXPAND2D`)에 도달하지 않음 |
+
+**추가 정보**: 취약점 자체는 실존합니다. 동일 빌드의 `tiffinfo -d`로 `vuln_001.tif`를 처리하면 ASAN이 `heap-buffer-overflow (WRITE of size 4, 0 bytes past 512-byte region in Fax4Decode)`를 보고합니다. 그러나 경규칙에 따라 `tiffsplit` 바이너리를 통해서만 트리거할 수 있어야 하며, `tiffsplit`은 `TIFFReadRawStrip()`만 호출하므로 G4 디코더가 실행되지 않아 SKIPPED로 처리하였습니다.

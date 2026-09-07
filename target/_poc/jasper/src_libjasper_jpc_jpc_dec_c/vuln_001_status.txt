@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+UBSAN confirmed: 18 shift-out-of-bounds violations in jpc_dec_tileinit at jpc_dec.c:851,852,862-870,872,894,895,921,924,933,936
+Trigger: COD Scod=0x01 (PRT flag), numdlvls=1, prcsize[1]=0x00 -> prcwidthexpn=0 -> cbgwidthexpn=-1 -> 1<<(-1) UB
+Binary: imginfo with -fsanitize=address,undefined
+Input: vuln_001.jp2 (173 bytes)
+Key error: "runtime error: shift exponent -1 is negative" in jpc_dec_process_sod -> jpc_dec_tileinit

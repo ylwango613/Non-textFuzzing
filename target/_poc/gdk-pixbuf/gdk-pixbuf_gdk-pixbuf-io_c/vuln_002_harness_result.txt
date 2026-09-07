@@ -1,0 +1,1 @@
+[*] Direct harness: calling gdk_pixbuf_from_pixdata with 4-byte pixel_data

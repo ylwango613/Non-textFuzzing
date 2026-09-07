@@ -1,0 +1,5 @@
+SKIPPED
+Vulnerability VULN 001 (Heap OOB Read in gdip_bitmap_get_frame_delay) is Windows-only.
+The io-gdip-ico.c / io-gdip-utils.c loaders require the Windows GDI+ API which is
+not available on this Linux build. No GDI+ symbols or loaders are present in the
+compiled binary or shared library. See vuln_001_notes.md for full analysis.

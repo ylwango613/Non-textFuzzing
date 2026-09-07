@@ -1,0 +1,15 @@
+SKIPPED
+Binary: /data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata
+Vulnerability: Integer Overflow in iter->elapsed leads to OOB read (io-ani-animation.c:228-249)
+
+The binary calls only gdk_pixbuf_new_from_file(), which for ANI files takes the
+incremental-loader path (generic_load_incrementally in gdk-pixbuf-io.c:982).
+That path delivers the first decoded ICO frame via the prepared_func callback and
+returns it directly — it never calls gdk_pixbuf_animation_get_iter() or
+gdk_pixbuf_animation_iter_advance().
+
+The vulnerable function gdk_pixbuf_ani_anim_iter_advance() (io-ani-animation.c:191)
+is only reached by code that explicitly drives animation playback. gdk-pixbuf-pixdata
+is a static-image converter; it has no animation playback loop.
+
+This vulnerability cannot be triggered with this binary.

@@ -1,0 +1,9 @@
+=== mp42aac run ===
+Input: /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4HintTrackReader_cpp/vuln_003.mp4
+Tool:  /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+
+Audio Track:
+  duration: 1000 ms
+  sample count: 0
+
+=== exit code collected ===

@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+AddressSanitizer: stack-overflow triggered by CiffDirectory::readDirectory / CiffDirectory::doRead mutual recursion.
+ASAN error: "AddressSanitizer: stack-overflow on address 0x7ffec03d7ff8"
+Stack trace shows alternating CiffDirectory::readDirectory (#0x3836b52) <-> CiffDirectory::doRead (#0x38387d0) frames.
+Input: vuln_001_input.crw (800030 bytes, D=50000 nested CiffDirectory levels)
+Binary exit code: 1 (ASAN abort)

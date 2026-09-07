@@ -1,0 +1,18 @@
+Both subagents completed. Here's the final summary:
+
+---
+
+## PoC Generation Results — jpc_dec.c
+
+| # | Vulnerability | Status | Evidence |
+|---|---|---|---|
+| 001 | UB Negative-Shift → Zero-Size Heap Write in `jpc_dec_tileinit` (prcwidthexpn=0) | **VERIFIED_CRASH** | UBSAN: `shift exponent -1 is negative` at `jpc_dec.c:851` through `:936` inside `jpc_dec_tileinit` |
+| 002 | Missing `return -1` after `jas_safe_size_add` overflow in `jpc_dec_process_siz` | **VERIFIED_CRASH** | ASAN LeakSanitizer: 1 MB leaked in `jpc_dec_process_siz` via `jas_alloc2` when using `--max-samples 0` |
+
+### Key technical notes:
+
+**VULN-001**: The COD marker with `Scod=0x01` (PRT flag), `numdlvls=1`, and `prcsize[1]=0x00` (PPx=PPy=0) reliably triggers UBSAN with 18 shift-out-of-bounds violations. The SOT marker must use `Psot=14, TNsot=1` — JasPer rejects `Psot=0` or `TNsot=0` before reaching the vulnerable code.
+
+**VULN-002**: `imginfo` supports `--max-samples 0` (registered as `OPT_MAXSAMPLES`), which disables the sample-limit guard. A JP2 with Csiz=16384 components and W=H=2^26 causes the cumulative sample count to overflow at ~component 4096; the missing `return -1` lets execution continue through all 12,289 remaining components, leaking the component array allocation.
+
+All PoC files are in `/data/ylwang/non-textfuzz/target/_poc/jasper/src_libjasper_jpc_jpc_dec_c/`.

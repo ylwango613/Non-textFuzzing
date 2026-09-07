@@ -1,0 +1,8 @@
+Both subagents have completed. Here is the summary:
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | Integer Overflow in `uncompr_size` (bmp2tiff.c:591-598) | **SKIPPED** |
+| 002 | Heap OOB Read in RLE8 Decompression Loop (bmp2tiff.c:620-622) | **SKIPPED** |
+
+**Reason for both SKIPs**: Both vulnerabilities are in `bmp2tiff.c`, which belongs to the `bmp2tiff` tool (BMP→TIFF converter). The only permitted trigger binary is `tiffsplit`, which processes TIFF files and shares no code path with `bmp2tiff`'s RLE decompression logic. Neither vulnerability can be reached by passing any crafted file to `tiffsplit`. Files created: `vuln_001_status.txt`, `vuln_001_notes.md`, `vuln_002_status.txt`, `vuln_002_notes.md` in `/data/ylwang/non-textfuzz/target/_poc/libtiff/tools_bmp2tiff_c/`.

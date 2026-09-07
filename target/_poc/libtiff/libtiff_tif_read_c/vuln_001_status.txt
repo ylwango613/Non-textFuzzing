@@ -1,0 +1,16 @@
+VERIFIED_CRASH
+
+Crash type:    SEGV (READ) - AddressSanitizer: SEGV on unknown address
+Signal:        READ memory access fault
+Confirmed via: ASAN log (asan.log.*)
+
+ASAN summary:
+  ERROR: AddressSanitizer: SEGV on unknown address 0x7f2ec53d8f00
+  Signal caused by: READ memory access
+  Crash site: memcpy <- _TIFFmemcpy <- TIFFReadRawStrip1 <- TIFFReadRawStrip
+              <- cpStrips <- tiffcp <- main
+
+Trigger:
+  StripOffset = 0xFFFFFF00, StripByteCount = 256
+  uint32 overflow: 0xFFFFFF00 + 256 = 0x00000000 -> bounds check bypassed
+  OOB read: tif_base + 0xFFFFFF00 far exceeds mmap'd region (162 bytes)

@@ -1,0 +1,8 @@
+## 결과 요약
+
+| VULN | 제목 | 상태 |
+|------|------|------|
+| VULN 001 | Heap OOB Read/Write in RGB SWAP Loop via tsize_t Truncation | **SKIPPED** |
+| VULN 002 | Negative linebytes Causes _TIFFmemset OOB Write Before Heap Buffer | **SKIPPED** |
+
+**SKIPPED 이유**: 두 취약점 모두 `ras2tiff.c`에 존재하며, 해당 코드는 Sun Raster 파일(`.ras`)을 처리하는 `ras2tiff` 바이너리에 속합니다. 지정된 트리거 바이너리 `tiffsplit`은 TIFF 파일을 처리하는 완전히 별개의 도구로, `ras2tiff.c`의 취약한 코드 경로(`main()` 내 `linebytes` 계산 및 SWAP 루프)에는 절대 도달할 수 없습니다. 따라서 TIFF 파일을 `tiffsplit`에 전달하는 방식으로는 두 취약점 모두 트리거할 수 없습니다.

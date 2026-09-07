@@ -1,0 +1,35 @@
+UNVERIFIED
+
+Architecture: x86-64 (64-bit) ELF binary with ASAN+UBSAN
+
+The vulnerability trigger was confirmed to be reached but no crash or ASAN/UBSAN
+error was produced on this 64-bit target.
+
+Trigger evidence:
+- A normal run of mp42aac on a trivial MP4 takes <0.1 seconds.
+- With the crafted MP4 (trun sample_count = 0x10000000), the binary took ~3.6 seconds
+  (1.8s user + 1.8s sys), indicating that ~4GB of memory was allocated and written
+  during parsing of the moof/traf/trun atom.
+- The binary printed: "Audio Track:\n  duration: 0 ms\n  sample count: 0" and exited
+  cleanly with no ASAN/UBSAN reports and no ASAN log files generated.
+
+Root cause of non-crash on 64-bit:
+- In AP4_Array<T>::EnsureCapacity: `count * sizeof(T)` is computed as
+  (size_t)0x10000000 * 16 = 0x100000000 = 4,294,967,296 bytes (4 GB).
+- On a 64-bit platform this multiplication does NOT overflow (64-bit size_t).
+- The call to ::operator new(4294967296) succeeds on Linux because of kernel
+  memory overcommit (mmap returns virtual pages immediately).
+- The subsequent placement-new loop constructs 0x10000000 AP4_TrunAtom::Entry
+  objects, writing ~4 GB of zeros to demand-paged virtual memory.
+- ASAN's allocator does not flag this as invalid (no redzone violation, no OOB).
+
+On a 32-bit target the integer overflow would occur:
+  (uint32_t)0x10000000 * 16 = 0x100000000 truncated to 0 (32-bit overflow)
+  -> ::operator new(0) returns a tiny buffer
+  -> 0x10000000 placement-new constructions go OOB
+  -> ASAN would report heap-buffer-overflow in AP4_Array<T>::SetItemCount
+
+Conclusion:
+The vulnerability path is reachable and the abnormal allocation was triggered
+(confirmed by timing), but the 64-bit binary with Linux overcommit does not crash.
+Status: UNVERIFIED (gracefully completed without ASAN/UBSAN error on this target).

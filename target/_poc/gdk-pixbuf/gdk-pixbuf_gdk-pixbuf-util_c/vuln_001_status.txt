@@ -1,0 +1,26 @@
+SKIPPED
+
+原因：
+gdk-pixbuf-pixdata 二进制的 main() 函数从不调用
+gdk_pixbuf_apply_embedded_orientation()，因此无法通过该二进制触发
+VULN 001（NULL Pointer Dereference，CWE-476）。
+
+调用路径分析：
+  main()
+    -> gdk_pixbuf_new_from_file()      # 仅加载并解码图像
+    -> gdk_pixdata_from_pixbuf()       # 转换为 GdkPixdata 格式
+    -> gdk_pixdata_serialize()         # 序列化
+    -> g_file_set_contents()           # 写入输出文件
+
+漏洞函数 gdk_pixbuf_apply_embedded_orientation() 不在上述调用链上，
+JPEG loader 仅将 EXIF orientation 写入 pixbuf 元数据键 "orientation"，
+不自动执行旋转/翻转变换。
+
+该漏洞只能在显式调用 gdk_pixbuf_apply_embedded_orientation() 的应用程序
+（如 Nautilus、Eye of GNOME 等）中，且系统内存不足以分配旋转后图像时触发。
+详见 vuln_001_notes.md。
+
+运行结果（vuln_001_run.sh）：
+  gdk-pixbuf-pixdata 返回码 0，输出：
+  "failed to load ... : Couldn't recognize the image file format"
+  无 ASAN 崩溃，无 NULL 解引用，行为符合预期（代码路径未到达漏洞处）。

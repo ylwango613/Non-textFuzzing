@@ -3,3 +3,9 @@
 [2026-09-06 23:40:06] FORMAT-ANOMALY libavformat/mov.c
 [2026-09-06 23:40:06] DONE: 1 new, 0 skipped, 0 vulns
 [2026-09-07 00:24:49] DONE: 1 new, 0 skipped, 0 vulns
+[2026-09-07 13:21:58] DONE: 0 new, 0 skipped, 0 vulns
+[2026-09-07 19:25:30] VULN fftools/ffmpeg_filter.c: 2 findings
+[2026-09-07 19:30:17] VULN fftools/graph/graphprint.c: 2 findings
+[2026-09-07 19:49:24] POC fftools/graph/graphprint.c: 1/2 verified
+[2026-09-07 19:51:03] POC ERR fftools/ffmpeg_filter.c: claude exit 0
+[2026-09-07 20:59:23] DONE: 3047 new, 1 skipped, 4 vulns

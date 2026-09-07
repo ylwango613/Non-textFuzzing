@@ -1,0 +1,18 @@
+---
+
+## Summary
+
+**VULN-001** — `JBIGDecode ignores size parameter leading to heap buffer overflow` → **VERIFIED_CRASH**
+
+ASAN confirmed a `heap-buffer-overflow` WRITE of 8192 bytes into an 8-byte heap allocation:
+
+```
+#0 __interceptor_memcpy
+#1 _TIFFmemcpy
+#2 JBIGDecode        (tif_jbig.c:125)
+#3 TIFFReadEncodedStrip
+#4 cpDecodedStrips
+#5 main  (tiffcp)
+```
+
+**Key non-obvious finding**: `tiffsplit` cannot trigger this because it uses `TIFFReadRawStrip` (bypassing the JBIG codec); `tiffcp -c none` from the same ASAN+UBSAN build is the correct trigger. Also, `FillOrder=2` must be set in the IFD to prevent `JBIGDecode`'s internal `TIFFReverseBits()` call from scrambling the BIE header before `jbg_dec_in` processes it.

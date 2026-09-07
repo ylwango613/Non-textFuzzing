@@ -1,0 +1,3 @@
+VERIFIED_CRASH
+ASAN reported: heap-buffer-overflow READ of size 1 in AP4_HvccAtom::AP4_HvccAtom(unsigned int, unsigned char const*)
+ASAN log: asan.log.161262

@@ -1,0 +1,35 @@
+Both subagents completed. Here is the final summary:
+
+---
+
+## PoC Generation Results — `gdk-pixbuf_io-gdip-wmf_c`
+
+| ID | Vulnerability | Status | Reason |
+|----|--------------|--------|--------|
+| VULN 001 | Heap OOB Read in `gdip_bitmap_get_frame_delay` (wrong `item_count` formula, CWE-125) | **SKIPPED** | GDI+ loader not compiled into Linux build |
+| VULN 002 | NULL Pointer Dereference via unchecked `g_try_malloc` (CWE-476) | **SKIPPED** | GDI+ loader not compiled into Linux build; additionally requires heap exhaustion which cannot be induced deterministically via file input alone |
+
+### Root Cause of SKIPPED Status
+
+Both vulnerabilities are in `io-gdip-utils.c`, the Windows GDI+ backend. The code is conditionally compiled (`#ifdef INCLUDE_gdiplus`) and relies on Win32 APIs (`GdipGetPropertyItemSize`, `GdipGetPropertyItem`) that do not exist on Linux. Confirmed evidence:
+
+- `loaders.cache` in the test build explicitly states "dynamic loading of modules not supported" and lists no loaders
+- No WMF/GDI+ `.so` modules found anywhere under `build_test/lib/`
+- `strings` on both the binary and `libgdk_pixbuf-2.0.so` show zero `wmf`/`gdip`/`gdiplus` symbols
+- The binary rejects all image input with "Couldn't recognize the image file format"
+
+### Files Written
+
+```
+_poc/gdk-pixbuf/gdk-pixbuf_io-gdip-wmf_c/
+├── vuln_001_gen.py       # Animated GIF generator documenting the OOB trigger
+├── vuln_001_run.sh       # Run script (chmod +x, executed)
+├── vuln_001_notes.md     # Full vulnerability documentation
+├── vuln_001_status.txt   # SKIPPED
+├── vuln_002_gen.py       # 256-frame GIF generator for heap-exhaustion path
+├── vuln_002_run.sh       # Run script (chmod +x, executed)
+├── vuln_002_notes.md     # Full vulnerability documentation
+└── vuln_002_status.txt   # SKIPPED
+```
+
+To reproduce these vulnerabilities, a Windows environment with GDI+ available would be required, where the `INCLUDE_gdiplus` flag causes the loader to be compiled in.

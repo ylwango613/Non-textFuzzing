@@ -1,0 +1,7 @@
+**汇总**
+
+| VULN 编号 | 漏洞名称 | 状态 |
+|-----------|---------|------|
+| VULN 001 | yaml_string_write_handler Heap Buffer Overflow via Incorrect Bounds Check | **SKIPPED** |
+
+**跳过原因**：漏洞触发需要调用 `yaml_emitter_set_output_string()` 设置字符串输出缓冲区，但 flvmeta 在 `dump_yaml.c` 中仅调用 `yaml_emitter_set_output_file()`（第460、485行），`yaml_string_write_handler` 在任何实际执行路径中均不可达，必须修改源码才能触发，不符合"通过命令行传入构造 FLV 文件触发"的条件。

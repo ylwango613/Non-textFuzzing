@@ -1,0 +1,7 @@
+VERIFIED_CRASH
+Crash confirmed via SIGABRT (exit 134) with GDB backtrace showing:
+  Exiv2::Converter::cnvExifGPSCoord() -> std::__replacement_assert() -> abort()
+The ASAN/debug-instrumented build detects std::string::front() on empty string
+(GPSLatitudeRef with ASCII count=0) and aborts at convert.cpp:836.
+Trigger: exiv2 -eX vuln_001_input.tiff (extract XMP sidecar)
+Both TIFF and JPEG variants reproduce the crash.

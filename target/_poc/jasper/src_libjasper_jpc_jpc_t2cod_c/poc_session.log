@@ -1,0 +1,33 @@
+The subagent completed successfully. Here's the result:
+
+---
+
+## PoC Generation Complete — `src_libjasper_jpc_jpc_t2cod_c`
+
+### vuln_001 — Signed Integer Overflow → prclyrnos Heap OOB Write
+
+**Status: `VERIFIED_CRASH`**
+
+**What triggered it**: UBSAN fires at `jpc_dec.c:777:35` with:
+```
+runtime error: signed integer overflow: 46342 * 46341 cannot be represented in type 'int'
+```
+
+**Call path confirmed**:
+```
+main → jas_image_decode → jp2_decode → jpc_decode
+     → jpc_dec_process_sod → jpc_dec_tileinit  ← overflow here
+```
+
+**Key adjustments made**:
+1. **Dimensions**: Used 46342 × 46341 tile (product = 2,147,534,622 > INT_MAX) instead of the 5 × 858993460 from the report — this avoids enormous memory allocation while still triggering the overflow.
+2. **`--max-samples 0`**: JasPer's default 64M sample guard (`jpc_dec.c:1287`) would reject the image before reaching the overflow site; this flag bypasses it.
+3. **COD marker**: `prcwidthexpn=prcheightexpn=0` with `Scod` bit 0 set (custom precinct sizes), RPCL progression order.
+
+**Files created in** `/data/ylwang/non-textfuzz/target/_poc/jasper/src_libjasper_jpc_jpc_t2cod_c/`:
+| File | Purpose |
+|------|---------|
+| `vuln_001_gen.py` | Generates 169-byte crafted `vuln_001.jp2` |
+| `vuln_001_run.sh` | Runs imginfo with ASAN/UBSAN options |
+| `vuln_001_notes.md` | Trigger mechanism & expected output |
+| `vuln_001_status.txt` | `VERIFIED_CRASH` |

@@ -1,0 +1,20 @@
+AddressSanitizer:DEADLYSIGNAL
+
+=== ASAN LOG: /data/ylwang/non-textfuzz/target/_poc/libtiff/libtiff_tif_read_c/asan.log.4076951 ===
+=================================================================
+==4076951==ERROR: AddressSanitizer: SEGV on unknown address 0x7f2ec53d8f00 (pc 0x7f2dc89f7881 bp 0x7ffd86e90cf0 sp 0x7ffd86e90cb8 T0)
+==4076951==The signal is caused by a READ memory access.
+    #0 0x7f2dc89f7881 in memcpy (/lib/x86_64-linux-gnu/libc.so.6+0xc4881)
+    #1 0x7f2dc90ef225 in _TIFFmemcpy (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc225)
+    #2 0x7f2dc90dbdae in TIFFReadRawStrip1 (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3e8dae)
+    #3 0x7f2dc90dc43b in TIFFReadRawStrip (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3e943b)
+    #4 0x5630e720dea6 in cpStrips (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit+0x5ea6)
+    #5 0x5630e720d8ea in tiffcp (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit+0x58ea)
+    #6 0x5630e720baa6 in main (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit+0x3aa6)
+    #7 0x7f2dc895cd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x7f2dc895ce3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #9 0x5630e720b604 in _start (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit+0x3604)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0xc4881) in memcpy
+==4076951==ABORTING

@@ -1,0 +1,11 @@
+## 汇总
+
+| 编号 | 漏洞 | 状态 |
+|------|------|------|
+| vuln_001 | Integer overflow in OJPEGWriteHeaderInfo YCbCr buffer sizing → heap buffer overflow | **SKIPPED** |
+
+**跳过原因**：两个独立阻断使该漏洞无法通过 tiffsplit 触发：
+1. ImageWidth=0x20000001 导致 TIFFScanlineSize 返回 0，TIFFOpen 直接返回 NULL（tif_dirread.c:801 检测到零扫描线大小）。
+2. 即使文件能被打开，tiffsplit 只调用 TIFFReadRawStrip，而 OJPEG 设置了 TIFF_NOREADRAW 标志；OJPEGWriteHeaderInfo 的溢出代码仅经 TIFFReadEncodedStrip/TIFFReadScanline 可达，tiffsplit 不使用这两个 API。
+
+该漏洞静态分析已确认为真实漏洞，但需要 tiff2rgba/tiff2pdf 等调用解码路径的工具才能实际触发。

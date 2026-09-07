@@ -1,0 +1,18 @@
+SKIPPED
+
+Reason: gdk_pixbuf_new_from_bytes() is a public API function that requires direct
+programmatic calls with specific large width/height parameters (e.g., width=32768,
+height=32768, has_alpha=TRUE to trigger the 32-bit integer overflow). It is NOT
+triggered by loading image files through the normal loader chain.
+
+Evidence:
+- Grep of all image loader files (io-*.c) in gdk-pixbuf/gdk-pixbuf/ found ZERO calls
+  to gdk_pixbuf_new_from_bytes().
+- The gdk-pixbuf-pixdata binary calls gdk_pixbuf_new_from_file() to load input images,
+  which routes through format-specific io-*.c loaders that do not call
+  gdk_pixbuf_new_from_bytes().
+- The vulnerable function only appears in gdk-pixbuf-data.c (implementation),
+  gdk-pixbuf-core.h (declaration), and tests/pixbuf-readonly-to-mutable.c (unit test).
+
+No crafted PNG, BMP, GIF, ICO, or .gdkp file can trigger this vulnerability.
+Exploitation requires direct API usage from code.

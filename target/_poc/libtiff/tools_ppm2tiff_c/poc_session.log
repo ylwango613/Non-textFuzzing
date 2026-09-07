@@ -1,0 +1,8 @@
+완료. 결과 요약:
+
+| VULN | 상태 | 이유 |
+|------|------|------|
+| 001 - Heap Buffer Overflow (linebytes 정수 오버플로) | **SKIPPED** | ppm2tiff.c 코드 경로는 PPM 파일 + ppm2tiff 바이너리 필요. tiffsplit + TIFF 파일로는 도달 불가 |
+| 002 - Null Pointer Dereference (음수 linebytes) | **SKIPPED** | 동일 이유: ppm2tiff main() 코드 경로, tiffsplit으로 접근 불가 |
+
+두 취약점 모두 `ppm2tiff.c`의 `main()` 함수에 있으며, 트리거하려면 PPM 형식 파일을 `ppm2tiff` 바이너리에 입력해야 합니다. 허용된 유일한 바이너리인 `tiffsplit`은 TIFF 파일을 처리하며 해당 코드 경로와 공유 코드가 없으므로 두 PoC 모두 SKIPPED 처리되었습니다.

@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+AddressSanitizer: unknown-crash (READ of size 1) in LZWPreDecode at libtiff.so.3
+Trigger: tiffinfo -D -d vuln_001.tif
+Call chain: main → tiffinfo → TIFFReadEncodedStrip → TIFFFillStrip → TIFFStartStrip → LZWPreDecode (tif_lzw.c:268, rawdata[1] OOB)
+Note: tiffsplit uses TIFFReadRawStrip (not TIFFReadEncodedStrip) and does NOT reach LZWPreDecode.
+      tiffinfo with -D -d flags correctly exercises the vulnerable decode path.

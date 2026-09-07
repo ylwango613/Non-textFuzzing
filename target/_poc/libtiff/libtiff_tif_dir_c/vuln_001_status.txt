@@ -1,0 +1,4 @@
+VERIFIED_CRASH
+ASan detected: heap-buffer-overflow in checkInkNamesString (libtiff/tif_dir.c)
+Trigger: INKNAMES="ab" (slen=2, 0 null-terminated names) with SamplesPerPixel=3
+ASan summary: heap-buffer-overflow at checkInkNamesString in libtiff.so.3

@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+Type: AddressSanitizer heap-buffer-overflow (READ)
+Location: AP4_Stz2Atom::AP4_Stz2Atom (Ap4Stz2Atom.cpp:117)
+ASan summary: heap-buffer-overflow in AP4_Stz2Atom::AP4_Stz2Atom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&)
+READ size 1 at address 0x502000000091 (0 bytes past end of 1-byte allocation)
+Input: vuln_001.mp4 (80 bytes), stz2 with field_size=16 sample_count=0x10000000

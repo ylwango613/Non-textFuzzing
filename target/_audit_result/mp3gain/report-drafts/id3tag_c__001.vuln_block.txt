@@ -1,0 +1,13 @@
+## VULN: Off-by-one OOB heap read in ID3v2.2 frame size parsing
+- **漏洞类别**: memory-safety
+- **函数**: id3_parse_v2_tag()
+- **行号**: 583-592
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP3 file
+- **外部触发路径**: mp3gain main() → ReadMP3GainID3Tag() / WriteMP3GainID3Tag() → id3_search_tag() → id3_parse_v2_tag() → case 2 (ID3v2.2 frame header decode) → tagdata[p+5] OOB read
+- **描述**: `id3_parse_v2_tag()` 中针对 ID3v2.2 帧头的边界检查错误：ID3v2.2 帧头为 6 字节（3 字节帧 ID + 3 字节帧长度），需要访问索引 p 至 p+5，正确的越界检查应为 `if (p + 6 > dlen)`。但实际代码（第 583 行）写的是 `if (p + 5 > dlen)`。当 `p = dlen − 5` 时，检查求值为 `dlen > dlen = false`，不触发 goto badtag，代码继续执行并在第 592 行读取 `tagdata[p+5] = tagdata[dlen]`，即 `malloc(dlen)` 分配堆缓冲区末尾后的第 1 个字节（越界读）。对比同文件中 v2.3（第 600 行）和 v2.4（第 615 行）的正确写法 `if (p + 10 > dlen)` 可直接确认此为笔误导致的 off-by-one。
+- **触发条件**: 构造一个 ID3v2.2 格式的标签（版本字节 0x02），将 syncsafe tag-size 字段设为 N（例如 N=5），使得 tagdata 分配 N 字节，并在偏移 0 处放置非零字节（使循环进入 case 2 分支）；由于只剩 5 字节，p+5 = N = dlen，越界检查不触发，`tagdata[N]` 被读取。具体：将 MP3 文件头设为 `"ID3" 0x02 0x00 0x00 [syncsafe(5)=00 00 00 05] [XX YY ZZ AA BB]`，其中 XX != 0x00。
+- **安全影响**: 读取堆分配区域末尾后一字节（可能为堆元数据、相邻对象数据或未映射内存）；在分配恰好位于内存页末尾时可能导致段错误（DoS/崩溃）；在其他情况下可泄露堆内存布局信息（information disclosure）。该字节还被用于帧长度计算，可影响后续解析逻辑，但由于后续有 `flen > dlen` 校验，实际内存破坏路径受限。
+

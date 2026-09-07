@@ -1,0 +1,7 @@
+## 汇总
+
+| VULN编号 | 漏洞名称 | 状态 |
+|---------|---------|------|
+| VULN-001 | Double va_list Use After Consumption in TIFFWarning/TIFFWarningExt | **SKIPPED** |
+
+**跳过原因**: `tiffsplit` 从未调用 `TIFFSetWarningHandlerExt()`，因此 `_TIFFwarningHandlerExt` 全程为 NULL。`tif_warning.c` 中的 `if (_TIFFwarningHandlerExt)` 守卫永远不会满足，无论构造何种 TIFF 文件都无法从命令行触发该漏洞的第二个 handler 路径——需要修改源码才能到达漏洞点，符合 SKIPPED 条件。

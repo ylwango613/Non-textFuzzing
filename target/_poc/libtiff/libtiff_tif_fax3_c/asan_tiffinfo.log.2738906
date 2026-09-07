@@ -1,0 +1,63 @@
+=================================================================
+==2738906==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x515000000280 at pc 0x7f77ab330697 bp 0x7fff26654df0 sp 0x7fff26654de0
+WRITE of size 4 at 0x515000000280 thread T0
+    #0 0x7f77ab330696 in Fax4Decode (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x2f0696)
+    #1 0x7f77ab427cbd in TIFFReadEncodedStrip (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3e7cbd)
+    #2 0x556696014a5c in TIFFReadContigStripData (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffinfo+0x6a5c)
+    #3 0x556696015a36 in TIFFReadData (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffinfo+0x7a36)
+    #4 0x556696016829 in tiffinfo (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffinfo+0x8829)
+    #5 0x556696014024 in main (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffinfo+0x6024)
+    #6 0x7f77aaca9d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7f77aaca9e3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #8 0x556696013744 in _start (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffinfo+0x5744)
+
+0x515000000280 is located 0 bytes to the right of 512-byte region [0x515000000080,0x515000000280)
+allocated by thread T0 here:
+    #0 0x7f77ab85ac38 in __interceptor_realloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:164
+    #1 0x7f77ab43c175 in _TIFFrealloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc175)
+    #2 0x7f77ab2a3d49 in _TIFFCheckRealloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x263d49)
+    #3 0x7f77ab2a3ea2 in _TIFFCheckMalloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x263ea2)
+    #4 0x7f77ab31df2c in Fax3SetupState (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x2ddf2c)
+    #5 0x7f77ab42e74d in TIFFStartStrip (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3ee74d)
+    #6 0x7f77ab42aa01 in TIFFFillStrip (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3eaa01)
+    #7 0x7f77ab427b65 in TIFFReadEncodedStrip (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3e7b65)
+    #8 0x556696014a5c in TIFFReadContigStripData (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffinfo+0x6a5c)
+    #9 0x556696015a36 in TIFFReadData (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffinfo+0x7a36)
+    #10 0x556696016829 in tiffinfo (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffinfo+0x8829)
+    #11 0x556696014024 in main (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffinfo+0x6024)
+    #12 0x7f77aaca9d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x2f0696) in Fax4Decode
+Shadow bytes around the buggy address:
+  0x0a2a7fff8000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a2a7fff8010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a2a7fff8020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a2a7fff8030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a2a7fff8040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x0a2a7fff8050:[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a2a7fff8060: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a2a7fff8070: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a2a7fff8080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a2a7fff8090: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a2a7fff80a0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==2738906==ABORTING

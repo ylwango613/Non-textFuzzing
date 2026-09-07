@@ -1,0 +1,52 @@
+=== VULN 001 PoC: CWE-476 NULL Pointer Dereference in write_flv() ===
+Binary: /data/ylwang/non-textfuzz/target/flvmeta/build_test/src/flvmeta
+FLV: /data/ylwang/non-textfuzz/target/_poc/flvmeta/src_flv_c/vuln_001.flv
+FLV size: 25 bytes
+
+[*] Binary: no ASAN detected
+
+--- Test 1: No ulimit (baseline, malloc expected to succeed) ---
+/data/ylwang/non-textfuzz/target/flvmeta/build_test/src/flvmeta: unexpected end of file
+Exit code: 3
+
+--- Test 2: ulimit -v attempts to trigger malloc failure ---
+
+[*] Trying ulimit -v 80000 KB (~78 MB)...
+/data/ylwang/non-textfuzz/target/_poc/flvmeta/src_flv_c/vuln_001_run.sh: line 73: 1920451 Aborted                 (core dumped) ASAN_OPTIONS="abort_on_error=0:allocator_may_return_null=1:log_path=$POC_DIR/asan_001_ulimit_${MEM_LIMIT}.log" UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=0" "$BINARY" -U "$FLV_FILE" /dev/null 2>&1
+Exit code: 134
+
+[*] Trying ulimit -v 60000 KB (~58 MB)...
+/data/ylwang/non-textfuzz/target/_poc/flvmeta/src_flv_c/vuln_001_run.sh: line 73: 1920472 Aborted                 (core dumped) ASAN_OPTIONS="abort_on_error=0:allocator_may_return_null=1:log_path=$POC_DIR/asan_001_ulimit_${MEM_LIMIT}.log" UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=0" "$BINARY" -U "$FLV_FILE" /dev/null 2>&1
+Exit code: 134
+
+[*] Trying ulimit -v 50000 KB (~48 MB)...
+/data/ylwang/non-textfuzz/target/_poc/flvmeta/src_flv_c/vuln_001_run.sh: line 73: 1920512 Aborted                 (core dumped) ASAN_OPTIONS="abort_on_error=0:allocator_may_return_null=1:log_path=$POC_DIR/asan_001_ulimit_${MEM_LIMIT}.log" UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=0" "$BINARY" -U "$FLV_FILE" /dev/null 2>&1
+Exit code: 134
+
+[*] Trying ulimit -v 40000 KB (~39 MB)...
+/data/ylwang/non-textfuzz/target/_poc/flvmeta/src_flv_c/vuln_001_run.sh: line 73: 1920516 Aborted                 (core dumped) ASAN_OPTIONS="abort_on_error=0:allocator_may_return_null=1:log_path=$POC_DIR/asan_001_ulimit_${MEM_LIMIT}.log" UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=0" "$BINARY" -U "$FLV_FILE" /dev/null 2>&1
+Exit code: 134
+
+[*] Trying ulimit -v 30000 KB (~29 MB)...
+/data/ylwang/non-textfuzz/target/_poc/flvmeta/src_flv_c/vuln_001_run.sh: line 73: 1920523 Aborted                 (core dumped) ASAN_OPTIONS="abort_on_error=0:allocator_may_return_null=1:log_path=$POC_DIR/asan_001_ulimit_${MEM_LIMIT}.log" UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=0" "$BINARY" -U "$FLV_FILE" /dev/null 2>&1
+Exit code: 134
+
+[*] Trying ulimit -v 20000 KB (~19 MB)...
+/data/ylwang/non-textfuzz/target/flvmeta/build_test/src/flvmeta: error while loading shared libraries: libubsan.so.1: failed to map segment from shared object
+Exit code: 127
+
+--- ASAN/UBSAN log scan ---
+[*] Log file: /data/ylwang/non-textfuzz/target/_poc/flvmeta/src_flv_c/asan_001_ulimit_30000.log.1920523
+==1920523==ERROR: AddressSanitizer failed to allocate 0x10000000 (268435456) bytes at address 7fff7000 (errno: 12)
+[*] Log file: /data/ylwang/non-textfuzz/target/_poc/flvmeta/src_flv_c/asan_001_ulimit_40000.log.1920516
+==1920516==ERROR: AddressSanitizer failed to allocate 0x10000000 (268435456) bytes at address 7fff7000 (errno: 12)
+[*] Log file: /data/ylwang/non-textfuzz/target/_poc/flvmeta/src_flv_c/asan_001_ulimit_50000.log.1920512
+==1920512==ERROR: AddressSanitizer failed to allocate 0x10000000 (268435456) bytes at address 7fff7000 (errno: 12)
+[*] Log file: /data/ylwang/non-textfuzz/target/_poc/flvmeta/src_flv_c/asan_001_ulimit_60000.log.1920472
+==1920472==ERROR: AddressSanitizer failed to allocate 0x10000000 (268435456) bytes at address 7fff7000 (errno: 12)
+[*] Log file: /data/ylwang/non-textfuzz/target/_poc/flvmeta/src_flv_c/asan_001_ulimit_80000.log.1920451
+==1920451==ERROR: AddressSanitizer failed to allocate 0x10000000 (268435456) bytes at address 7fff7000 (errno: 12)
+
+--- Signal / crash summary ---
+
+=== Done ===

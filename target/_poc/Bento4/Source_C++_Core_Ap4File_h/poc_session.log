@@ -1,0 +1,17 @@
+全部 3 个 subagent 完成。以下是汇总结果：
+
+---
+
+## PoC 生成结果汇总
+
+| # | 漏洞 | 状态 | 说明 |
+|---|------|------|------|
+| 001 | stz2 integer overflow (sample_count×FieldSize) | **VERIFIED_CRASH** | ASAN `heap-buffer-overflow` — `AP4_BytesToUInt16BE(&buffer[0])` 读取 0 字节缓冲区越界，立即触发 |
+| 002 | ctts integer overflow (entry_count×8) | **VERIFIED_CRASH** | ASAN `heap-buffer-overflow` — `new unsigned char[0]` 后循环读取 `buffer[0..7]` 越界，立即触发 |
+| 003 | stsz incorrect guard (reads 12B past atom boundary) | **UNVERIFIED** | 漏洞存在但 ASAN 无法检测：`stream.Read` 多读的 12 字节落入正确大小的堆缓冲区（`new unsigned char[sample_count*4]` 按 sample_count=5 分配），越界发生在**文件流协议层**而非堆内存层，ASAN 不拦截 `fread()` 越 atom 边界读取 |
+
+---
+
+**VULN 003 说明**：stsz 漏洞是"跨原子数据污染"——`stream.Read` 读入了下一个 atom 的头部字节作为样本大小，这是语义级别的错误，不触发 ASAN/UBSAN 报告。需要 Valgrind memcheck 或专门的文件格式校验工具才能检测。
+
+所有 PoC 文件位于 `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4File_h/`。

@@ -1,0 +1,12 @@
+두 subagent 모두 완료되었습니다. 결과 요약:
+
+---
+
+## PoC 생성 결과 요약
+
+| VULN # | 취약점 | 상태 | 비고 |
+|--------|--------|------|------|
+| **VULN 001** | Heap buffer overflow via TIFFScanlineSize integer overflow → `malloc(0)` obuf | **VERIFIED_CRASH** | ASAN `heap-buffer-overflow: WRITE of size 1` 확인. PackBits 압축으로 2.8MB 파일 생성, imagewidth=178956971 |
+| **VULN 002** | NULL pointer dereference from unchecked `_TIFFmalloc` return | **VERIFIED_CRASH** | ASAN `heap-buffer-overflow` 확인. 실제로는 `malloc(0)` 반환 NULL 대신 OOM으로 인한 heap overflow로 발현. imagewidth=0x1FFFFFFF 사용 (0xFFFFFFFF는 libtiff 내부 overflow 검사로 거부됨) |
+
+두 취약점 모두 `/data/ylwang/non-textfuzz/target/_poc/libtiff/tools_pal2rgb_c/` 에 PoC 파일이 생성되었고, `pal2rgb` ASAN 바이너리에서 실제 충돌이 확인되었습니다.

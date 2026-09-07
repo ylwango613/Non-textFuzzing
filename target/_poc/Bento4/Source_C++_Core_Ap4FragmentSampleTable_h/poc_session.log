@@ -1,0 +1,21 @@
+The subagent completed the PoC generation. Here's the summary:
+
+**VULN 001** — Integer Overflow in `AP4_Array::EnsureCapacity` via crafted `trun` sample_count
+
+**Status: `UNVERIFIED`**
+
+**What happened:**
+- A 664-byte crafted MP4 was successfully constructed with a `moof/traf/trun` box where `sample_count = 0x10000000`.
+- The vulnerability code path IS reached — the binary took ~3.6 seconds (vs. <0.1s normally) because it tried to allocate 4 GB and placement-new 0x10000000 `Entry` objects.
+- However, on this **64-bit x86-64** binary, the multiplication `0x10000000 × 16 = 4 GB` does **not** overflow (it's computed as 64-bit). Linux memory overcommit lets the 4 GB `mmap` succeed silently, so ASAN sees no OOB writes and reports no errors.
+- The heap buffer overflow described in the audit **only manifests on 32-bit builds** where the product wraps to 0, causing `::operator new(0)` + OOB placement-new constructions.
+
+**Files generated** in `_poc/Bento4/Source_C++_Core_Ap4FragmentSampleTable_h/`:
+| File | Purpose |
+|------|---------|
+| `vuln_001_gen.py` | Python script building the crafted MP4 |
+| `vuln_001.mp4` | The crafted 664-byte MP4 |
+| `vuln_001_run.sh` | Shell script to run the PoC |
+| `vuln_001_notes.md` | Explanation of vulnerability mechanics |
+| `vuln_001_result.txt` | Binary output (no ASAN errors) |
+| `vuln_001_status.txt` | `UNVERIFIED` (64-bit target; overflow only on 32-bit) |

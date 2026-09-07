@@ -1,0 +1,18 @@
+The subagent has completed. Here's the summary:
+
+## VULN-001 Result: `UNVERIFIED`
+
+**Files generated** in `/data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4IproAtom_h/`:
+- `vuln_001_gen.py` — crafts a 186-byte MP4 with `ipro` atom at `size=12` (triggers `12 - 12 - 2 = 0xFFFFFFFE` unsigned wraparound)
+- `vuln_001_run.sh` — runs mp42aac under ASAN/UBSAN and collects sanitizer output
+- `vuln_001_notes.md` — explains the PoC approach
+- `vuln_001.mp4` — the crafted malicious file
+- `vuln_001_status.txt` — `UNVERIFIED`
+
+**Why no crash was triggered:**
+
+1. **UBSAN unsigned overflow not instrumented** — The binary was compiled without `-fsanitize=unsigned-integer-overflow`. The `uint32_t` underflow (`12 - 12 - 2 = 0xFFFFFFFE`) is defined behavior for unsigned types in C++ and is not caught by the default UBSAN configuration.
+
+2. **ASAN cannot detect logical stream boundary violations** — The "OOB reads" happen through the `AP4_ByteStream` abstraction (streaming I/O over a file), not from a fixed-size heap buffer. ASAN only catches actual heap/stack/global buffer overflows, not semantic MP4 atom boundary violations in stream reads.
+
+**The vulnerable code path IS triggered** (ipro constructor reads `entry_count` and parses `sinf` outside the 12-byte declared boundary), but the underflow is invisible to the current sanitizer configuration. The program exits with `ERROR: no audio track found` rather than a sanitizer-detectable crash.

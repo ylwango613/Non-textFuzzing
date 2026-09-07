@@ -1,0 +1,28 @@
+The subagent finished. Here's the result:
+
+---
+
+## VULN 001 — VERIFIED_CRASH
+
+**Vulnerability**: Off-by-One Heap OOB Read in `AP4_HvccAtom::AP4_HvccAtom()`  
+**Status**: `VERIFIED_CRASH`
+
+**ASAN output**:
+```
+ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5030000002c6
+READ of size 1 at 0x5030000002c6 thread T0
+SUMMARY: AddressSanitizer: heap-buffer-overflow in AP4_HvccAtom::AP4_HvccAtom(unsigned int, unsigned char const*)
+```
+
+**Files generated** in `_poc/Bento4/Source_C++_Core_Ap4HvccAtom_cpp/`:
+
+| File | Purpose |
+|------|---------|
+| `vuln_001_gen.py` | Constructs 597-byte PoC MP4 with 30-byte hvcC atom (8-header + 22-payload) |
+| `vuln_001_run.sh` | Runs gen.py → mp42aac → greps ASAN errors |
+| `vuln_001_notes.md` | PoC design notes |
+| `vuln_001.mp4` | Generated PoC file |
+| `vuln_001_status.txt` | `VERIFIED_CRASH` |
+| `vuln_001_result.txt` | Full ASAN output |
+
+**Key detail**: The hvcC atom with total size=30 (exactly 22-byte payload) is embedded inside an `hvc1` sample entry in `stsd`. Bento4's `AP4_VisualSampleEntry::ReadFields()` consumes the 78-byte fixed header, then `ReadChildren()` parses the hvcC child. `payload_size = 30 - 8 = 22` passes the `< 22` guard, and `payload[22]` is read 1 byte past the end of the heap buffer — confirmed by ASAN.

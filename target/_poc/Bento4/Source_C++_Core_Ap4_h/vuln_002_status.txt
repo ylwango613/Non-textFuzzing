@@ -1,0 +1,9 @@
+VERIFIED_CRASH
+Type: heap-buffer-overflow (READ)
+Detector: AddressSanitizer
+Location: AP4_Stz2Atom::AP4_Stz2Atom(unsigned int, unsigned char, unsigned int, AP4_ByteStream&)
+Address: 0x502000000111 (0 bytes past a 1-byte heap allocation)
+Cause: Integer overflow in table_size calculation (unsigned int overflow) with
+       sample_count=0x20000001, field_size=8 causes buffer=new unsigned char[1],
+       then the case-8 loop reads buffer[i] for i=0..0x20000000 -- out-of-bounds read.
+ASAN summary: heap-buffer-overflow in AP4_Stz2Atom::AP4_Stz2Atom

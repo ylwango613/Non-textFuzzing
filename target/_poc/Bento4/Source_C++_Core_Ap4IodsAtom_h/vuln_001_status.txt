@@ -1,0 +1,26 @@
+UNVERIFIED
+
+Reason: The integer underflow at Ap4DecoderConfigDescriptor.cpp:92 is confirmed
+to execute (DecoderConfigDescriptor with payload_size=0 is parsed, 0-13 wraps to
+0xFFFFFFF3 for AP4_Size), but ASAN/UBSAN do not produce a runtime error because:
+
+1. Unsigned integer underflow (0U - 13U) is defined behaviour in C/C++; the build
+   uses -fsanitize=address,undefined which does NOT include
+   -fsanitize=unsigned-integer-overflow, so UBSAN ignores it.
+
+2. The resulting huge SubStream (m_Size=0xFFFFFFF3) is layered on top of
+   AP4_SubStream::Seek which bounds-checks every access against the parent
+   SubStream's actual size.  No real heap buffer is accessed out-of-bounds.
+
+3. All I/O is file-backed; reads beyond file EOF return AP4_ERROR_EOS without
+   touching any heap memory that ASAN monitors.
+
+Program output: "ERROR: no audio track found" (exit code 0).
+
+To confirm the underflow with a sanitizer, rebuild with:
+  -fsanitize=address,undefined,unsigned-integer-overflow
+
+and re-run.  Alternatively, modify the PoC to trigger a derivative heap allocation
+(e.g., embed a 0x05 DecoderSpecificInfo descriptor with a crafted large-size
+encoding in the DC payload region) so that AP4_DataBuffer::ReallocateBuffer is
+called with the underflowed value, potentially surfacing an OOM or allocation crash.

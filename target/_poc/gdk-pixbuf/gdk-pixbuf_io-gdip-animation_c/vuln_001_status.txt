@@ -1,0 +1,20 @@
+SKIPPED
+
+Reason: Platform limitation - this vulnerability cannot be triggered on the current Linux build.
+
+Details:
+1. GDI+ is a Windows-only library (GdiPlus.dll). The vulnerable code in io-gdip-utils.c and
+   io-gdip-animation.c is compiled only on Windows (#ifdef G_OS_WIN32). This Linux build
+   does not include the GDI+ loader modules.
+
+2. The target binary (gdk-pixbuf-pixdata) only supports the pixdata format. It has no GIF
+   loader. When given vuln_001.gif, the binary outputs:
+     "failed to load '...': Couldn't recognize the image file format"
+
+3. To trigger this vulnerability, a Windows environment with gdk-pixbuf built with GDI+
+   support (io-gdip-animation.c compiled in) is required.
+
+Binary tested: /data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata
+Input file:    vuln_001.gif (5-frame animated GIF, 345 bytes)
+Actual output: "Couldn't recognize the image file format"
+Expected (on Windows): ASAN heap-buffer-overflow READ in gdip_bitmap_get_frame_delay

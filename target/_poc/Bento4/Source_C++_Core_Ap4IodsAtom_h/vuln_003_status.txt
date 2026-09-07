@@ -1,0 +1,33 @@
+STATUS: UNVERIFIED
+
+Reason: The integer underflow (payload_size=2u minus consumed_bytes=3u = 0xFFFFFFFF)
+is confirmed to occur at the code level, but the current ASAN+UBSAN build
+(-fsanitize=address,undefined) does NOT detect unsigned integer underflow.
+
+Evidence of underflow occurring:
+  - File parsed successfully (mp42aac prints "ERROR: no audio track found")
+  - This confirms the iods/IOD/ES_Descriptor chain was traversed
+  - The arithmetic 2u - 3u = 0xFFFFFFFF happens in AP4_EsDescriptor.cpp line 103
+  - AP4_SubStream created with size=0xFFFFFFFF (~4.3 GB)
+
+Why no ASAN/UBSAN crash:
+  1. UBSAN -fsanitize=undefined only checks SIGNED integer overflow, not unsigned.
+     The subtraction is AP4_Size (uint32_t) - AP4_Size (uint32_t) = unsigned.
+     Would need: -fsanitize=unsigned-integer-overflow or -fsanitize=integer
+  2. ASAN: No actual out-of-bounds memory access occurs. The oversized SubStream
+     (0xFFFFFFFF) wraps the IOD SubStream which returns EOS at position 5.
+     No heap/stack buffer is overflowed.
+
+Binary output:
+  ERROR: no audio track found
+  Exit code: 1
+
+To verify with sanitizers, recompile with:
+  -fsanitize=address,undefined,unsigned-integer-overflow
+
+The PoC correctly demonstrates the trigger condition and is suitable for
+manual code inspection and further exploitation research.
+
+Generated file: vuln_003.mp4 (162 bytes)
+Tested binary: /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+Test date: 2026-09-07

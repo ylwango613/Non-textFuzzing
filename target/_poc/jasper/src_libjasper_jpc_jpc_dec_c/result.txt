@@ -1,0 +1,12 @@
+VERIFIED_CRASH
+--- UBSAN output (shift-out-of-bounds) ---
+/data/ylwang/non-textfuzz/target/jasper/src/libjasper/jpc/jpc_dec.c:851:31: runtime error: shift exponent -1 is negative
+/data/ylwang/non-textfuzz/target/jasper/src/libjasper/jpc/jpc_dec.c:852:31: runtime error: shift exponent -1 is negative
+/data/ylwang/non-textfuzz/target/jasper/src/libjasper/jpc/jpc_dec.c:862:22: runtime error: shift exponent 18446744073709551615 is too large for 64-bit type 'long unsigned int'
+/data/ylwang/non-textfuzz/target/jasper/src/libjasper/jpc/jpc_dec.c:863:30: runtime error: shift exponent 18446744073709551615 is too large for 64-bit type 'long unsigned int'
+/data/ylwang/non-textfuzz/target/jasper/src/libjasper/jpc/jpc_dec.c:864:22: runtime error: shift exponent 18446744073709551615 is too large for 64-bit type 'long unsigned int'
+--- ASAN output ---
+==2917822==ERROR: LeakSanitizer: detected memory leaks
+SUMMARY: AddressSanitizer: 1048576 byte(s) leaked in 1 allocation(s).
+==2919958==ERROR: LeakSanitizer: detected memory leaks
+SUMMARY: AddressSanitizer: 1048576 byte(s) leaked in 1 allocation(s).

@@ -1,0 +1,2 @@
+SKIPPED
+Reason: tiffsplit does not call TIFFPrintDirectory(). The vulnerable function is only reachable via tiffinfo (with -c flag). No PoC generated for tiffsplit.

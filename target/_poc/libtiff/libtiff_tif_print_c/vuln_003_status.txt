@@ -1,0 +1,2 @@
+SKIPPED
+Reason: tiffsplit does not call TIFFPrintDirectory(). The vulnerability in tif_print.c lines 482-484 can only be triggered by tiffinfo (with -c flag), not by tiffsplit. Since the permitted binary (tiffsplit) never invokes TIFFPrintDirectory(), no PoC can be constructed using only the allowed binary.

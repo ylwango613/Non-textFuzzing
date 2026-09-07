@@ -1,0 +1,8 @@
+VERIFIED_CRASH
+ASAN: heap-buffer-overflow READ of size 4 in pcompar() at fax2ps.c:314
+UBSAN: load of misaligned address for type 'const int' (requires 4-byte alignment) at fax2ps.c:314
+Trigger: fax2ps -p 2 -p 1 vuln_001.tif
+Stack: pcompar <- __interceptor_qsort <- main
+Address 0x502000000032 is 0 bytes to the right of a 4-byte region [0x502000000030, 0x502000000034)
+allocated via realloc() for pages[] (uint16*, 2 bytes per element * 2 elements = 4 bytes)
+The 4-byte read in pcompar() exceeds the 2-byte element boundary, confirmed by ASAN shadow bytes (04 fa = partially addressable + redzone).

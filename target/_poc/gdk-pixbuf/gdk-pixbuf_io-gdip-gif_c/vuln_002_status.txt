@@ -1,0 +1,55 @@
+SKIPPED
+
+## 理由: Linux ビルドに GDI+ バックエンドが存在しない
+
+### 調査結果
+
+1. **バイナリ確認**
+   - ターゲットバイナリ: `/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata`
+   - ELF 64-bit LSB pie executable, x86-64 (Linux ネイティブ)
+   - バージョン: gdk-pixbuf-pixdata-3.0 version 2.31.1
+
+2. **GDI+ の不在確認**
+   - `strings` で gdip キーワード: 検出なし
+   - `nm -D libgdk_pixbuf-2.0.so` で gdip シンボル: 検出なし
+   - GDI+ は Windows の `gdiplus.dll` に依存する Windows 専用 API
+   - Linux ではコンパイル対象外
+
+3. **ローダー状況**
+   - `loaders.cache` の内容: ヘッダーコメントのみ、ローダーエントリなし
+   - "dynamic loading of modules not supported" と記録
+   - GIF ローダー自体も登録なし
+   - リンクされているライブラリ: libjpeg.so.8, libpng16.so.16 のみ（libgif なし）
+
+4. **実行結果**
+   - `gdk-pixbuf-pixdata vuln_002.gif` の実行結果:
+     `failed to load "vuln_002.gif": Couldn't recognize the image file format for file 'vuln_002.gif'`
+   - GIF 形式自体が認識されない（GDI+ ローダーも標準 GIF ローダーも不在）
+
+### 脆弱性の技術的根拠
+
+脆弱なコードは以下の Windows 専用ファイルに存在する:
+- `gdk-pixbuf/io-gdip-utils.c` (行 411, 494, 523)
+- `gdk-pixbuf/io-gdip-gif.c`
+
+これらのファイルは Windows GDI+ API (`GdipGetPropertyItemSize`, `GdipGetPropertyItem`,
+`PropertyItem` 型など) を使用しており、Linux では利用不可。
+
+### 脆弱性の有効性（Windows 環境での評価）
+
+Windows GDI+ バックエンドが有効なビルド環境では、以下の条件でクラッシュが発生する:
+
+```
+GdipGetPropertyItemSize() -> item_size = 0
+g_try_malloc(0) -> NULL (glibc では malloc(0) は NULL or 非NULL を返しうる)
+                         (Windows ランタイムでは NULL を返す可能性)
+GdipGetPropertyItem(..., NULL) -> NULL バッファへの書き込み -> SIGSEGV
+```
+
+### 結論
+
+Linux 環境ではこの脆弱性は再現不可能。
+Windows GDI+ バックエンドでのみ有効な脆弱性（CWE-476）。
+PoC ファイル（vuln_002.gif, vuln_002_alt.gif）は作成済みだが、
+Linux 上の gdk-pixbuf では GDI+ コードパスに到達できないため
+クラッシュは発生しない。

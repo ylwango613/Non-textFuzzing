@@ -1,0 +1,9 @@
+**汇总结果：**
+
+| VULN 编号 | 漏洞名称 | 状态 |
+|-----------|----------|------|
+| VULN 001 | JPEGDecodeRaw Heap Buffer Overflow via Incorrect bytesperline for YCbCr | **SKIPPED** |
+
+**跳过原因**：`tiffsplit` 在 `cpStrips()` 函数（tiffsplit.c:251）中使用 `TIFFReadRawStrip()` 直接复制压缩字节，不调用任何解码器，因此永远不会进入 `TIFFReadEncodedStrip()` → `TIFFFillStrip()` → `JPEGDecodeRaw()` 的漏洞触发路径。该漏洞需要通过调用 `TIFFReadEncodedStrip()` 的应用程序（如图像查看器、转换工具）才能触发，无法通过 `tiffsplit` 复现。
+
+详细说明已写入：`_poc/libtiff/libtiff_tif_jpeg_c/vuln_001_notes.md`

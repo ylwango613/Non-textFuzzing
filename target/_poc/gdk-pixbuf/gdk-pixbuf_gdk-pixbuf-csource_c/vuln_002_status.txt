@@ -1,0 +1,5 @@
+VERIFIED_CRASH
+AddressSanitizer: unknown-crash (heap OOB read) in gdk_pixbuf_from_pixdata
+READ of size 4 past end of 128-byte heap allocation
+Address 0x50c00000083e: 0 bytes past end of region [0x50c0000007c0, 0x50c000000840)
+Stack frame: gdk_pixbuf_from_pixdata -> try_load -> pixdata_image_load_increment -> _gdk_pixbuf_generic_image_load -> gdk_pixbuf_new_from_file

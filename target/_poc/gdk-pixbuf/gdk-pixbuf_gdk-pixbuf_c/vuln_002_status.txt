@@ -1,0 +1,5 @@
+VERIFIED_CRASH
+ASAN: heap-buffer-overflow READ of size 3 in gdk_pixbuf_from_pixdata (memcpy)
+Crash log: asan_002.log.*
+Trigger: crafted vuln_002.gdkp with 28-byte file declaring 100x100 RGB image (30000 output bytes) but only 4 bytes of RLE pixel data
+Stack: main -> gdk_pixbuf_new_from_file -> _gdk_pixbuf_generic_image_load -> pixdata_image_load_increment -> try_load -> gdk_pixbuf_from_pixdata -> memcpy [OOB]

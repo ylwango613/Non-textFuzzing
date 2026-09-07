@@ -1,0 +1,15 @@
+
+=================================================================
+==2917822==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 1048576 byte(s) in 1 object(s) allocated from:
+    #0 0x7f352c439887 in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:145
+    #1 0x56067fa53800 in jas_alloc2 (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4e7800)
+    #2 0x56067fae5d9e in jpc_dec_process_siz (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x579d9e)
+    #3 0x56067faf3212 in jpc_decode (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x587212)
+    #4 0x56067fa95206 in jp2_decode (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x529206)
+    #5 0x56067fa3f4ef in jas_image_decode (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4d34ef)
+    #6 0x56067fa318f5 in main (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4c58f5)
+    #7 0x7f352b9e8d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+SUMMARY: AddressSanitizer: 1048576 byte(s) leaked in 1 allocation(s).

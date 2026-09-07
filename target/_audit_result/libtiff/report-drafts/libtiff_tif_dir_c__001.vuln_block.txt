@@ -1,0 +1,13 @@
+## VULN: Heap OOB Read in checkInkNamesString via Crafted INKNAMES Tag
+- **漏洞类别**: memory-safety
+- **函数**: checkInkNamesString()
+- **行号**: 119-125
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 6.5 (AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:L)
+- **严重程度**: Medium
+- **攻击向量**: crafted TIFF file
+- **外部触发路径**: tiffsplit main() -> TIFFOpen() -> TIFFReadDirectory() -> [processes INKNAMES IFD entry, allocates slen+1 bytes for cp, appends sentinel '\0' at cp[slen], calls TIFFSetField(tif, TIFFTAG_INKNAMES, slen, cp)] -> TIFFVSetField() -> _TIFFVSetField() -> checkInkNamesString(tif, slen, cp)
+- **描述**: `checkInkNamesString()` 的内层循环 `for (; *cp != '\0'; cp++)` 先解引用 `*cp` 再通过循环体执行边界检查 `if (cp >= ep) goto bad`。`ep = s + slen` 指向 `tif_dirread.c` 中追加的哨兵字节 `'\0'`（该字节属于合法分配范围 `s[0..slen]`）。当某个 ink name 占满整个原始字符串末尾（末尾无 `'\0'`，由哨兵终止），内层循环读到 `*ep == '\0'` 后正常退出（不经过边界检查），随后 `cp++`（第 123 行）使 `cp = ep+1 = s+slen+1`，超出 `slen+1` 字节分配的末尾一字节。若外层循环（line 119）仍有剩余迭代（samplesperpixel > 原始有效 name 数量），下一次迭代的内层循环对 `*(s+slen+1)` 执行堆越界读。若读到的 OOB 字节恰为 `'\0'`，`cp++` 继续推进，`return (cp-s)` 返回值 > `slen`，导致调用方 `_TIFFsetNString(s, v)` 内的 `_TIFFmemcpy` 从 `slen+1` 字节缓冲区中复制更多字节，引发二次越界读。
+- **触发条件**: 构造 TIFF 文件满足：① 设置 TIFFTAG_SAMPLESPERPIXEL 为 N（≥2）；② 设置 TIFFTAG_INKNAMES，使其 IFD count 字段（slen）对应的原始字符串中包含的以 `'\0'` 终止的 ink name 数量（K）满足 K < N，且最后一个 raw name 没有 `'\0'` 结尾（恰好到达 s[slen-1]，由哨兵 s[slen] 终止）；③ 此时 samplesperpixel 至少需比原始有效 name 数多 2 方可触发 OOB（多 1 时 cp 会到达 ep+1，下一次外层循环读 OOB）。
+- **安全影响**: 攻击者可读取堆上分配缓冲区末尾之外的内存（可能是相邻堆块内容、allocator metadata 或未初始化数据），造成信息泄露；若利用特定堆布局使 OOB 字节为 `'\0'` 从而触发 `_TIFFsetNString` 中的二次 `_TIFFmemcpy` 越界读，则信息泄露量更大。在极端情形下配合 info-leak 可辅助 RCE 利用链构造；单独利用可稳定造成信息泄露或程序异常终止（DoS）。
+

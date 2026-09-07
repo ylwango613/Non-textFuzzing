@@ -1,0 +1,2 @@
+==4165609==AddressSanitizer: hard rss limit exhausted (3000Mb vs 3172Mb)
+=== mp42aac exit ===

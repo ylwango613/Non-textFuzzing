@@ -1,0 +1,7 @@
+VERIFIED_CRASH
+Crash type: heap-buffer-overflow (WRITE of size 1)
+ASAN error: AddressSanitizer: heap-buffer-overflow on address 0x50200000090f
+Location: jas_icctxtdesc_input (jas_icc.c line ~1108)
+Detail: 1 bytes to the left of 1-byte region allocated by jas_malloc(0)
+Stack: jas_icctxtdesc_input -> jas_iccprof_load -> jas_iccprof_createfrombuf -> jp2_decode -> jas_image_decode -> main
+Root cause: txtdesc->ascdata[0 - 1] = '\0' where asclen=0 (uint_fast32_t underflow to UINT_FAST32_MAX)

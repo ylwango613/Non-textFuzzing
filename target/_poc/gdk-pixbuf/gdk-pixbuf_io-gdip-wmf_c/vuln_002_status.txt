@@ -1,0 +1,7 @@
+SKIPPED
+Reason: GDI+ loader (io-gdip-wmf.c / io-gdip-utils.c) is a Windows-only component.
+The Linux build of gdk-pixbuf does not include the GDI+ WMF loader module.
+No wmf/gdip .so loader was found under build_test/; binary strings confirm no GDI+ symbols.
+Additionally, the vulnerability requires heap exhaustion to force g_try_malloc to return NULL,
+which cannot be triggered deterministically without actual memory pressure.
+The crafted vuln_002.gif documents the intended attack surface for a Windows target.

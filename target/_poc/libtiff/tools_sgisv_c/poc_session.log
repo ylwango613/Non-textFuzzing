@@ -1,0 +1,7 @@
+subagent 작업이 완료되었습니다. 결과 요약:
+
+| VULN # | 취약점 | 상태 |
+|--------|--------|------|
+| VULN-001 | Integer Overflow in ABS() → Heap Buffer Overflow in `tiffsv()` (sgisv.c:268-298) | **SKIPPED** |
+
+**SKIPPED 사유**: 이 취약점은 `tiffsplit`이 아닌 `sgisv` 바이너리에 존재하며, 트리거 방법이 TIFF 파일이 아닌 정수형 커맨드라인 인수(x1=INT_MIN, x2=0, y1=0, y2=1)이고, 실제 오버플로우가 발생하는 `readdisplay()`는 SGI IRIX 전용 그래픽 API로 Linux에서 사용 불가합니다.

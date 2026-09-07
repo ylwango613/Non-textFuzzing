@@ -1,0 +1,8 @@
+두 subagent 모두 완료되었습니다. 결과 요약:
+
+| VULN # | 제목 | 상태 |
+|--------|------|------|
+| VULN 001 | Uncontrolled Recursion in `amf_data_read` (20,000 레벨 중첩) | **VERIFIED_CRASH** |
+| VULN 002 | Uncontrolled Recursion in `amf_data_dump` (4,000 레벨 중첩) | **VERIFIED_CRASH** |
+
+두 취약점 모두 ASAN `stack-overflow` 오류로 실제 flvmeta 바이너리에서 재현 확인되었습니다.

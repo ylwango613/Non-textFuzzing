@@ -1,0 +1,13 @@
+subagent 작업이 완료되었습니다.
+
+**결과: SKIPPED**
+
+**분석 요약:**
+
+- 설치된 JasPer 바이너리는 `imgcmp`, `imginfo`, `jasper` 3개뿐이며, `jiv` 바이너리는 빌드/설치되지 않았습니다.
+- `pixmap_resize()` 함수는 `jiv.c` 내 `static` 함수로, OpenGL 렌더링 경로(`loadimage() → pixmap_resize() → render()`)에만 존재합니다.
+- `imginfo`는 `jas_image_decode()`로 메타데이터만 추출하며, OpenGL 렌더링 경로에는 진입하지 않습니다.
+
+**결론**: 취약점이 `jiv` 바이너리에만 존재하는 코드 경로에 있고, 허용된 `imginfo`로는 도달 불가능하므로 규칙에 따라 **SKIPPED** 처리되었습니다.
+
+상태 파일: `/data/ylwang/non-textfuzz/target/_poc/jasper/src_appl_jiv_c/vuln_001_status.txt` (첫 줄: `SKIPPED`)

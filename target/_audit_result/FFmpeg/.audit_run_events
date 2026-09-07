@@ -1,1 +1,5 @@
-CLEAN|libavformat/flvdec.c|libavformat_flvdec_c|/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/libavformat_flvdec_c.md|0
+CLEAN|libavcodec/8svx.c|libavcodec_8svx_c|/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/libavcodec_8svx_c.md|0
+CLEAN|libavcodec/a64multienc.c|libavcodec_a64multienc_c|/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/libavcodec_a64multienc_c.md|0
+CLEAN|libavcodec/4xm.c|libavcodec_4xm_c|/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/libavcodec_4xm_c.md|0
+CLEAN|libavcodec/aac/aacdec_ac.c|libavcodec_aac_aacdec_ac_c|/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/libavcodec_aac_aacdec_ac_c.md|0
+CLEAN|libavcodec/aac/aacdec.c|libavcodec_aac_aacdec_c|/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/libavcodec_aac_aacdec_c.md|0

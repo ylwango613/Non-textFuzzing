@@ -1,0 +1,21 @@
+SKIPPED
+
+Reason: The vulnerability in io-gdip-utils.c (lines 410-411, 494-495, 523-524) cannot be
+triggered on this Linux platform because:
+
+1. GDI+ (GdipGetPropertyItem, GpBitmap, etc.) is a Windows-only API not available on Linux.
+
+2. The gdk-pixbuf build in build_test/ does NOT include the GDI+ backend (io-gdip-utils.c,
+   io-gdip-tiff.c). No *gdip* symbols are present in libgdk_pixbuf-2.0.so, no libgdiplus
+   dependency appears in ldd output, and no gdip object files exist in the build directory.
+
+3. The available binary (gdk-pixbuf-pixdata) is a pixdata-to-C-source converter that uses
+   the standard pixbuf pipeline (PNG/JPEG/pixdata), not the Windows GDI+ TIFF/GIF pipeline.
+
+4. The attack path requires the GDI+ image loading pipeline:
+   image → gdk_pixbuf__gdip_image_stop_load → gdip_bitmap_get_frame_delay →
+   gdip_bitmap_get_property_as_string → g_try_malloc(NULL) → GdipGetPropertyItem(NULL)
+   This pipeline is entirely absent on Linux.
+
+Exploitation would require: Windows OS (or libgdiplus on Linux) + gdk-pixbuf compiled with
+GDI+ backend enabled + a TIFF/GIF triggering item_size==0 or OOM allocation failure.

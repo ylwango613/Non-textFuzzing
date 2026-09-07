@@ -1,0 +1,7 @@
+SKIPPED
+
+Reason: tiffsplit never calls TIFFReadScanline — it uses TIFFReadRawStrip / TIFFReadRawTile
+(via cpStrips / cpTiles in tiffsplit.c:251,284), which read raw bytes directly from the file
+without going through any decode codec. DumpModeSeek and DumpModeDecode are therefore never
+invoked during a tiffsplit run, making it impossible to trigger the integer overflow at
+tif_dumpmode.c:99-100 via this binary.

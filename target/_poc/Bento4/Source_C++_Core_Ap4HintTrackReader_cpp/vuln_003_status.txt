@@ -1,0 +1,43 @@
+UNVERIFIED
+
+=== Analysis ===
+
+The vulnerability EXISTS in the library code (Ap4RtpHint.cpp:70) but
+CANNOT be triggered through mp42aac because mp42aac does not invoke
+AP4_HintTrackReader or process hint track sample data.
+
+=== mp42aac Behavior ===
+mp42aac only calls:
+  movie->GetTrack(AP4_Track::TYPE_AUDIO)
+And then processes audio samples via WriteSamples().
+It never creates an AP4_HintTrackReader or reads hint track samples.
+
+When run on vuln_003.mp4:
+  - Found audio track (trak1, 'soun' handler, mp4a sample description)
+  - Identified as TYPE_MPEG -> called WriteSamples()
+  - Audio track has 0 samples -> loop didn't execute
+  - Hint track (trak2) was parsed as metadata only, never touched again
+  - Process exited normally (exit code 0)
+
+No crash, no ASAN report.
+
+=== Why the PoC File is Correct ===
+The PoC file correctly encodes the malformed hint track:
+  - stsz declares sample_size = 4 (should be >= 16 for 1 packet)
+  - mdat contains 16 bytes of valid-looking hint data (packet_count=1 + header)
+  - After parsing 1 packet: extra_data_start - start = 16
+  - Underflow: size - consumed = 4 - 16 = 0xFFFFFFF4 (uint32)
+  - m_ExtraData.SetDataSize(0xFFFFFFF4) -> ~4GB allocation -> crash/OOM
+
+=== To Verify the Crash ===
+Build mp4rtphintinfo from Source/C++/Apps/Mp4RtpHintInfo/Mp4RtpHintInfo.cpp
+and run it against vuln_003.mp4. That tool explicitly creates AP4_HintTrackReader,
+which calls GetRtpSample(0) in its constructor, triggering the vulnerability.
+
+=== Files ===
+vuln_003.mp4        - Malformed MP4 with hint track (stsz=4, actual data=16 bytes)
+vuln_003_gen.py     - Generator script
+vuln_003_run.sh     - Run script
+vuln_003_notes.md   - Detailed analysis
+vuln_003_result.txt - mp42aac output (no crash, exits normally)
+vuln_003_status.txt - This file

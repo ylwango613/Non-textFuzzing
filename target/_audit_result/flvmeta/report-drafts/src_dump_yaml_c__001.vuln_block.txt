@@ -1,0 +1,13 @@
+## VULN: Stack overflow via unbounded recursion in AMF parsing (amf_data_read)
+- **漏洞类别**: memory-safety
+- **函数**: amf_data_read() / amf_array_read() / amf_object_read()
+- **行号**: amf.c:414-450 (amf_array_read), amf.c:466-501 (amf_data_read), amf.c:304-352 (amf_object_read)
+- **CWE**: CWE-674 (Uncontrolled Recursion)
+- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted FLV file
+- **外部触发路径**: flvmeta main() → flv_parse() → flv_read_metadata() → amf_data_file_read() → amf_data_read() → amf_array_read() → (loop) → amf_data_read() → amf_array_read() → ... [unbounded mutual recursion]
+- **描述**: `amf_data_read` dispatches on AMF type and calls type-specific readers; `amf_array_read` and `amf_object_read` each call `amf_data_read` for every element they contain. There is no recursion depth limit anywhere in the chain. Each combined call frame (`amf_data_read` + `amf_array_read`) occupies approximately 100–150 bytes of stack. With a default Linux stack of 8 MB, ~55 000–83 000 levels exhaust the stack, causing a SIGSEGV.
+- **触发条件**: 攻击者构造一个 FLV 文件，其 script 标签的 AMF payload 为一条深度嵌套的 strict-array 链（每个 array 的 count 字段为 1，唯一元素为下一个 array），嵌套深度约 60 000–80 000 层，对应 AMF payload 约 300–400 KB（每层仅需 1 字节类型 + 4 字节 count = 5 字节），整体嵌入合法 FLV script tag（24 位 body_length 最大 16 MB，可容纳该 payload）。
+- **安全影响**: 进程因栈溢出收到 SIGSEGV 崩溃（DoS）；在栈保护机制缺失或可控的环境下，理论上可进一步演变为代码执行。
+

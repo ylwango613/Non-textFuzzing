@@ -1,0 +1,7 @@
+VERIFIED_CRASH
+Heap-buffer-overflow confirmed by ASAN in gdk_pixbuf_from_pixdata() via RLE repeat-run byte 0x80 (count=0 underflows to UINT_MAX).
+Binary: /data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata
+Input: vuln_001.gdkp (28 bytes, GdkP magic, RLE+RGB type=0x02010001, pixel_data=80 ff 00 00)
+ASAN: WRITE of size 3 at 0x504000000680, 0 bytes past end of 48-byte heap region
+Stack: __interceptor_memcpy -> gdk_pixbuf_from_pixdata -> try_load -> pixdata_image_load_increment -> gdk_pixbuf_new_from_file
+ASAN log: asan_001.log.86806

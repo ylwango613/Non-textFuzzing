@@ -1,0 +1,5 @@
+UNVERIFIED
+Vuln: Integer underflow in AP4_IproAtom (bytes_available = 12-12-2 = 0xFFFFFFFE)
+Trigger: ipro.size=12 passes guard (12<12 is false), OOB ReadUI16 + CreateAtomFromStream
+Exit code: 0
+ASAN logs: 0

@@ -1,0 +1,2 @@
+SKIPPED
+io-gdip-utils.c is Windows-only GDI+ code; gdip loader is not compiled into the Linux build and no gdip symbols exist in libgdk_pixbuf-2.0.so.

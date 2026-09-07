@@ -1,0 +1,36 @@
+两个 subagent 均已完成。以下是最终汇总：
+
+---
+
+## PoC 生成结果 — `gdk-pixbuf_io-gdip-ico_c`
+
+| # | 漏洞 | 状态 | 原因 |
+|---|------|------|------|
+| VULN 001 | Heap OOB Read in `gdip_bitmap_get_frame_delay` (行 493-497) | **SKIPPED** | GDI+ 加载器未编译进 Linux 构建 |
+| VULN 002 | NULL Pointer Dereference via unchecked `g_try_malloc` (行 409/493/521) | **SKIPPED** | 同上 |
+
+### 根本原因
+
+两个漏洞均位于 `io-gdip-ico.c` / `io-gdip-utils.c`，这是 **Windows 专用的 GDI+ 加载器**：
+
+- 依赖 `gdiplus.dll`（`GdipGetPropertyItem`、`GdipGetPropertyItemSize` 等 Windows API），Linux 上不存在
+- 源码中 `#ifndef INCLUDE_gdiplus` 守卫明确区分平台
+- 三重确认：`nm libgdk_pixbuf-2.0.so` 无任何 `gdip_bitmap_*` 符号；`strings` 无 GDI+ 引用；`loaders.cache` 为空（静态构建，无模块注册）
+
+### 输出文件（均已写入 `_poc/gdk-pixbuf/gdk-pixbuf_io-gdip-ico_c/`）
+
+```
+vuln_001_gen.py        # 说明 skip 原因，含漏洞原理注释
+vuln_001_run.sh        # ASAN 调用脚本（含 Windows 环境下可用的命令）
+vuln_001_notes.md      # 完整技术分析
+vuln_001_status.txt    # 第一行: SKIPPED
+
+vuln_002_gen.py
+vuln_002_run.sh
+vuln_002_notes.md
+vuln_002_status.txt    # 第一行: SKIPPED
+```
+
+### 若需在 Windows 上验证
+
+这两个漏洞需要在 **Windows + GDI+ 构建**（`cmake -DWITH_GDI_PLUS=ON`）下复现，届时可直接使用生成的 `vuln_NNN.ico` 文件和 `vuln_NNN_run.sh` 中的 ASAN 命令。

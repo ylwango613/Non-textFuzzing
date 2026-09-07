@@ -1,0 +1,41 @@
+[+] Written 53 bytes to /data/ylwang/non-textfuzz/target/_poc/flvmeta/src_flv_c/vuln_002.flv
+    AMF name: 'onCustomFuzzer'
+    Tag body size: 25 bytes
+    malloc() target size: 67 bytes (name_len=14 + 50)
+
+=== Normal run (malloc likely succeeds, but vulnerable path is reached) ===
+0x00000004: warning W11052: no video tag found despite header signaling the file contains video
+0x00000004: warning W11053: no audio tag found despite header signaling the file contains audio
+0x00000035: warning W70060: onMetaData event not found, file might not be playable
+0x00000035: warning W60079: unable to determine video resolution
+0 error(s), 4 warning(s)
+
+=== ulimit runs (attempt to trigger malloc failure) ===
+
+--- ulimit -v 40000 KB ---
+/data/ylwang/non-textfuzz/target/_poc/flvmeta/src_flv_c/vuln_002_run.sh: line 34: 1869643 Aborted                 (core dumped) ASAN_OPTIONS="abort_on_error=0:log_path=./asan_002_ulimit_${MEM_LIMIT}.log" "$BINARY" --check "$FLV" 2>&1
+
+--- ulimit -v 30000 KB ---
+/data/ylwang/non-textfuzz/target/_poc/flvmeta/src_flv_c/vuln_002_run.sh: line 34: 1869647 Aborted                 (core dumped) ASAN_OPTIONS="abort_on_error=0:log_path=./asan_002_ulimit_${MEM_LIMIT}.log" "$BINARY" --check "$FLV" 2>&1
+
+--- ulimit -v 25000 KB ---
+
+--- ulimit -v 20000 KB ---
+/data/ylwang/non-textfuzz/target/flvmeta/build_test/src/flvmeta: error while loading shared libraries: libubsan.so.1: failed to map segment from shared object
+
+--- ulimit -v 15000 KB ---
+/data/ylwang/non-textfuzz/target/flvmeta/build_test/src/flvmeta: error while loading shared libraries: libubsan.so.1: failed to map segment from shared object
+
+--- ulimit -v 12000 KB ---
+/data/ylwang/non-textfuzz/target/flvmeta/build_test/src/flvmeta: error while loading shared libraries: libasan.so.6: failed to map segment from shared object
+
+=== ASAN / UBSAN log excerpts ===
+--- ./asan_002_ulimit_25000.log.1869664 ---
+==1869664==ERROR: AddressSanitizer failed to allocate 0x352000 (3481600) bytes of AddrHashMap (error code: 12)
+==1869664==AddressSanitizer CHECK failed: ../../../../src/libsanitizer/sanitizer_common/sanitizer_common.cpp:54 "((0 && "unable to mmap")) != (0)" (0x0, 0x0)
+--- ./asan_002_ulimit_30000.log.1869647 ---
+==1869647==ERROR: AddressSanitizer failed to allocate 0x10000000 (268435456) bytes at address 7fff7000 (errno: 12)
+--- ./asan_002_ulimit_40000.log.1869643 ---
+==1869643==ERROR: AddressSanitizer failed to allocate 0x10000000 (268435456) bytes at address 7fff7000 (errno: 12)
+
+=== Done ===

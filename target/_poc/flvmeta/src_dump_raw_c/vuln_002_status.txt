@@ -1,0 +1,8 @@
+VERIFIED_CRASH
+AddressSanitizer reported stack-overflow during the dump phase.
+ASAN output: "ERROR: AddressSanitizer: stack-overflow on address 0x7ffc848efff8"
+Crash location: libio/fileops.c:1235 in _IO_new_file_xsputn (triggered while amf_data_dump() was writing output)
+FLV file: vuln_002.flv (4000 levels of nested AMF objects wrapped in an ecma_array)
+Trigger: flvmeta vuln_002.flv (default dump mode, no flags needed)
+Trigger path: main() -> dump_raw_file() -> flv_parse() -> raw_on_metadata_tag() -> amf_data_dump() -> [4000 recursive calls] -> stack exhaustion
+Each amf_data_dump() frame allocates a 128-byte datestr buffer; 4000 frames exhaust the ~8MB default stack.

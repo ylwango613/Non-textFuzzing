@@ -1,0 +1,62 @@
+=== STDOUT/STDERR ===
+=== ASAN LOG ===
+=================================================================
+==130617==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000d14 at pc 0x7efe3935b029 bp 0x7ffce70260c0 sp 0x7ffce70260b0
+WRITE of size 4 at 0x502000000d14 thread T0
+    #0 0x7efe3935b028 in gdk_pixbuf_from_pixdata (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0xad028)
+    #1 0x7efe393754fb in try_load (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0xc74fb)
+    #2 0x7efe39376302 in pixdata_image_load_increment (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0xc8302)
+    #3 0x7efe39335305 in generic_load_incrementally (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0x87305)
+    #4 0x7efe393357ab in _gdk_pixbuf_generic_image_load (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0x877ab)
+    #5 0x7efe39335b46 in gdk_pixbuf_new_from_file (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0x87b46)
+    #6 0x55ebbc15c6de in main (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata+0x36de)
+    #7 0x7efe38539d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x7efe38539e3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #9 0x55ebbc15c3a4 in _start (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata+0x33a4)
+
+0x502000000d14 is located 0 bytes to the right of 4-byte region [0x502000000d10,0x502000000d14)
+allocated by thread T0 here:
+    #0 0x7efe394cb887 in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:145
+    #1 0x7efe3935a93c in gdk_pixbuf_from_pixdata (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0xac93c)
+    #2 0x7efe393754fb in try_load (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0xc74fb)
+    #3 0x7efe39376302 in pixdata_image_load_increment (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0xc8302)
+    #4 0x7efe39335305 in generic_load_incrementally (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0x87305)
+    #5 0x7efe393357ab in _gdk_pixbuf_generic_image_load (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0x877ab)
+    #6 0x7efe39335b46 in gdk_pixbuf_new_from_file (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0x87b46)
+    #7 0x55ebbc15c6de in main (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata+0x36de)
+    #8 0x7efe38539d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0xad028) in gdk_pixbuf_from_pixdata
+Shadow bytes around the buggy address:
+  0x0a047fff8150: fa fa 00 00 fa fa 00 00 fa fa 00 fa fa fa 00 00
+  0x0a047fff8160: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 00 00
+  0x0a047fff8170: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 00 fa
+  0x0a047fff8180: fa fa 00 00 fa fa 00 00 fa fa 00 fa fa fa 00 00
+  0x0a047fff8190: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 00 fa
+=>0x0a047fff81a0: fa fa[04]fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff81b0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff81c0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff81d0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff81e0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff81f0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==130617==ABORTING

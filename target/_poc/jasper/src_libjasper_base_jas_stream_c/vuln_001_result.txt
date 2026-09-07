@@ -1,0 +1,23 @@
+=== Trying variant v5 ===
+[+] Variant v5: 4x4, NL=0, QCD (1 stepsize), correct Psot=15
+[+] Written 167 bytes to /data/ylwang/non-textfuzz/target/_poc/jasper/src_libjasper_base_jas_stream_c/vuln_001.jp2
+jp2 1 4 4 8 16
+[.] No crash in variant v5
+=== Trying variant v6 ===
+[+] Variant v6: 32x32, NL=5, QCD (16 stepsizes), correct Psot=15
+[+] Written 182 bytes to /data/ylwang/non-textfuzz/target/_poc/jasper/src_libjasper_base_jas_stream_c/vuln_001.jp2
+jp2 1 32 32 8 1024
+[.] No crash in variant v6
+=== Trying variant v7 ===
+[+] Variant v7: 4096x4096, NL=5, QCD, large component stream
+[+] Written 182 bytes to /data/ylwang/non-textfuzz/target/_poc/jasper/src_libjasper_base_jas_stream_c/vuln_001.jp2
+jp2 1 4096 4096 8 16777216
+[.] No crash in variant v7
+=== Trying variant v8 ===
+[+] Variant v8: 256x256, NL=5, QCD, jp2c length=0 (to EOF)
+[+] Written 182 bytes to /data/ylwang/non-textfuzz/target/_poc/jasper/src_libjasper_base_jas_stream_c/vuln_001.jp2
+jp2 1 256 256 8 65536
+[.] No crash in variant v8
+
+=== Final summary ===
+No crash detected after all variants

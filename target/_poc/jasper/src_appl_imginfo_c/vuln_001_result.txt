@@ -1,0 +1,12 @@
+/data/ylwang/non-textfuzz/target/jasper/src/libjasper/jpc/jpc_dec.c:777:35: runtime error: signed integer overflow: 65537 * 65537 cannot be represented in type 'int'
+    #0 0x55fef2082e9c in jpc_dec_tileinit (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x56be9c)
+    #1 0x55fef209a5f0 in jpc_dec_process_sod (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x5835f0)
+    #2 0x55fef209e212 in jpc_decode (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x587212)
+    #3 0x55fef2040206 in jp2_decode (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x529206)
+    #4 0x55fef1fea4ef in jas_image_decode (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4d34ef)
+    #5 0x55fef1fdc8f5 in main (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4c58f5)
+    #6 0x7f625b80ad8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7f625b80ae3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #8 0x55fef1fddbc4 in _start (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4c6bc4)
+
+imginfo: /data/ylwang/non-textfuzz/target/jasper/src/libjasper/jpc/jpc_t2cod.c:305: jpc_pi_nextrpcl: Assertion `pi->prcno < pi->pirlvl->numprcs' failed.

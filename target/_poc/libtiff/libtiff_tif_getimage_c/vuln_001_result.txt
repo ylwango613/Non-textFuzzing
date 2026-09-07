@@ -1,0 +1,4 @@
+vuln_001.tif: Integer overflow in TIFFVTileSize.
+TIFFReadDirectory: vuln_001.tif: cannot handle zero tile size.
+==2580879==ERROR: LeakSanitizer: detected memory leaks
+SUMMARY: AddressSanitizer: 2458 byte(s) leaked in 5 allocation(s).

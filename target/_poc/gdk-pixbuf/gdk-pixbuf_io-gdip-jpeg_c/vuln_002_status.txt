@@ -1,0 +1,2 @@
+SKIPPED
+GDI+ (io-gdip-utils.c) is Windows-only code not compiled into the Linux gdk-pixbuf build; no gdip symbols exist in libgdk_pixbuf-2.0.so and the gdip loader is absent from loaders.cache, making the vulnerable code path unreachable on this target.

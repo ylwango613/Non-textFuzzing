@@ -1,0 +1,13 @@
+## 汇总
+
+| VULN | 状态 | 说明 |
+|------|------|------|
+| VULN-001: pcompar() OOB read (fax2ps.c:314) | **VERIFIED_CRASH** | ASAN `heap-buffer-overflow` + UBSAN `misaligned load` 均已触发 |
+
+**触发方式**：`fax2ps -p 2 -p 1 vuln_001.tif`（需两个 `-p` 参数让 `npages=2`，单元素数组 qsort 不会调用比较函数）
+
+**确认的错误**：
+- ASAN: `heap-buffer-overflow` — `pcompar()` 在 4 字节堆块末尾越界读 4 字节（超出 2 字节）  
+- UBSAN: `load of misaligned address` for `const int` at `fax2ps.c:314`
+
+所有 PoC 文件位于 `/data/ylwang/non-textfuzz/target/_poc/libtiff/tools_fax2ps_c/`。

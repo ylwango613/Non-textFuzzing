@@ -1,0 +1,15 @@
+**Result: VULN 001 — SKIPPED**
+
+The subagent completed its investigation. Here's the summary:
+
+**Vulnerability**: Integer Overflow in `iter->elapsed` → OOB Read of `delay[]` and `sequence[]` (`io-ani-animation.c:228-237`)
+
+**Why SKIPPED**:
+- `gdk-pixbuf-pixdata` calls only `gdk_pixbuf_new_from_file()` (source: `gdk-pixbuf-pixdata.c:77`)
+- The ANI loader registers only `begin_load`/`stop_load`/`load_increment` — no animation API
+- File loading goes through `generic_load_incrementally()`, which returns the first ICO frame via the `prepared_func` callback
+- The vulnerable function `gdk_pixbuf_ani_anim_iter_advance()` is only reachable by code that explicitly drives animation playback via `gdk_pixbuf_animation_get_iter()` + `gdk_pixbuf_animation_iter_advance()` — none of which `gdk-pixbuf-pixdata` calls
+
+**Conclusion**: This vulnerability cannot be triggered through `gdk-pixbuf-pixdata`. It is only exploitable by applications that render animated cursors (e.g., GTK widgets, GNOME file manager). Files written:
+- `vuln_001_status.txt` — `SKIPPED`
+- `vuln_001_notes.md` — full explanation

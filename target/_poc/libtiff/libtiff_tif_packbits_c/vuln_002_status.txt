@@ -1,0 +1,6 @@
+SKIPPED
+tiffsplit uses TIFFReadRawStrip() which bypasses the PackBits codec entirely.
+PackBitsDecode() is never invoked via tiffsplit, so the OOB read at
+tif_packbits.c:249 cannot be triggered through this binary.
+The TIFF (vuln_002.tif) and generator (vuln_002_gen.py) are correct; the
+vulnerability is reachable via tiff2bw/tiff2rgba/tiffcp (TIFFReadEncodedStrip path).

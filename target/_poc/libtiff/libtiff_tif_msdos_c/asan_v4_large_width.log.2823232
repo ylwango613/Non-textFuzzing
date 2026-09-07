@@ -1,0 +1,67 @@
+
+=================================================================
+==2823232==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 1090 byte(s) in 1 object(s) allocated from:
+    #0 0x7fc9cef6e887 in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:145
+    #1 0x7fc9ceb5012c in _TIFFmalloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc12c)
+    #2 0x7fc9ceafc6ad in TIFFClientOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3a86ad)
+    #3 0x7fc9ceb4ff96 in TIFFFdOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fbf96)
+    #4 0x7fc9ceb500f5 in TIFFOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc0f5)
+    #5 0x561c2ec168e4 in main (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit+0x38e4)
+    #6 0x7fc9ce3bdd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Indirect leak of 1328 byte(s) in 1 object(s) allocated from:
+    #0 0x7fc9cef6ec38 in __interceptor_realloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:164
+    #1 0x7fc9ceb50175 in _TIFFrealloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc175)
+    #2 0x7fc9ce9b7d49 in _TIFFCheckRealloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x263d49)
+    #3 0x7fc9ce9b7ea2 in _TIFFCheckMalloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x263ea2)
+    #4 0x7fc9ce9e38f9 in _TIFFMergeFieldInfo (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x28f8f9)
+    #5 0x7fc9ce9e2d5b in _TIFFSetupFieldInfo (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x28ed5b)
+    #6 0x7fc9ce9de2ee in TIFFDefaultDirectory (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x28a2ee)
+    #7 0x7fc9ce9e713b in TIFFReadDirectory (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x29313b)
+    #8 0x7fc9ceaff882 in TIFFClientOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3ab882)
+    #9 0x7fc9ceb4ff96 in TIFFFdOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fbf96)
+    #10 0x7fc9ceb500f5 in TIFFOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc0f5)
+    #11 0x561c2ec168e4 in main (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit+0x38e4)
+    #12 0x7fc9ce3bdd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Indirect leak of 256 byte(s) in 1 object(s) allocated from:
+    #0 0x7fc9cef6ec38 in __interceptor_realloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:164
+    #1 0x7fc9ceb50175 in _TIFFrealloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc175)
+    #2 0x7fc9ce9b7d49 in _TIFFCheckRealloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x263d49)
+    #3 0x7fc9ce9b7ea2 in _TIFFCheckMalloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x263ea2)
+    #4 0x7fc9cea07a17 in ChopUpSingleUncompressedStrip (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x2b3a17)
+    #5 0x7fc9ce9f358e in TIFFReadDirectory (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x29f58e)
+    #6 0x7fc9ceaff882 in TIFFClientOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3ab882)
+    #7 0x7fc9ceb4ff96 in TIFFFdOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fbf96)
+    #8 0x7fc9ceb500f5 in TIFFOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc0f5)
+    #9 0x561c2ec168e4 in main (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit+0x38e4)
+    #10 0x7fc9ce3bdd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Indirect leak of 256 byte(s) in 1 object(s) allocated from:
+    #0 0x7fc9cef6ec38 in __interceptor_realloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:164
+    #1 0x7fc9ceb50175 in _TIFFrealloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc175)
+    #2 0x7fc9ce9b7d49 in _TIFFCheckRealloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x263d49)
+    #3 0x7fc9ce9b7ea2 in _TIFFCheckMalloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x263ea2)
+    #4 0x7fc9cea079f5 in ChopUpSingleUncompressedStrip (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x2b39f5)
+    #5 0x7fc9ce9f358e in TIFFReadDirectory (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x29f58e)
+    #6 0x7fc9ceaff882 in TIFFClientOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3ab882)
+    #7 0x7fc9ceb4ff96 in TIFFFdOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fbf96)
+    #8 0x7fc9ceb500f5 in TIFFOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc0f5)
+    #9 0x561c2ec168e4 in main (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit+0x38e4)
+    #10 0x7fc9ce3bdd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Indirect leak of 8 byte(s) in 1 object(s) allocated from:
+    #0 0x7fc9cef6ec38 in __interceptor_realloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:164
+    #1 0x7fc9ceb50175 in _TIFFrealloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc175)
+    #2 0x7fc9ce9b7d49 in _TIFFCheckRealloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x263d49)
+    #3 0x7fc9ce9f83d0 in TIFFCheckDirOffset (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x2a43d0)
+    #4 0x7fc9ce9e68a5 in TIFFReadDirectory (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x2928a5)
+    #5 0x7fc9ceaff882 in TIFFClientOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3ab882)
+    #6 0x7fc9ceb4ff96 in TIFFFdOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fbf96)
+    #7 0x7fc9ceb500f5 in TIFFOpen (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc0f5)
+    #8 0x561c2ec168e4 in main (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit+0x38e4)
+    #9 0x7fc9ce3bdd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+SUMMARY: AddressSanitizer: 2938 byte(s) leaked in 5 allocation(s).

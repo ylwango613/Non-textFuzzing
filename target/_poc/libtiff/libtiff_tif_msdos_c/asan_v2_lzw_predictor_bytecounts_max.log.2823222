@@ -1,0 +1,12 @@
+=================================================================
+==2823222==ERROR: AddressSanitizer: requested allocation size 0xffffffffffffffff (0x800 after adjustments for alignment, red zones etc.) exceeds maximum supported size of 0x10000000000 (thread T0)
+    #0 0x7f78b0f47c38 in __interceptor_realloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:164
+    #1 0x7f78b0b29175 in _TIFFrealloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc175)
+    #2 0x55c0aabafccf in cpStrips (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit+0x5ccf)
+    #3 0x55c0aabaf8ea in tiffcp (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit+0x58ea)
+    #4 0x55c0aabadaa6 in main (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffsplit+0x3aa6)
+    #5 0x7f78b0396d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+==2823222==HINT: if you don't care about these errors you may set allocator_may_return_null=1
+SUMMARY: AddressSanitizer: allocation-size-too-big ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:164 in __interceptor_realloc
+==2823222==ABORTING

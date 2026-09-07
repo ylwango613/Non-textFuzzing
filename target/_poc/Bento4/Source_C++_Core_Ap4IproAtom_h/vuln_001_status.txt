@@ -1,0 +1,24 @@
+UNVERIFIED
+Vulnerability code path was reached (ipro atom with size=12 was parsed, triggering the
+bytes_available = 12-12-2 = 0xFFFFFFFE underflow), and entry_count + sinf atom were read
+outside ipro's declared boundary. However, no ASAN/UBSAN sanitizer output was produced.
+
+Reason no sanitizer fired:
+1. UBSAN: The binary was NOT compiled with -fsanitize=unsigned-integer-overflow. The
+   subtraction `size(uint32_t) - AP4_FULL_ATOM_HEADER_SIZE(uint32_t) - 2(int)` results
+   in unsigned integer wraparound (0xFFFFFFFE), which is DEFINED behavior in C/C++ for
+   unsigned types. Standard -fsanitize=undefined does not instrument this case.
+   The binary contains: __ubsan_handle_sub_overflow (signed only), no unsigned variant.
+
+2. ASAN: The OOB read happens via a file stream abstraction (AP4_ByteStream::ReadUI16,
+   CreateAtomFromStream). The data read is from a sequential file, not from a
+   fixed-size heap buffer allocated for ipro's declared payload. ASAN instruments
+   heap/stack/global buffer overflows, not logical bounds violations in streaming I/O.
+
+Program behavior: exit code 1, message "ERROR: no audio track found" (expected for a
+malformed MP4 with no audio track, not a sanitizer-triggered abort).
+
+No asan.log.* files were generated.
+
+To verify the vulnerability exists in source code: see Ap4IproAtom.cpp line 70 and
+Ap4IproAtom.cpp line 49 (guard only checks size >= 12, not >= 14).

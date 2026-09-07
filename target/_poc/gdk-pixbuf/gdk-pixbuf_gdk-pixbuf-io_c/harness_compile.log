@@ -1,0 +1,22 @@
+In file included from /data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h:35,
+                 from /data/ylwang/non-textfuzz/target/_poc/gdk-pixbuf/gdk-pixbuf_gdk-pixbuf-io_c/harness_001.c:24:
+/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-animation.h:98:79: warning: ‘GTimeVal’ is deprecated: Use 'GDateTime' instead [-Wdeprecated-declarations]
+   98 |                                                                               const GTimeVal         *start_time);
+      |                                                                               ^~~~~
+In file included from /usr/include/glib-2.0/glib/galloca.h:32,
+                 from /usr/include/glib-2.0/glib.h:30,
+                 from /data/ylwang/non-textfuzz/target/_poc/gdk-pixbuf/gdk-pixbuf_gdk-pixbuf-io_c/harness_001.c:23:
+/usr/include/glib-2.0/glib/gtypes.h:553:8: note: declared here
+  553 | struct _GTimeVal
+      |        ^~~~~~~~~
+In file included from /data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h:35,
+                 from /data/ylwang/non-textfuzz/target/_poc/gdk-pixbuf/gdk-pixbuf_gdk-pixbuf-io_c/harness_001.c:24:
+/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-animation.h:104:79: warning: ‘GTimeVal’ is deprecated: Use 'GDateTime' instead [-Wdeprecated-declarations]
+  104 |                                                                               const GTimeVal         *current_time);
+      |                                                                               ^~~~~
+In file included from /usr/include/glib-2.0/glib/galloca.h:32,
+                 from /usr/include/glib-2.0/glib.h:30,
+                 from /data/ylwang/non-textfuzz/target/_poc/gdk-pixbuf/gdk-pixbuf_gdk-pixbuf-io_c/harness_001.c:23:
+/usr/include/glib-2.0/glib/gtypes.h:553:8: note: declared here
+  553 | struct _GTimeVal
+      |        ^~~~~~~~~

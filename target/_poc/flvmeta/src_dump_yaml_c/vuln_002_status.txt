@@ -1,0 +1,9 @@
+VERIFIED_CRASH
+Function: amf_data_read (also has unbounded recursion; amf_data_yaml_dump same class)
+Crash type: AddressSanitizer: stack-overflow
+ASAN signal: DEADLYSIGNAL (SIGSEGV)
+Depth used: 35000 levels of nested AMF0 strict-array
+FLV size: 175050 bytes
+Note: At 35000 levels the stack overflows during amf_data_read (ASAN inflates frame cost).
+      Both amf_data_read and amf_data_yaml_dump are unguarded recursive functions (CWE-674).
+      Crash is reproducible and confirmed via ASAN stack-overflow report.

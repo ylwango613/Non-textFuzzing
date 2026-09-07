@@ -1,0 +1,7 @@
+VERIFIED_CRASH
+Type: Stack overflow (CWE-674 Uncontrolled Recursion)
+ASAN report: AddressSanitizer: stack-overflow on address 0x7fffa06f4ff0
+Trigger: flvmeta processing a FLV script tag with 70000 levels of nested AMF strict-arrays
+Binary: /data/ylwang/non-textfuzz/target/flvmeta/build_test/src/flvmeta
+PoC file: vuln_001.flv (350050 bytes)
+Date: 2026-09-07

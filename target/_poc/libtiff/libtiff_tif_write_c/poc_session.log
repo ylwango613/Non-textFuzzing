@@ -1,0 +1,9 @@
+## Summary
+
+Only 1 vulnerability found in the report:
+
+| VULN | Function | Status | Reason |
+|------|----------|--------|--------|
+| 001 | `TIFFSetupStrips()` (tif_write.c:458-469) | **SKIPPED** | Read path detects overflow first — `_TIFFCheckMalloc` catches `0x40000001 × 4` overflow and returns NULL, aborting `TIFFReadDirectory` before the write path is ever reached. tiffsplit outputs *"Failed to allocate memory for strip array (1073741825 elements of 4 bytes each)"* and exits cleanly; no ASAN/UBSAN error. |
+
+The vulnerability is theoretically present in the write path of `TIFFSetupStrips`, but is **not reachable via tiffsplit with a crafted TIFF file** because the identical arithmetic overflow is caught on the read side first. Any `ImageLength`/`RowsPerStrip` combination that would trigger the write-side overflow also triggers the read-side check, preventing libtiff from opening the input file at all. Files written to `_poc/libtiff/libtiff_tif_write_c/`: `vuln_001_gen.py`, `vuln_001_run.sh`, `vuln_001_notes.md`, `vuln_001_status.txt`.

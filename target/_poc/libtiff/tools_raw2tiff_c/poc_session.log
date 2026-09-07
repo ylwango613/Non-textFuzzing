@@ -1,0 +1,8 @@
+Both subagents completed. Here is the final summary:
+
+| VULN | Title | Status |
+|------|-------|--------|
+| VULN 001 | Integer Overflow in bufsize Calculation Leading to Heap Buffer Overflow | **SKIPPED** |
+| VULN 002 | NULL Pointer Dereference Due to Missing malloc Return Value Check | **SKIPPED** |
+
+**Reason for both SKIPPED**: Both vulnerabilities reside in `raw2tiff.c`'s `main()` function, which is compiled into the separate `raw2tiff` binary — not `tiffsplit`. The vulnerable code paths require raw2tiff-specific command-line options (`-w`, `-b`, `-d`, `-i band`) that `tiffsplit` never parses. No crafted TIFF file passed to `tiffsplit` can reach this code, so neither vulnerability can be triggered through the permitted binary.

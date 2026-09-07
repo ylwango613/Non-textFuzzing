@@ -1,0 +1,18 @@
+UNVERIFIED
+mp42aac does not call AP4_HintTrackReader::Create() in its code path.
+The binary only searches for AP4_Track::TYPE_AUDIO and processes audio samples;
+it never constructs an AP4_HintTrackReader object, so GetTrackIds()[0] is
+never reached from mp42aac main().
+
+The vulnerability IS present in the Bento4 library source:
+  Ap4HintTrackReader.cpp:66 — GetTrackIds()[0] called unconditionally on
+  an AP4_TrefTypeAtom whose m_TrackIds array is empty (m_Items==NULL)
+  when the tref/hint child atom has size=8 (no track-ID payload).
+
+The crafted MP4 (vuln_001.mp4, 798 bytes) correctly embeds the tref/hint
+atom with size=8. It would trigger the OOB read in any code path that calls
+AP4_HintTrackReader::Create() on the parsed movie — such as the
+Mp4RtpHintInfo tool, not mp42aac.
+
+mp42aac output observed: "ERROR: unable to parse sample description"
+No ASAN log files generated. No crash.

@@ -1,0 +1,13 @@
+## VULN: Heap OOB Read in MP3GAIN_UNDO APE Field Parsing
+- **漏洞类别**: memory-safety
+- **函数**: ReadMP3APETag()
+- **行号**: 229-242
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:L)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP3 file
+- **外部触发路径**: mp3gain main() -> ReadMP3GainAPETag() -> ReadMP3APETag() -> MP3GAIN_UNDO branch at line 229
+- **描述**: APE tag item 解析循环在 line 207 执行 `value = (char*)malloc(vsize+1)`，`vsize` 直接来自文件（4字节小端），仅有上限检查（`vsize > MAX_FIELD_SIZE=1MB`），无下限检查，`vsize=0` 时 `value` 缓冲区仅为 1 字节。当 item name 匹配 "MP3GAIN_UNDO"（大小写不敏感）时，代码在 line 230 执行 `memcpy(tmpString, vp, 4)`（读 4 字节），line 234 执行 `memcpy(tmpString, vp, 4)`（vp=value+5，读 4 字节），line 238 执行 `*vp`（vp=value+10，读 1 字节）——三次访问均超出 `malloc(1)` 分配的边界，造成堆越界读。
+- **触发条件**: 攻击者构造 APE tag，包含一个 name="MP3GAIN_UNDO"、vsize=0（value长度字段为 0x00000000）的 APE item；将其放置于 MP3 文件尾部作为合法的 APEv2 footer 结构；mp3gain 解析该文件时触发。
+- **安全影响**: 读取 value 缓冲区之后的堆元数据或相邻分配内容，造成进程内存信息泄露（堆布局、指针、敏感数据）；在极端堆布局下可能导致进程崩溃（DoS）。
+

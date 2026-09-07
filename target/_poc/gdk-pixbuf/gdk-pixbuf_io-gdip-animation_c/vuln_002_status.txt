@@ -1,0 +1,25 @@
+SKIPPED
+
+Reason: Two independent blockers prevent triggering VULN 002 on this system.
+
+Blocker 1 – No GDI+ / GIF loader in the Linux build
+  The test binary (gdk-pixbuf-pixdata) was compiled on Linux and contains only
+  the pixdata format loader (_gdk_pixbuf__pixdata_fill_vtable). The vulnerable
+  code lives in io-gdip-animation.c / io-gdip-utils.c, which depend on the
+  Windows-only GDI+ subsystem (libgdiplus). Those files are not compiled or
+  linked in this build. Any GIF input is rejected immediately with:
+    "Couldn't recognize the image file format for file '...'"
+  confirming the GDI+ loader is absent and the vulnerable paths are unreachable.
+
+Blocker 2 – Requires OOM conditions (g_try_malloc returns NULL)
+  The root cause of VULN 002 is that the return value of g_try_malloc is not
+  checked before being passed to GdipGetPropertyItem. g_try_malloc only returns
+  NULL under genuine Out-of-Memory conditions. A crafted file alone cannot
+  reliably force g_try_malloc to return NULL; OOM must be induced externally
+  (tight cgroup memory limit, ulimit -v, or a malloc-failure injection shim).
+  Therefore the vulnerability cannot be reliably triggered via file content
+  alone even on a system that has GDI+ support.
+
+Binary tested : /data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata
+Input file    : vuln_002.gif (20-frame animated GIF89a, NETSCAPE loop ext, 10461 bytes)
+Observed result: "Couldn't recognize the image file format" (no crash, no ASAN hit)

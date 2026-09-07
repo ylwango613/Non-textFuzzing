@@ -1,1 +1,9 @@
-CLEAN|src/amf.c|src_amf_c|/data/ylwang/non-textfuzz/target/_audit_result/flvmeta/src_amf_c.md|0
+CLEAN|src/libyaml/parser.c|src_libyaml_parser_c|/data/ylwang/non-textfuzz/target/_audit_result/flvmeta/src_libyaml_parser_c.md|0
+CLEAN|src/libyaml/loader.c|src_libyaml_loader_c|/data/ylwang/non-textfuzz/target/_audit_result/flvmeta/src_libyaml_loader_c.md|0
+VULN|src/info.c|src_info_c|/data/ylwang/non-textfuzz/target/_audit_result/flvmeta/src_info_c.md|1
+CLEAN|src/libyaml/reader.c|src_libyaml_reader_c|/data/ylwang/non-textfuzz/target/_audit_result/flvmeta/src_libyaml_reader_c.md|0
+CLEAN|src/libyaml/scanner.c|src_libyaml_scanner_c|/data/ylwang/non-textfuzz/target/_audit_result/flvmeta/src_libyaml_scanner_c.md|0
+CLEAN|src/libyaml/writer.c|src_libyaml_writer_c|/data/ylwang/non-textfuzz/target/_audit_result/flvmeta/src_libyaml_writer_c.md|0
+VULN|src/util.c|src_util_c|/data/ylwang/non-textfuzz/target/_audit_result/flvmeta/src_util_c.md|3
+VULN|src/update.c|src_update_c|/data/ylwang/non-textfuzz/target/_audit_result/flvmeta/src_update_c.md|1
+VULN|src/types.c|src_types_c|/data/ylwang/non-textfuzz/target/_audit_result/flvmeta/src_types_c.md|1

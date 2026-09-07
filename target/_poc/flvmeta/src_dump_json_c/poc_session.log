@@ -1,0 +1,7 @@
+**汇总结果：**
+
+| VULN | 漏洞名称 | 状态 |
+|------|----------|------|
+| 001 | Uncontrolled Recursion via Nested AMF Objects (CWE-674) | **VERIFIED_CRASH** |
+
+ASAN 在 `amf_data_read` 处报告 `stack-overflow`，50,000 层嵌套 AMF 对象（约 350 KB FLV 文件）成功触发栈溢出崩溃，复现路径为 `flvmeta vuln_001.flv` → `dump_json_file()` → `amf_data_read()` ↔ `amf_object_read()` 互递归耗尽默认 8 MB 线程栈。

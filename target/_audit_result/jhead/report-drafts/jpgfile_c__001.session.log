@@ -1,0 +1,1 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/jhead/report-drafts/jpgfile_c__001.md` is written and contains exactly the required structure: the `## Bug0:` heading, one-sentence summary, `### PoC` section with the self-contained Python generator (logic copied from `vuln_001_gen.py`), the bash repro block, the UBSAN result lines, and the `### Impact` paragraph.

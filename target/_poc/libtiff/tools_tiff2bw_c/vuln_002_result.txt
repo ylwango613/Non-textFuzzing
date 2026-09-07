@@ -1,0 +1,7 @@
+TIFFReadDirectory: Warning, vuln_002.tif: Bogus "StripByteCounts" field, ignoring and calculating from imagelength.
+vuln_002.tif: Integer overflow in TIFFScanlineSize.
+vuln_002.tif: Integer overflow in TIFFScanlineSize.
+vuln_002.tif: Integer overflow in TIFFTileRowSize.
+vuln_002.tif: Integer overflow in TIFFScanlineSize.
+vuln_002.tif: Integer overflow in TIFFScanlineSize.
+TIFFReadDirectory: vuln_002.tif: cannot handle zero scanline size.

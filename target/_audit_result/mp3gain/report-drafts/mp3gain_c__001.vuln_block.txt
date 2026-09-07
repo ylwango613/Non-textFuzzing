@@ -1,0 +1,13 @@
+## VULN: apetag.c heap buffer over-read — MP3GAIN_UNDO value too short
+- **category**: heap-buffer-over-read
+- **function**: ReadMP3APETag
+- **lines**: apetag.c:228–242
+- **CWE**: CWE-125
+- **CVSS**: AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:L (5.4 Medium)
+- **severity**: Medium
+- **attack vector**: crafted MP3 with APE tag containing an "MP3GAIN_UNDO" item whose value size field (vsize) is set to 0–9
+- **call chain**: main() → ReadMP3APETag() → malloc(vsize+1) → memcpy(tmpString, vp, 4) [line 231] / memcpy(tmpString, vp+5, 4) [line 235] / *vp dereference [line 238]
+- **description**: ReadMP3APETag allocates `value = malloc(vsize+1)` (line 222) and copies `vsize` bytes from the APE tag item into it. When the item name matches "MP3GAIN_UNDO", the code reads fixed-width fields assuming the value is at least 10 bytes: `memcpy(tmpString, vp, 4)` requires vsize≥3; `vp += 5` then `memcpy(tmpString, vp, 4)` requires vsize≥8; `*vp` dereference requires vsize≥9. With a crafted tag setting vsize=0, the first memcpy reads 4 bytes from a 1-byte allocation, reading past the heap buffer into adjacent heap metadata or other allocations.
+- **trigger conditions**: APE tag item name = "MP3GAIN_UNDO", vsize set to any value 0–9. The bounds check at line 202 (`isize + 1 + vsize > remaining`) prevents overread of the raw `buff` buffer but does NOT protect the separately allocated `value` buffer.
+- **security impact**: Heap over-read of up to 9 bytes from a heap-allocated buffer. Can read heap metadata or adjacent allocations (information disclosure). May cause crash if the adjacent region is unmapped.
+

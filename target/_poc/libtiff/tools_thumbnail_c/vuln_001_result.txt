@@ -1,0 +1,5 @@
+/data/ylwang/non-textfuzz/target/_poc/libtiff/tools_thumbnail_c/vuln_001.tif: Integer overflow in TIFFScanlineSize.
+/data/ylwang/non-textfuzz/target/_poc/libtiff/tools_thumbnail_c/vuln_001.tif: Integer overflow in TIFFScanlineSize.
+/data/ylwang/non-textfuzz/target/_poc/libtiff/tools_thumbnail_c/vuln_001.tif: Integer overflow in TIFFScanlineSize.
+/data/ylwang/non-textfuzz/target/_poc/libtiff/tools_thumbnail_c/vuln_001.tif: Integer overflow in TIFFScanlineSize.
+TIFFReadDirectory: /data/ylwang/non-textfuzz/target/_poc/libtiff/tools_thumbnail_c/vuln_001.tif: cannot handle zero scanline size.

@@ -1,0 +1,26 @@
+두 agent 모두 완료되었습니다. 최종 결과를 요약합니다.
+
+---
+
+## PoC 생성 결과 요약
+
+| # | 취약점 | 함수 | 상태 |
+|---|--------|------|------|
+| 001 | mem_seek dead unsigned check (CWE-191) | `mem_seek()` | **UNVERIFIED** |
+| 002 | mem_read heap over-read via negative cnt (CWE-122) | `mem_read()` | **UNVERIFIED** |
+
+### 공통 원인 분석
+
+두 취약점 모두 소스코드 결함으로서는 실재하지만, `imginfo -f crafted.jp2` 경로로는 트리거 불가 판정:
+
+1. **`jas_image_cmpt_create()`가 메모리 스트림을 `width × height × depth` 바이트로 정확히 할당**하며, 직후 `size - 1` 위치로 seek — 항상 범위 내.
+2. **`jas_image_writecmpt()`**가 픽셀 좌표를 사전 경계 검사하여 seek offset이 스트림 크기를 초과하지 않음.
+3. 결론적으로 컴포넌트 스트림의 모든 SEEK_SET offset은 이미지 차원에서 파생되며, 구조적으로 스트림 자신의 크기를 초과할 수 없음.
+
+### 비고
+
+- VULN 001 (mem_seek): `if (newpos < 0)` dead-code 결함은 실재하나, imginfo → JP2 경로에서 `mem_seek`에 도달하는 negative/huge offset 인수를 제공할 수 없음.
+- VULN 002 (mem_read): `mem_read` 경로 자체는 존재하나, 먼저 `m->pos_ > m->len_` 상태를 만들어야 하는데 이것이 imginfo 경로로 불가함.
+- 감사 보고서의 "외부 트리거 경로"는 이론적 체인으로서 타당하지만, `jas_image.c`의 실제 구현이 offset을 항상 범위 내로 제한하여 실용적 PoC 작성이 불가함.
+
+생성된 파일들은 `/data/ylwang/non-textfuzz/target/_poc/jasper/src_libjasper_base_jas_stream_c/`에 저장되어 있습니다.

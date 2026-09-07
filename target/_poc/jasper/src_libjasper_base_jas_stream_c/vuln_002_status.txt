@@ -1,0 +1,65 @@
+UNVERIFIED
+
+Summary
+-------
+Three JP2 variants were generated and tested against imginfo (ASAN+UBSAN build).
+The specific jas_stream.c mem_read() vulnerability (VULN 002) was NOT triggered.
+
+What was observed
+-----------------
+Variant 1 (1x1 + PCLR/CMAP) triggered a UBSAN runtime error at jp2_dec.c:364:
+
+  runtime error: member access within null pointer of type 'struct jp2_box_t'
+
+This occurs because when a CMAP box is present but no CDEF box is provided,
+`dec->cdef` is NULL. At jp2_dec.c:364, `cdefd = &dec->cdef->data.cdef`
+unconditionally computes an address through a null pointer — undefined behaviour
+that UBSAN flags. The variable `cdefd` is only used inside a guarded block
+`if (dec->cdef)` later (jp2_dec.c:402), so the invalid value is never
+dereferenced. The program continued to completion and printed image metadata
+("jp2 1 1 1 8 1"). Exit code was 0. No ASAN log files were created.
+
+This jp2_dec.c:364 bug is a separate vulnerability (null-pointer UB) and is NOT
+the jas_stream.c mem_read() heap over-read described as VULN 002.
+
+Why VULN 002 was not triggered
+-------------------------------
+After deep code analysis, the mem_read() vulnerability requires m->pos_ > m->len_
+at the time a read is attempted. In the imginfo decode path:
+
+1. jas_image_cmpt_create() initialises the component memory stream:
+   - jas_stream_memopen2(0, size): m->len_=0, m->bufsize_=size
+   - seek to size-1, putc(0): effectively writes one zero at the end,
+     setting m->len_=size
+   - final seek to 0: m->pos_=0
+
+2. The JPC tile decoder fills the stream by calling jas_image_writecmpt(),
+   which has bounds checks: `if (x >= cmpt->width_ || y >= cmpt->height_)`
+   These prevent any out-of-bounds seeks on the component stream.
+
+3. After JPC decode, m->pos_ and m->len_ are both valid and consistent.
+
+4. jas_image_depalettize() → jas_image_readcmptsample() always seeks to
+   offset `(width*y + x) * cps` where x < width and y < height.
+   This is always < width*height*cps = m->len_. So all reads are in-bounds.
+
+There is no naturally reachable code path through imginfo → jp2_decode →
+jpc_decode → jas_image_depalettize that places m->pos_ > m->len_ at
+the moment mem_read() is called. The vulnerability requires an explicit
+seek-past-end followed immediately by a read, which the internal bounds
+checks and initialization order prevent in the normal decode flow.
+
+Note on int_fast32_t size
+--------------------------
+On this x86_64 Linux system, int_fast32_t is 8 bytes (int64_t), not 4.
+The arithmetic in mem_read still produces a negative n for pos_ > len_,
+and the truncation from ssize_t/int64_t to int (32-bit) in
+`cnt = JAS_MIN(n, cnt)` is the mechanism that would pass negative cnt
+to memcpy — but this path was not reached.
+
+Files
+-----
+vuln_002_gen.py   - JP2 generator (3 variants)
+vuln_002_run.sh   - runner script
+vuln_002_result.txt - test output (UBSAN error at jp2_dec.c:364 detected)
+vuln_002_notes.md - full technical analysis

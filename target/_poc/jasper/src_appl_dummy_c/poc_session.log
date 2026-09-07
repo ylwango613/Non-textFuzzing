@@ -1,0 +1,21 @@
+**VULN 001 — VERIFIED_CRASH**
+
+All files are in place at `/data/ylwang/non-textfuzz/target/_poc/jasper/src_appl_dummy_c/`:
+
+| File | Description |
+|------|-------------|
+| `vuln_001_gen.py` | Python script constructing the 285-byte malicious `evil.jp2` |
+| `vuln_001_run.sh` | Shell script that runs gen.py then imginfo under ASAN |
+| `vuln_001_notes.md` | Detailed PoC analysis and trigger logic |
+| `vuln_001_status.txt` | **VERIFIED_CRASH** |
+
+**How the crash works:**
+
+The `evil.jp2` carries a `PCLR` box with `NE=0` (zero palette entries) and a `CMAP` box with `MTYP=1` (palette mapping). At `jp2_dec.c:370`, `jas_alloc2(0, sizeof(int_fast32_t))` calls `malloc(0)` — ASAN returns a 1-byte canary allocation. The return value is **never checked** (the confirmed bug). Downstream, `jas_image_depalettize` processes a pixel with value 128 ≥ numlutents(0), computes index `v = -1`, and reads `lutents[-1]` — **8 bytes before the allocation** — triggering:
+
+```
+ASAN: heap-buffer-overflow on READ of size 8
+  jas_image_depalettize [jas_image.c:997]
+  ← jp2_decode [jp2_dec.c:375]
+Exit code: 134 (SIGABRT)
+```

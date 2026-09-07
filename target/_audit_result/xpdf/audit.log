@@ -1,3 +1,18 @@
 [2026-09-07 01:02:55] VULN xpdf/Stream.cc: 1 findings
 [2026-09-07 01:02:55] DONE: 1 new, 0 skipped, 1 vulns
 [2026-09-07 01:14:27] POC xpdf/Stream.cc: 0/1 verified
+[2026-09-07 13:21:58] DONE: 0 new, 0 skipped, 0 vulns
+[2026-09-07 13:57:34] POC xpdf/Stream.cc: 0/1 verified
+[2026-09-07 19:42:16] VULN fofi/FoFiType1C.h: 1 findings
+[2026-09-07 19:49:38] POC ERR fofi/FoFiType1C.h: claude exit 0
+[2026-09-07 19:53:38] DONE: 160 new, 1 skipped, 1 vulns
+[2026-09-07 22:07:55] VULN xpdf/AcroForm.cc: 1 findings
+[2026-09-07 22:10:31] VULN xpdf/AcroForm.h: 2 findings
+[2026-09-07 22:28:17] VULN xpdf/CMap.h: 1 findings
+[2026-09-07 23:02:32] VULN xpdf/GfxFont.cc: 1 findings
+[2026-09-07 23:03:28] VULN xpdf/Function.cc: 1 findings
+[2026-09-07 23:09:13] VULN xpdf/GfxState.cc: 1 findings
+[2026-09-07 23:09:37] VULN xpdf/Gfx.h: 1 findings
+[2026-09-07 23:12:02] VULN xpdf/GfxState.h: 1 findings
+[2026-09-07 23:17:17] VULN xpdf/HTMLGen.cc: 1 findings
+[2026-09-07 23:58:26] DONE: 141 new, 20 skipped, 10 vulns

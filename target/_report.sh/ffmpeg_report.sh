@@ -139,7 +139,9 @@ if [ -d "$POC_BASE" ]; then
 
         if [ "$first_line" = "VERIFIED_CRASH" ]; then
             if grep -qE "AddressSanitizer|ERROR: LeakSanitizer|UndefinedBehaviorSanitizer|runtime error:" "$result_file"; then
-                CANDIDATES+=("${tag}|${nnn}|CRASH")
+                if ! grep -qE "requested allocation size|allocator is out of memory|exceeds maximum supported size|allocation of [0-9]+ bytes exceeds" "$result_file"; then
+                    CANDIDATES+=("${tag}|${nnn}|CRASH")
+                fi
             fi
         elif [ "$first_line" = "VERIFIED_BEHAVIOR" ]; then
             [ -s "$result_file" ] || continue
@@ -183,100 +185,102 @@ echo " New verified findings to write up: ${#PENDING[@]}"
 echo " Drafts: $DRAFTS_DIR/   Target: $REPORT_MD"
 echo "=========================================="
 
-REPORT_PROMPT_TEMPLATE='你是一名安全研究员，正在把一份已经验证过的 FFmpeg 内存安全漏洞整理成可以直接提交的漏洞报告条目。
+REPORT_PROMPT_TEMPLATE='You are a security researcher writing a concise vulnerability report entry for a confirmed FFmpeg memory safety bug.
 
-请依次 Read 以下材料以获取完整信息:
-1. 漏洞描述(已从审计报告中截取的原始 VULN 块): __VULN_BLOCK_FILE__
-2. PoC 运行输出（ASAN 报错信息）: __RESULT_FILE__
-3. PoC 状态判定: __STATUS_FILE__
-4. PoC 说明: __NOTES_FILE__ (如果不存在就跳过)
-5. 先用 Glob 列出 __POC_DIR__/ 下的全部文件，再 Read 其中的 _gen.py / _run.sh，搞清楚复现步骤。
+Read the following materials in order:
+1. Vulnerability description (VULN block extracted from the audit report): __VULN_BLOCK_FILE__
+2. PoC run output (evidence the bug is real, contains ASAN or UBSAN output): __RESULT_FILE__
+3. PoC status verdict: __STATUS_FILE__
+4. PoC notes: __NOTES_FILE__ (skip if the file does not exist)
+5. Run Glob to list all files under __POC_DIR__/ then Read the _gen.py and _run.sh files to understand the exact reproduction steps and copy the actual file-generation logic.
 
-你的任务：只写一个文件 __DRAFT_FILE__，内容严格按下面模板格式，不要多写任何内容。
+Your task: write exactly one file __DRAFT_FILE__ following the strict format below. Write nothing else.
 
-==================== 硬性格式要求 ====================
-输出必须严格按照以下三节结构，标题占位符写成 "## Bug0: <简短英文标题>"（"Bug0" 三个字符原样保留，外部脚本会替换编号）：
+==================== STRICT FORMAT ====================
+Use "## Bug0: <short English title>" as the first line (keep "Bug0" literally; an external script replaces the number).
 
-## Bug0: <简短英文标题>
+## Bug0: <short English title>
 
-### Summary
-
-<两三句话：哪个函数/文件、什么边界条件没被校验、导致什么内存安全后果。
-英文书写，不要超过 4 句话。不要用破折号连接从句，不要用分号连接从句。>
+<One sentence in English: which function and file, what boundary check is absent, and what memory safety consequence results. Do not use a dash to join clauses. Do not use a semicolon to join clauses.>
 
 ### PoC
 
-<一句话说明复现方式：Python 生成最小畸形媒体容器文件（如 mp4/mkv/avi/flv），然后用 ffmpeg 命令行处理触发。>
+Craft a malicious media container file using the Python script below and process it with the ASAN-instrumented FFmpeg binary to trigger the vulnerability.
 
-<给完整可独立运行的 Python 脚本（用 ```python 包裹），生成畸形容器文件。
-脚本里文件名用简单名字（poc_input.mp4 等），不要用 vuln_NNN 内部名，不要硬编码 /data/ylwang/ 路径。>
+```python
+<Complete self-contained Python script. Copy the actual generation logic from the existing _gen.py file. Use the struct module to build the malicious byte sequence. Include every byte of the malicious file construction inline so the script runs with no external dependencies. Use a simple filename such as poc_input.mp4. Do not hardcode absolute paths containing /data/ylwang/.>
+```
 
-<给一个 shell 运行步骤代码块（用 ```bash 包裹），展示运行命令：
-  python3 gen.py
-  ASAN_OPTIONS="abort_on_error=0:log_path=./asan.log" ./build_test/ffmpeg -i poc_input.mp4 -f null -
-  cat asan.log.*
->
+```bash
+python3 gen.py
+ASAN_OPTIONS="abort_on_error=0:log_path=./asan.log" ./build_test/ffmpeg -i poc_input.mp4 -f null - || true
+for f in ./asan.log.*; do grep -E "AddressSanitizer|ERROR:|runtime error:" "$f" || true; done
+```
 
-### Result
+**Result:** <Copy the key lines from the ASAN or UBSAN output in the result file that confirm the crash: the error type line (e.g. "heap-buffer-overflow on address ..."), the READ or WRITE size line, and the first two frames of the stack trace. Inline them here as plain text with no extra code block. Do not include internal paths like /data/ylwang/ or vuln_NNN. Do not use a dash to join clauses. Do not use a semicolon to join clauses.>
 
-<两三句话描述实际观察到的结果：ASAN 报错（只截取关键几行内联在此，不用单独代码块），
-如 "heap-buffer-overflow in ff_h264_decode_mb_cabac() at h264_cabac.c:NNN"。
-不要出现审计内部路径（FFmpeg/FFmpeg/、vuln_NNN 等）。语言：英文，简洁。>
+### Impact
 
-=====================================================
-
-完成后确认 __DRAFT_FILE__ 已写入且只包含上述结构，不要输出其它内容。
-
-工具白名单: Read, Write, Glob。'
-
-BEHAVIOR_PROMPT_TEMPLATE='你是一名安全研究员，正在把一份已经验证过的 FFmpeg 行为异常整理成漏洞报告条目。
-
-请依次 Read 以下材料：
-1. 漏洞描述(VULN 块): __VULN_BLOCK_FILE__
-2. 行为验证输出: __RESULT_FILE__
-3. 状态判定: __STATUS_FILE__
-4. PoC 说明: __NOTES_FILE__ (不存在就跳过)
-5. 用 Glob 列出 __POC_DIR__/ 下全部文件，再 Read 其中的 _gen.py / _run.sh，搞清楚复现步骤。
+<Two or three sentences in English describing what an attacker can achieve (heap corruption, out-of-bounds read or write, use-after-free, information disclosure, denial of service, or arbitrary code execution), which attack surface is exposed, and any notable constraints. Do not use a dash to join clauses. Do not use a semicolon to join clauses.>
 
 =====================================================
-筛选规则（必须严格执行，先判断再写文件）：
 
-如果满足以下**任意一条**，只写 __DRAFT_FILE__ 第一行为 "SKIP"，其余内容一律不写：
-- 漏洞没有实际危害（无内存破坏、无信息泄露、无 DoS、无数据破坏）
-- 行为异常但无安全影响
+After writing the file confirm __DRAFT_FILE__ is written and contains only the above structure. Do not output anything else.
 
-如果**不满足**上述条件，则写完整报告条目（格式见下方）。
+Allowed tools: Read, Write, Glob.'
+
+BEHAVIOR_PROMPT_TEMPLATE='You are a security researcher writing a vulnerability report entry for a confirmed FFmpeg behavioral anomaly.
+
+Read the following materials in order:
+1. Vulnerability description (VULN block): __VULN_BLOCK_FILE__
+2. Behavioral verification output: __RESULT_FILE__
+3. Status verdict: __STATUS_FILE__
+4. PoC notes: __NOTES_FILE__ (skip if the file does not exist)
+5. Run Glob to list all files under __POC_DIR__/ then Read the _gen.py and _run.sh files to understand the reproduction steps and copy the actual file-generation logic.
+
+=====================================================
+FILTER RULE (evaluate first before writing anything):
+
+If any of the following conditions is met write only "SKIP" as the first and only line of __DRAFT_FILE__ and nothing else:
+- The finding has no actual security impact (no memory corruption, no DoS, no information disclosure)
+- The behavior is anomalous but carries no security consequence
+- The PoC requires special system privileges to trigger
+
+If none of those conditions apply write the full report entry using the format below.
 =====================================================
 
-==================== 硬性格式要求 ====================
-输出必须严格按照以下三节结构，标题写成 "## Bug0: <简短英文标题>"（Bug0 原样保留）：
+==================== STRICT FORMAT ====================
+Use "## Bug0: <short English title>" as the first line (keep "Bug0" literally).
 
-## Bug0: <简短英文标题>
+## Bug0: <short English title>
 
-### Summary
-
-<两三句话：哪个函数/文件、什么边界条件或检查缺失、导致什么安全后果。
-英文书写，不超过 4 句话。>
+<One sentence in English: which function and file, what boundary check is absent, and what security consequence results. Do not use a dash to join clauses. Do not use a semicolon to join clauses.>
 
 ### PoC
 
-<一句话说明复现方式：Python 生成最小畸形媒体容器，然后用 ffmpeg 命令行处理触发。>
+Craft a malicious media container file using the Python script below and process it with the ASAN-instrumented FFmpeg binary to trigger the vulnerability.
 
-<给完整可独立运行的 Python 脚本（用 ```python 包裹），生成畸形输入。
-文件名用简单名字，不要硬编码 /data/ylwang/ 路径。>
+```python
+<Complete self-contained Python script. Copy the actual generation logic from the existing _gen.py file. Include every byte of the malicious file construction inline. Use a simple filename. Do not hardcode absolute paths containing /data/ylwang/.>
+```
 
-<给一个 shell 运行步骤代码块（用 ```bash 包裹）。>
+```bash
+python3 gen.py
+ASAN_OPTIONS="abort_on_error=0:log_path=./asan.log" ./build_test/ffmpeg -i poc_input.mp4 -f null - || true
+for f in ./asan.log.*; do grep -E "AddressSanitizer|ERROR:|runtime error:" "$f" || true; done
+```
 
-### Result
+**Result:** <Copy the key lines from the ASAN or UBSAN output in the result file that confirm the crash. Inline them as plain text with no extra code block. Do not include internal paths like /data/ylwang/ or vuln_NNN. Do not use a dash to join clauses. Do not use a semicolon to join clauses.>
 
-<描述实际观察到的行为偏差或安全属性被破坏的证据（从 result 文件里截取关键几行内联）。
-不要出现 FFmpeg/FFmpeg/ 或 vuln_NNN 等内部路径。英文，简洁。>
+### Impact
+
+<Two or three sentences in English describing what an attacker can achieve, which attack surface is exposed, and any notable constraints. Do not use a dash to join clauses. Do not use a semicolon to join clauses.>
 
 =====================================================
 
-完成后确认 __DRAFT_FILE__ 已写入，不要输出其他内容。
+After writing the file confirm __DRAFT_FILE__ is written. Do not output anything else.
 
-工具白名单: Read, Write, Glob。'
+Allowed tools: Read, Write, Glob.'
 
 # ============================================================
 # 并行派发 claude 生成草稿
@@ -318,8 +322,8 @@ for c in "${PENDING[@]}"; do
     fi
 
     # Dedup: skip if same function+CWE already in report
-    _dedup_func=$(grep -oE '\*\*函数\*\*: [^()]+' "$vuln_block_file" 2>/dev/null | head -1 | sed 's/.*: //' | tr -d ' ')
-    _dedup_cwe=$(grep -oE 'CWE-[0-9]+' "$vuln_block_file" 2>/dev/null | head -1)
+    _dedup_func=$(grep -oP '(?<=\*\*函数\*\*: |\*\*function\*\*: )[^()]+' "$vuln_block_file" 2>/dev/null | head -1 | tr -d ' ' || true)
+    _dedup_cwe=$(grep -oE 'CWE-[0-9]+' "$vuln_block_file" 2>/dev/null | head -1) || true
     _dedup_key="${_dedup_func}::${_dedup_cwe}"
     if [ -n "$_dedup_func" ] && [ -n "$_dedup_cwe" ] && grep -qF "<!-- DEDUP: ${_dedup_key} -->" "$REPORT_MD" 2>/dev/null; then
         echo "[$(date '+%F %T')] DEDUP-SKIP ${tag}#${nnn} (key=$_dedup_key)" >> "$LOGFILE"
@@ -359,6 +363,8 @@ for c in "${PENDING[@]}"; do
                     flock -x 9
                     if grep -q "^<!-- REPORT_SOURCE: ${local_tag}#${local_nnn} -->$" "$REPORT_MD" 2>/dev/null; then
                         echo "[$(date '+%F %T')] SKIP_DUP $local_tag#$local_nnn" >> "$LOGFILE"
+                    elif [ -n "${cur_dedup_key:-}" ] && grep -qF "<!-- DEDUP: ${cur_dedup_key} -->" "$REPORT_MD" 2>/dev/null; then
+                        echo "[$(date '+%F %T')] DEDUP-SKIP $local_tag#$local_nnn (parallel, key=${cur_dedup_key})" >> "$LOGFILE"
                     else
                         next_n=$(( $(grep -oE '^## Bug[0-9]+:' "$REPORT_MD" 2>/dev/null | grep -oE '[0-9]+' | sort -n | tail -1 || echo 0) + 1 ))
                         {

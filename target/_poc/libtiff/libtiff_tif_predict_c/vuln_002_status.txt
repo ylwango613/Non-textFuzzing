@@ -1,0 +1,13 @@
+SKIPPED
+
+Reason: tiffsplit's cpStrips() copies strips via TIFFReadRawStrip + TIFFWriteRawStrip,
+which bypass the predictor encoding path entirely. fpDiff() (the vulnerable function)
+is only called through TIFFWriteEncodedStrip -> PredictorEncodeRow -> fpDiff.
+Since tiffsplit never calls TIFFWriteEncodedStrip, fpDiff is unreachable.
+
+The TIFF vuln_002.tif was crafted with the correct triggering parameters
+(BitsPerSample=9, SamplesPerPixel=5, Width=3, Predictor=3, SampleFormat=IEEEFP)
+and processed by tiffsplit without any crash or ASAN error.
+
+The vulnerability exists in the library (fpDiff OOB read when cc%stride != 0)
+but cannot be triggered via the tiffsplit binary.

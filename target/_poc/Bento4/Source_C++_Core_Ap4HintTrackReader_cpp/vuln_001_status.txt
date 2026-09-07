@@ -1,0 +1,38 @@
+UNVERIFIED
+
+======== Run Summary ========
+Binary : /data/ylwang/non-textfuzz/target/Bento4/build_test/bin/mp42aac
+Input  : vuln_001.mp4  (908 bytes)
+Exit   : 0 (clean exit, no crash)
+ASAN   : no ASAN/UBSAN output produced
+
+======== What happened ========
+mp42aac parsed vuln_001.mp4 successfully:
+  - Found audio track (handler='soun', 0 samples)
+  - Called WriteSamples() → loop iterated 0 times → returned cleanly
+  - Hint track (handler='hint') was parsed and stored but never used
+
+The tref/hint box with size=8 (empty track-ID payload) was correctly parsed
+into an AP4_TrefTypeAtom with an empty m_TrackIds array (m_Items=nullptr).
+However, no code in mp42aac ever calls AP4_HintTrackReader::Create() or
+instantiates AP4_HintTrackReader, so the vulnerable line 66:
+    GetTrackIds()[0]   // nullptr[0] → NULL dereference
+is never reached.
+
+======== Confirmation: AP4_HintTrackReader not in binary ========
+  nm mp42aac | c++filt | grep -i HintTrackReader
+  → (no output — symbol is absent from the binary)
+
+======== Vulnerability Is Real ========
+The OOB/null-deref IS present in the library source at
+    Ap4HintTrackReader.cpp:66
+and IS reachable for any binary that calls AP4_HintTrackReader::Create()
+on a hint track. The crafted MP4 (vuln_001.mp4) has:
+    moov/trak[hint]/tref/hint  size=8  (zero track IDs in payload)
+which will cause a NULL dereference crash in such a binary.
+
+======== Recommended Trigger Binary ========
+Compile and test with a binary that processes hint tracks, e.g.:
+    mp4rtphintinfo  or  mp4info --full  or a custom tool that calls:
+        AP4_HintTrackReader::Create(hint_track, *movie, 0, reader)
+on each AP4_Track::TYPE_HINT track found in the movie.

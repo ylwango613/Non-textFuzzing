@@ -1,0 +1,82 @@
+SKIPPED
+
+## 理由
+
+この脆弱性 (VULN 001) は Windows GDI+ バックエンド専用であり、現在の Linux
+ビルド環境では脆弱なコードパスに到達できないため SKIPPED とする。
+
+## 確認手順と根拠
+
+### 1. バイナリへの GDI+ 文字列確認
+
+```
+strings /data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata | grep -i gdip
+(出力なし)
+```
+
+バイナリに "gdip" 関連の文字列が一切存在しない。
+
+### 2. ローダキャッシュ確認
+
+```
+cat /data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
+```
+
+内容:
+```
+# GdkPixbuf Image Loader Modules file
+# Automatically generated file, do not edit
+# Created by gdk-pixbuf-query-loaders from gdk-pixbuf-2.31.1
+#
+# dynamic loading of modules not supported
+```
+
+動的ローダモジュールがサポートされておらず、GDI+ ローダを含む追加ローダは
+ビルドされていない。libgdk_pixbuf は PNG のみを内蔵している。
+
+### 3. GIF ファイルの読み込み試験
+
+```
+/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata vuln_001.gif vuln_001_out.c
+```
+
+エラー:
+```
+failed to load "vuln_001.gif": Couldn't recognize the image file format for file 'vuln_001.gif'
+```
+
+GIF 形式自体が認識されない。GDI+ バックエンドが存在しないことを直接証明する。
+
+### 4. ソースファイルの存在確認
+
+以下のソースファイルは存在するが、Linux ビルドでコンパイルされていない:
+- /data/ylwang/non-textfuzz/target/gdk-pixbuf/gdk-pixbuf/io-gdip-gif.c
+- /data/ylwang/non-textfuzz/target/gdk-pixbuf/gdk-pixbuf/io-gdip-utils.c (脆弱関数を含む)
+
+これらは Windows の GDI+ API (GdipGetPropertyItemSize, GdipGetPropertyItem 等)
+に依存しており、Linux 環境ではコンパイル・リンクされない。
+
+## 脆弱性の技術的有効性
+
+コードレビューに基づき、脆弱性自体は技術的に有効と評価する:
+
+- io-gdip-utils.c:496 の `item_count = item_size / sizeof(long)` は
+  PropertyItem ヘッダを含む全バッファサイズを sizeof(long) で割るため、
+  実際の遅延エントリ数より 3〜4 個多く item_count が計算される。
+- GIF フレーム数 > GCE 数の条件下で、OOB インデックスが使用される。
+
+ただし、当該環境 (Linux, gdk-pixbuf-2.31.1) では GDI+ バックエンドが
+コンパイルされておらず、脆弱なコードパスへの到達は不可能。
+
+## 再現に必要な環境
+
+- Windows + MinGW/MSVC ビルドの gdk-pixbuf (GDI+ 有効)
+- または Wine 環境 + GDI+ DLL
+- ASAN/Valgrind でのヒープ読み取りエラー検出
+
+## 作成した PoC ファイル
+
+- vuln_001_gen.py : アニメーション GIF 生成スクリプト (6フレーム, GCE 4個)
+- vuln_001.gif   : 生成された PoC GIF (167 bytes)
+- vuln_001_run.sh: 実行スクリプト
+- vuln_001_notes.md: 技術的詳細

@@ -1,0 +1,2 @@
+UNVERIFIED
+tiffsplit uses TIFFReadRawStrip (raw copy, no decoding). PackBitsDecode is never called, so no ASAN/UBSAN error is produced. The TIFF file structure is correct and does reach PackBitsDecode when processed by tools that call TIFFReadEncodedStrip (e.g. tiffinfo -d confirms "PackBitsDecode: discarding 123 bytes to avoid buffer overrun" warning), but the tiffsplit code path does not trigger the vulnerable decompression routine.

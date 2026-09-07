@@ -1,0 +1,13 @@
+## VULN: Uncontrolled Recursion via Nested AMF Objects Causes Stack Overflow
+- **漏洞类别**: memory-safety
+- **函数**: `amf_data_read()` / `amf_object_read()` / `json_amf_data_dump()`
+- **行号**: amf.c:466-500 (amf_data_read), amf.c:304-352 (amf_object_read), dump_json.c:30-93 (json_amf_data_dump)
+- **CWE**: CWE-674 (Uncontrolled Recursion)
+- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted FLV file
+- **外部触发路径**: `flvmeta input.flv` → `dump_json_file()` → `flv_parse()` → `flv_read_metadata()` → `amf_data_file_read()` → `amf_data_read()` ↔ `amf_object_read()` (unbounded mutual recursion during parse); then `json_on_metadata_tag()` → `json_amf_data_dump()` → `json_amf_data_dump()` (unbounded self-recursion during JSON output)
+- **描述**: `amf_data_read` (amf.c:479-481) calls `amf_object_read` for AMF type byte `0x03`; `amf_object_read` calls `amf_data_read` again for each object value (amf.c:325). Neither function imposes a recursion-depth limit. After parsing, `json_amf_data_dump` recurses for each child value (dump_json.c:53-55, 70, 79). Each `json_amf_data_dump` frame holds `char str[128]` plus pointer locals (~176 bytes). With deeply nested AMF objects, the cumulative stack usage exceeds the default 8 MB thread stack, causing a stack-based buffer overflow (SIGSEGV).
+- **触发条件**: 攻击者构造一个 FLV 文件，其 script tag 的 AMF 数据中包含约 50,000 层嵌套的 AMF 对象（每层格式：`03 00 01 <key_byte> <nested_value> 00 00 09`），约需 350 KB AMF 数据，远小于 FLV script tag 的 16 MB 上限。
+- **安全影响**: 进程因栈溢出崩溃（SIGSEGV），造成 Denial of Service。如果该工具被集成到服务器端自动化视频处理流水线中，任何能上传文件的用户均可远程触发服务崩溃。
+

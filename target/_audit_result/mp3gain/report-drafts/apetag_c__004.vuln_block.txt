@@ -1,0 +1,13 @@
+## VULN: NULL Pointer Dereference via Missing malloc() Check in APE Tag Parsing
+- **漏洞类别**: memory-safety
+- **函数**: ReadMP3APETag()
+- **行号**: 171-175
+- **CWE**: CWE-476 (NULL Pointer Dereference)
+- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP3 file
+- **外部触发路径**: mp3gain main() -> ReadMP3GainAPETag() -> ReadMP3APETag() -> malloc(TagLen) -> fread(NULL, ...)
+- **描述**: `TagLen = Read_LE_Uint32(T.Length)` 直接来自文件中 APE tag footer 的 4 字节 Length 字段，仅有下限检查（`>= sizeof(T)=32`），无上限。当攻击者将 Length 字段设为极大值（如 0xFFFFFFFF ≈ 4GB）时，line 171 的 `buff = (char *)malloc(TagLen)` 因内存不足返回 NULL。代码未检查 buff 是否为 NULL，直接在 line 172 调用 `fread(buff, 1, TagLen-sizeof(T), fp)`，即 `fread(NULL, ...)` —— 在 Linux/glibc 上必然触发 SIGSEGV，导致进程崩溃。
+- **触发条件**: 攻击者构造 APE tag footer，将其 Length 字段（偏移 8 处的 4 字节 LE 值）设为 0xFFFFFFFF 或其他导致系统级内存分配失败的值，同时保证 ID 字段为 "APETAGEX"、Version 为 1000 或 2000；将 footer 放于 MP3 文件结尾。
+- **安全影响**: 可靠的进程崩溃（DoS）；在自动化批量处理管道中可导致服务不可用。
+

@@ -1,0 +1,12 @@
+Both subagents are done. Here is the final summary:
+
+---
+
+## PoC 结果汇总 — `libtiff_tif_msdos_c`
+
+| 编号 | 漏洞 | 状态 | 说明 |
+|------|------|------|------|
+| VULN 001 | `_TIFFmemcpy`/`_TIFFmemset` signed→unsigned 导致越界写 | **VERIFIED_CRASH** | LZW+Predictor=2+StripByteCounts=0xFFFFFFFF 触发 ASAN `allocation-size-too-big`：`_TIFFrealloc` 收到 `(size_t)(tsize_t)-1 = 0xFFFFFFFFFFFFFFFF`，直接在真实 tiffsplit 执行路径中崩溃 |
+| VULN 002 | `_TIFFmalloc`/`_TIFFrealloc` 负值导致 NULL 解引用 | **UNVERIFIED** | `TIFFReadDirectory` 中 `EstimateStripByteCounts` 守卫检测到 "Bogus StripByteCounts" 并重算字节数，阻止了 `TIFFRawStripSize` 返回 −1 的路径；LeakSanitizer 有泄漏输出，但 CWE-476 NULL 解引用未被直接触发 |
+
+**注意**：两个漏洞对应的代码在 Linux 编译中由 `tif_unix.c` 提供（与 `tif_msdos.c` 逐字相同的 cast 模式）；PoC 通过真实 `tiffsplit` 二进制触发，无需修改源码。

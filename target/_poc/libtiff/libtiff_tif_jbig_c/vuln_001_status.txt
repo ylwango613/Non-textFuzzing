@@ -1,0 +1,4 @@
+VERIFIED_CRASH
+heap-buffer-overflow WRITE of size 8192 into 8-byte allocation
+tiffcp -> cpDecodedStrips -> TIFFReadEncodedStrip -> JBIGDecode (tif_jbig.c:125) -> _TIFFmemcpy overflow
+ASAN log: asan.log.3142213

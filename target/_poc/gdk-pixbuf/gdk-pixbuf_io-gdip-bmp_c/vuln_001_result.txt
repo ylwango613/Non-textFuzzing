@@ -1,0 +1,2 @@
+failed to load "/data/ylwang/non-textfuzz/target/_poc/gdk-pixbuf/gdk-pixbuf_io-gdip-bmp_c/vuln_001.gif": Couldn't recognize the image file format for file '/data/ylwang/non-textfuzz/target/_poc/gdk-pixbuf/gdk-pixbuf_io-gdip-bmp_c/vuln_001.gif'
+Exit code: 0

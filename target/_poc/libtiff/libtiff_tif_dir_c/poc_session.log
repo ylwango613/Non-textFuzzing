@@ -1,0 +1,7 @@
+The subagent has completed. Here is the summary:
+
+| VULN # | Title | Status |
+|--------|-------|--------|
+| 001 | Heap OOB Read in `checkInkNamesString` via Crafted INKNAMES Tag | **VERIFIED_CRASH** |
+
+ASAN confirmed a `heap-buffer-overflow` in `checkInkNamesString` at `tif_dir.c` lines 120-122. The crafted TIFF sets `SamplesPerPixel=3` and `INKNAMES="ab"` (2 bytes, no null terminator), causing the inner loop to read the sentinel `'\0'` at `s[slen]` and exit without triggering the boundary guard, then `cp++` advances past the allocation — and the next outer-loop iteration reads heap memory out of bounds.

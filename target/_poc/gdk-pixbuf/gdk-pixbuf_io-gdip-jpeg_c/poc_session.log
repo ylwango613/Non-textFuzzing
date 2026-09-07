@@ -1,0 +1,8 @@
+All done. Summary:
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| 001 — NULL Ptr Deref via g_try_malloc (io-gdip-utils.c:410,494,523) | **SKIPPED** | GDI+ is Windows-only; `io-gdip-utils.c` not compiled into this Linux build — zero `gdip` symbols in `libgdk_pixbuf-2.0.so` |
+| 002 — Heap OOB Read in gdip_bitmap_get_frame_delay (io-gdip-utils.c:496-498) | **SKIPPED** | Same reason — GDI+ code path absent from Linux build; `gdk-pixbuf-pixdata` only processes `.pixdata` format |
+
+**Root cause for both SKIPs**: `io-gdip-jpeg.c` and `io-gdip-utils.c` are conditionally compiled only on Windows (they require the Win32 GDI+ runtime). The Linux meson build excludes them entirely — `nm` confirms no `gdip` symbols exist in the compiled `.so`, and `loaders.cache` lists no JPEG/GIF loader. The `gdk-pixbuf-pixdata` binary has no code path leading to either vulnerable function.

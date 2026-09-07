@@ -1,0 +1,6 @@
+VERIFIED_CRASH
+Type: heap-buffer-overflow
+Detector: AddressSanitizer
+Function: gdk_pixbuf_from_pixdata (libgdk_pixbuf-2.0.so.0+0xad028)
+Access: WRITE of size 4 at 0 bytes past end of 4-byte heap allocation
+Trigger: RLE constant run byte 0x80 (length=0) causes do-while underflow

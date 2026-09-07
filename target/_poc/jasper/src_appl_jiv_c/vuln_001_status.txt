@@ -1,0 +1,22 @@
+SKIPPED
+
+Reason: The vulnerability in pixmap_resize() is defined in jiv.c, which belongs to the
+"jiv" GUI Image Viewer application — a separate binary from imginfo.
+
+Evidence:
+1. No "jiv" binary exists at /data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/.
+   Available binaries: imgcmp, imginfo, jasper.
+
+2. The trigger path main()→nextimage()→loadimage()→jas_image_decode()→pixmap_resize()→render()
+   is entirely contained within jiv.c (src/appl/jiv.c). The pixmap_resize() function at line 851
+   is a static function local to that file and is not exported or called by imginfo.
+
+3. imginfo (src/appl/imginfo.c) only reads image metadata (dimensions, components, color space)
+   via jas_image_decode(). It never calls pixmap_resize() or any OpenGL rendering path.
+
+4. The rule states the ONLY allowed binary is imginfo. Since the vulnerable code path exists
+   exclusively in the jiv application (which is not built/installed), the vulnerability
+   CANNOT be triggered via imginfo.
+
+Conclusion: This PoC is SKIPPED — the vulnerability requires the jiv binary which is not
+available in the installed build.

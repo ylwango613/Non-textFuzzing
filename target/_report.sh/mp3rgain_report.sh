@@ -127,7 +127,9 @@ if [ -d "$POC_BASE" ]; then
 
         if [ "$first_line" = "VERIFIED_CRASH" ]; then
             if grep -qE "AddressSanitizer|ERROR: LeakSanitizer|UndefinedBehaviorSanitizer|runtime error:|attempt to|index out of bounds" "$result_file"; then
-                CANDIDATES+=("${tag}|${nnn}|CRASH")
+                if ! grep -qE "requested allocation size|allocator is out of memory|exceeds maximum supported size|allocation of [0-9]+ bytes exceeds" "$result_file"; then
+                    CANDIDATES+=("${tag}|${nnn}|CRASH")
+                fi
             fi
         elif [ "$first_line" = "VERIFIED_BEHAVIOR" ]; then
             [ -s "$result_file" ] || continue
@@ -171,92 +173,102 @@ echo " New verified findings to write up: ${#PENDING[@]}"
 echo " Drafts: $DRAFTS_DIR/   Target: $REPORT_MD"
 echo "=========================================="
 
-REPORT_PROMPT_TEMPLATE='You are a security researcher writing up a confirmed mp3rgain vulnerability as a bug report entry.
+REPORT_PROMPT_TEMPLATE='You are a security researcher writing a concise vulnerability report entry for a confirmed mp3rgain memory safety bug.
 
-Please Read the following materials for full context:
-1. Vulnerability description (raw VULN block from the audit report): __VULN_BLOCK_FILE__
-2. PoC run output or diff result (evidence the vulnerability exists): __RESULT_FILE__
+Read the following materials in order:
+1. Vulnerability description (VULN block extracted from the audit report): __VULN_BLOCK_FILE__
+2. PoC run output (evidence the bug is real, contains ASAN or UBSAN output): __RESULT_FILE__
 3. PoC status verdict: __STATUS_FILE__
-4. PoC notes: __NOTES_FILE__ (skip if not found)
-5. Use Glob to list all files under __POC_DIR__/, then Read the .py / _run.sh files to understand the reproduction steps.
+4. PoC notes: __NOTES_FILE__ (skip if the file does not exist)
+5. Run Glob to list all files under __POC_DIR__/ then Read the _gen.py and _run.sh files to understand the exact reproduction steps and copy the actual file-generation logic.
 
-Your task: write exactly one file __DRAFT_FILE__ with the content strictly following the template below. Do not write anything else.
+Your task: write exactly one file __DRAFT_FILE__ following the strict format below. Write nothing else.
 
-==================== Hard format requirements ====================
-Output must follow this exact three-section structure. The title placeholder must be written as "## Bug0: <short English title>" (keep "Bug0" literally — the script replaces the number):
+==================== STRICT FORMAT ====================
+Use "## Bug0: <short English title>" as the first line (keep "Bug0" literally; an external script replaces the number).
 
 ## Bug0: <short English title>
 
-### Summary
-
-<Two to three sentences: which function/file, what boundary condition was unchecked, what the security consequence is (memory corruption or safety invariant broken). Write in English. Do not exceed 4 sentences. No em-dashes joining clauses; no semicolons joining clauses.>
+<One sentence in English: which function and file, what boundary check is absent, and what memory safety consequence results. Do not use a dash to join clauses. Do not use a semicolon to join clauses.>
 
 ### PoC
 
-<One sentence describing the reproduction method: crafted MP3 file fed to the mp3rgain binary.>
+Craft a malicious MP3 file using the Python script below and process it with the ASAN-instrumented mp3rgain binary to trigger the vulnerability.
 
-<Provide the complete Python script (```python block) that generates the crafted MP3 file.
-Use only stdlib (struct, bytes). Use simple filenames (poc.mp3) — do not hardcode /data/ylwang/ paths.
-Reference the binary as ./build_test/mp3rgain relative to the project root.>
+```python
+<Complete self-contained Python script. Copy the actual generation logic from the existing _gen.py file. Use the struct module to build the malicious byte sequence. Include every byte of the malicious file construction inline so the script runs with no external dependencies. Use a simple filename such as poc_input.mp3. Do not hardcode absolute paths containing /data/ylwang/.>
+```
 
-<Provide a shell steps block (```bash) showing:
-  python3 gen.py
-  ASAN_OPTIONS="abort_on_error=0:log_path=./asan.log" \
-    ./build_test/mp3rgain poc.mp3 || true
->
+```bash
+python3 gen.py
+ASAN_OPTIONS="abort_on_error=0:log_path=./asan.log" ./build_test/mp3rgain poc_input.mp3 || true
+for f in ./asan.log.*; do grep -E "AddressSanitizer|ERROR:|runtime error:" "$f" || true; done
+```
 
-### Result
+**Result:** <Copy the key lines from the ASAN or UBSAN output in the result file that confirm the crash: the error type line (e.g. "heap-buffer-overflow on address ..."), the READ or WRITE size line, and the first two frames of the stack trace. Inline them here as plain text with no extra code block. Do not include internal paths like /data/ylwang/ or vuln_NNN. Do not use a dash to join clauses. Do not use a semicolon to join clauses.>
 
-<Two to three sentences describing the actual observed result: ASAN/UBSAN error (inline the key line(s) here, no separate code block) or a Rust panic message. Do not expose internal paths like /data/ylwang/ or audit-results/ or vuln_NNN names. Write in English, concise.>
+### Impact
 
-=================================================================
+<Two or three sentences in English describing what an attacker can achieve (heap corruption, out-of-bounds read or write, use-after-free, information disclosure, denial of service, or arbitrary code execution), which attack surface is exposed, and any notable constraints. Do not use a dash to join clauses. Do not use a semicolon to join clauses.>
 
-After writing, confirm __DRAFT_FILE__ exists and contains only the above structure. Do not output anything else.
+=====================================================
 
-Tool whitelist: Read, Write, Glob.'
+After writing the file confirm __DRAFT_FILE__ is written and contains only the above structure. Do not output anything else.
 
-BEHAVIOR_PROMPT_TEMPLATE='You are a security researcher writing up a confirmed mp3rgain behavioral anomaly as a bug report entry.
+Allowed tools: Read, Write, Glob.'
 
-Please Read the following materials:
+BEHAVIOR_PROMPT_TEMPLATE='You are a security researcher writing a vulnerability report entry for a confirmed mp3rgain behavioral anomaly.
+
+Read the following materials in order:
 1. Vulnerability description (VULN block): __VULN_BLOCK_FILE__
 2. Behavioral verification output: __RESULT_FILE__
 3. Status verdict: __STATUS_FILE__
-4. PoC notes: __NOTES_FILE__ (skip if not found)
-5. Use Glob to list all files under __POC_DIR__/, then Read the .py / _run.sh files.
+4. PoC notes: __NOTES_FILE__ (skip if the file does not exist)
+5. Run Glob to list all files under __POC_DIR__/ then Read the _gen.py and _run.sh files to understand the reproduction steps and copy the actual file-generation logic.
 
-=================================================================
-Filtering rule (enforce strictly — check first, then write):
+=====================================================
+FILTER RULE (evaluate first before writing anything):
 
-If ANY of the following apply, write only "SKIP" as the first line of __DRAFT_FILE__ and nothing else:
-- The vulnerability has no real security impact (no information leak, no privilege escalation, no DoS, no data corruption).
-- Triggering it requires a non-crafted-file attack surface not available remotely.
-- The anomaly is a benign edge-case with no downstream security consequence.
+If any of the following conditions is met write only "SKIP" as the first and only line of __DRAFT_FILE__ and nothing else:
+- The finding has no actual security impact (no memory corruption, no DoS, no information disclosure)
+- The behavior is anomalous but carries no security consequence
+- The PoC requires special system privileges to trigger
 
-If NONE of the above apply, write the full report entry (format below).
-=================================================================
+If none of those conditions apply write the full report entry using the format below.
+=====================================================
 
-==================== Hard format requirements ====================
+==================== STRICT FORMAT ====================
+Use "## Bug0: <short English title>" as the first line (keep "Bug0" literally).
+
 ## Bug0: <short English title>
 
-### Summary
-
-<Two to three sentences: function/file, what check is missing, what the security consequence is. English, max 4 sentences.>
+<One sentence in English: which function and file, what boundary check is absent, and what security consequence results. Do not use a dash to join clauses. Do not use a semicolon to join clauses.>
 
 ### PoC
 
-<One sentence: reproduction method.>
+Craft a malicious MP3 file using the Python script below and process it with the ASAN-instrumented mp3rgain binary to trigger the vulnerability.
 
-<Python script (```python) or shell block (```bash) to reproduce. Simple filenames; no hardcoded /data/ylwang/ paths.>
+```python
+<Complete self-contained Python script. Copy the actual generation logic from the existing _gen.py file. Include every byte of the malicious file construction inline. Use a simple filename. Do not hardcode absolute paths containing /data/ylwang/.>
+```
 
-### Result
+```bash
+python3 gen.py
+ASAN_OPTIONS="abort_on_error=0:log_path=./asan.log" ./build_test/mp3rgain poc_input.mp3 || true
+for f in ./asan.log.*; do grep -E "AddressSanitizer|ERROR:|runtime error:" "$f" || true; done
+```
 
-<Observed behavior vs expected behavior; key evidence inlined (no separate code block). No internal paths. English, concise.>
+**Result:** <Copy the key lines from the ASAN or UBSAN output in the result file that confirm the crash. Inline them as plain text with no extra code block. Do not include internal paths like /data/ylwang/ or vuln_NNN. Do not use a dash to join clauses. Do not use a semicolon to join clauses.>
 
-=================================================================
+### Impact
 
-After writing, confirm __DRAFT_FILE__ exists. Do not output anything else.
+<Two or three sentences in English describing what an attacker can achieve, which attack surface is exposed, and any notable constraints. Do not use a dash to join clauses. Do not use a semicolon to join clauses.>
 
-Tool whitelist: Read, Write, Glob.'
+=====================================================
+
+After writing the file confirm __DRAFT_FILE__ is written. Do not output anything else.
+
+Allowed tools: Read, Write, Glob.'
 
 # ============================================================
 # Parallel Claude draft generation
@@ -327,6 +339,8 @@ for c in "${PENDING[@]}"; do
                     flock -x 9
                     if grep -q "^<!-- REPORT_SOURCE: ${local_tag}#${local_nnn} -->$" "$REPORT_MD" 2>/dev/null; then
                         echo "[$(date '+%F %T')] SKIP_DUP $local_tag#$local_nnn" >> "$LOGFILE"
+                    elif [ -n "${cur_dedup_key:-}" ] && grep -qF "<!-- DEDUP: ${cur_dedup_key} -->" "$REPORT_MD" 2>/dev/null; then
+                        echo "[$(date '+%F %T')] DEDUP-SKIP $local_tag#$local_nnn (parallel, key=${cur_dedup_key})" >> "$LOGFILE"
                     else
                         next_n=$(( $(grep -oE '^## Bug[0-9]+:' "$REPORT_MD" 2>/dev/null | grep -oE '[0-9]+' | sort -n | tail -1 || echo 0) + 1 ))
                         {

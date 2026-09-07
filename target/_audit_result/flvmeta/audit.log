@@ -1,2 +1,19 @@
 [2026-09-06 23:29:40] DONE: 1 new, 0 skipped, 0 vulns
 [2026-09-06 23:40:51] DONE: 1 new, 0 skipped, 0 vulns
+[2026-09-07 13:21:58] DONE: 0 new, 0 skipped, 0 vulns
+[2026-09-07 19:25:01] VULN src/dump_json.c: 1 findings
+[2026-09-07 19:26:56] POC src/dump_json.c: 1/1 verified
+[2026-09-07 19:27:06] VULN src/dump_raw.c: 2 findings
+[2026-09-07 19:32:07] POC src/dump_raw.c: 2/2 verified
+[2026-09-07 19:39:11] VULN src/dump_yaml.c: 2 findings
+[2026-09-07 19:39:49] VULN src/flv.c: 2 findings
+[2026-09-07 19:42:08] POC src/dump_yaml.c: 2/2 verified
+[2026-09-07 19:45:06] VULN src/libyaml/api.c: 1 findings
+[2026-09-07 19:45:49] POC src/libyaml/api.c: 0/1 verified
+[2026-09-07 19:49:48] POC ERR src/flv.c: claude exit 0
+[2026-09-07 19:53:31] DONE: 25 new, 1 skipped, 8 vulns
+[2026-09-07 21:58:00] VULN src/info.c: 1 findings
+[2026-09-07 22:11:10] VULN src/util.c: 3 findings
+[2026-09-07 22:11:10] VULN src/update.c: 1 findings
+[2026-09-07 22:11:10] VULN src/types.c: 1 findings
+[2026-09-07 22:11:10] DONE: 9 new, 17 skipped, 6 vulns

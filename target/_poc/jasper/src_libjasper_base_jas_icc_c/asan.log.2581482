@@ -1,0 +1,59 @@
+=================================================================
+==2581482==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50200000090f at pc 0x564ee236b83d bp 0x7ffd793a0580 sp 0x7ffd793a0570
+WRITE of size 1 at 0x50200000090f thread T0
+    #0 0x564ee236b83c in jas_icctxtdesc_input (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x6f283c)
+    #1 0x564ee2390d1b in jas_iccprof_load (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x717d1b)
+    #2 0x564ee23a6bb3 in jas_iccprof_createfrombuf (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x72dbb3)
+    #3 0x564ee21a2d4a in jp2_decode (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x529d4a)
+    #4 0x564ee214c4ef in jas_image_decode (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4d34ef)
+    #5 0x564ee213e8f5 in main (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4c58f5)
+    #6 0x7f850d0bed8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7f850d0bee3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #8 0x564ee213fbc4 in _start (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4c6bc4)
+
+0x50200000090f is located 1 bytes to the left of 1-byte region [0x502000000910,0x502000000911)
+allocated by thread T0 here:
+    #0 0x7f850db0f887 in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:145
+    #1 0x564ee21605f0 in jas_malloc (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4e75f0)
+    #2 0x564ee23676c8 in jas_icctxtdesc_input (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x6ee6c8)
+    #3 0x564ee2390d1b in jas_iccprof_load (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x717d1b)
+    #4 0x564ee23a6bb3 in jas_iccprof_createfrombuf (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x72dbb3)
+    #5 0x564ee21a2d4a in jp2_decode (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x529d4a)
+    #6 0x564ee214c4ef in jas_image_decode (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4d34ef)
+    #7 0x564ee213e8f5 in main (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x4c58f5)
+    #8 0x7f850d0bed8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/jasper/build_test/install/bin/imginfo+0x6f283c) in jas_icctxtdesc_input
+Shadow bytes around the buggy address:
+  0x0a047fff80d0: fa fa fd fd fa fa fd fd fa fa fd fd fa fa fd fd
+  0x0a047fff80e0: fa fa fd fd fa fa fd fd fa fa fd fd fa fa fd fa
+  0x0a047fff80f0: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x0a047fff8100: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x0a047fff8110: fa fa fd fa fa fa fd fa fa fa fd fa fa fa 00 00
+=>0x0a047fff8120: fa[fa]01 fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8130: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8140: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8150: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8160: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a047fff8170: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==2581482==ABORTING

@@ -1,0 +1,13 @@
+## VULN: apetag.c heap buffer over-read — MP3GAIN_MINMAX / MP3GAIN_ALBUM_MINMAX value too short
+- **category**: heap-buffer-over-read
+- **function**: ReadMP3APETag
+- **lines**: apetag.c:244–265
+- **CWE**: CWE-125
+- **CVSS**: AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:L (5.4 Medium)
+- **severity**: Medium
+- **attack vector**: crafted MP3 with APE tag containing a "MP3GAIN_MINMAX" or "MP3GAIN_ALBUM_MINMAX" item whose vsize is set to 0–6
+- **call chain**: main() → ReadMP3APETag() → malloc(vsize+1) → memcpy(tmpString, vp, 3) [line 248] / memcpy(tmpString, vp+4, 3) [line 252]
+- **description**: Same allocation pattern as the UNDO case. For MP3GAIN_MINMAX the expected value is "NNN,NNN" (7 bytes). First `memcpy(tmpString, vp, 3)` requires vsize≥2; `vp += 4` then `memcpy(tmpString, vp, 3)` requires vsize≥6. With vsize=0 through 5 the respective memcpy reads past the 1-to-6-byte allocation. MP3GAIN_ALBUM_MINMAX (lines 255–265) has the same code pattern and the same vulnerability.
+- **trigger conditions**: APE tag item name = "MP3GAIN_MINMAX" or "MP3GAIN_ALBUM_MINMAX", vsize < 6. Bounds check at line 202 protects `buff` but not the individually allocated `value` buffer.
+- **security impact**: Heap over-read of up to 5 bytes per occurrence. Same impact as UNDO case (information disclosure, potential crash).
+

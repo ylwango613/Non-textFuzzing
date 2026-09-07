@@ -1,0 +1,30 @@
+UNVERIFIED
+
+Trigger confirmed: tiff2rgba triggers LogLuvDecode32() with StripByteCounts=1 and strip byte 0x80.
+Error message observed: "LogLuvDecode32: Not enough data at row 0 (short 1 pixels)"
+This confirms the run branch is entered (byte >= 128) and bp reads past tif_rawcc=1.
+
+No ASAN/UBSAN crash detected because libtiff's TIFFroundup(1, 1024) pads the raw
+buffer to 1024 bytes, placing the OOB read within allocated (but uninitialized) memory.
+ASAN cannot detect reads within allocated memory even if logically out-of-bounds per
+the cc (rawcc) counter. MSan or Valgrind with MSan would be needed to detect this
+uninitialized read.
+
+tiffsplit does not trigger LogLuvDecode32 (it copies raw strip data without decoding
+via TIFFReadRawStrip, which bypasses the codec). The decode path is reachable via
+tiff2rgba, confirmed by the "Not enough data" error message above.
+
+Code path (tif_luv.c:310-314):
+  for (i = 0; i < npixels && cc > 0; )   // cc=1, enters loop (npixels=3)
+      if (*bp >= 128) {                    // 0x80 >= 128, run branch taken
+          rc = *bp++ + (2-128);            // reads bp[0]: valid (cc was 1)
+          b = (uint32)*bp++ << shft;       // reads bp[1]: OOB! (past tif_rawcc=1)
+          cc -= 2;                         // cc becomes -1
+
+TIFF configuration used:
+  Compression = 34676 (SGILOG)
+  PhotometricInterpretation = 32845 (LOGLUV)
+  SamplesPerPixel = 3
+  BitsPerSample = 8
+  StripByteCounts = 1 (key: cc=1 in LogLuvDecode32)
+  strip_data = 0x80 (>= 128 triggers run branch)

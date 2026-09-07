@@ -2,6 +2,23 @@
 
 所有项目使用 `-fsanitize=address,undefined -g0 -fno-omit-frame-pointer` 编译，输出到各自的 `build_test/` 目录。
 
+## 版本与下载
+
+| 项目 | 版本 | 下载方式 |
+|------|------|---------|
+| FFmpeg | n9.1-dev (commit `f93cd72dde`) | `git clone https://git.ffmpeg.org/ffmpeg.git && git checkout f93cd72dde3056c2efb39e11589745d78cd24409` |
+| exiv2 | testIPO-1689 (commit `dc9364baa`) | `git clone https://github.com/Exiv2/exiv2.git && git checkout dc9364baa5d75395ab7d71c470f1e94bbe792a93` |
+| flvmeta | v1.2.2-31 (commit `f412a33`) | `git clone https://github.com/noirotm/flvmeta.git && git checkout f412a33b9a84c2d1a9dee145a868feddbf64879e` |
+| jhead | 3.08-66 (commit `5007491`) | `git clone https://github.com/Matthias-Wandel/jhead.git && git checkout 5007491cdc8c727c16ea6a27734535cfd0ed4349` |
+| Bento4 | v1.5.1.0 | `wget https://github.com/axiomatic-systems/Bento4/archive/refs/tags/V1.5.1.0.tar.gz && tar xf V1.5.1.0.tar.gz` |
+| gdk-pixbuf | v2.31.1 | `wget https://download.gnome.org/sources/gdk-pixbuf/2.31/gdk-pixbuf-2.31.1.tar.xz && tar xf gdk-pixbuf-2.31.1.tar.xz` |
+| jasper | v2.0.12 | `wget https://github.com/jasper-software/jasper/archive/refs/tags/version-2.0.12.tar.gz && tar xf version-2.0.12.tar.gz` |
+| libtiff | v3.9.7 | `wget https://download.osgeo.org/libtiff/tiff-3.9.7.tar.gz && tar xf tiff-3.9.7.tar.gz` |
+| mp3gain | v1.5.2 | `wget https://sourceforge.net/projects/mp3gain/files/mp3gain/1.5.2/mp3gain-1_5_2-src.zip && unzip mp3gain-1_5_2-src.zip` |
+| xpdf | v4.06 | `wget https://dl.xpdfreader.com/xpdf-4.06.tar.gz && tar xf xpdf-4.06.tar.gz` |
+
+---
+
 ## 二进制文件位置汇总
 
 | 项目 | 二进制绝对路径 | 大小 |

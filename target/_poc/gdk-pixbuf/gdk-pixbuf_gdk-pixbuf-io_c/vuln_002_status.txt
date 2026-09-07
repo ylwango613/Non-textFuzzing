@@ -1,0 +1,19 @@
+VERIFIED_CRASH
+
+Date: 2026-09-07
+Binary: /data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata
+Input: vuln_002.gdkp (63 bytes, 39 zero-byte pixel_data, rowstride=3, height=1000)
+ASAN log: asan_002c.log.*
+
+Crash: AddressSanitizer: heap-buffer-overflow
+  READ of size 1 at gdk_pixbuf_from_pixdata (libgdk_pixbuf-2.0.so) → RLE rle_buffer OOB
+  triggered via: main → gdk_pixbuf_new_from_file → _gdk_pixbuf_generic_image_load
+    → generic_load_incrementally → pixdata_image_load_increment → try_load
+    → gdk_pixbuf_from_pixdata (*(rle_buffer++) reads past 128-byte GString region)
+  0 bytes to the right of 128-byte region (GString internal buffer)
+
+Mechanism:
+  All 39 pixel_data bytes are 0x00 → each decoded as length-0 non-run RLE token
+  → image_buffer never advances (check_overrun never set)
+  → rle_buffer advances 1 byte per iteration through pixel_data + GString null terminator
+  → eventually crosses GString allocation boundary → ASAN heap-buffer-overflow

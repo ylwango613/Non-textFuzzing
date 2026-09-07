@@ -1,0 +1,40 @@
+PoC 生成并验证完毕。结果如下：
+
+---
+
+## 执行结果汇总
+
+| # | 漏洞 | 状态 |
+|---|------|------|
+| 001 | Stack OOB Read in DecryptSampleData via Crafted iSFM iv_length | **VERIFIED_CRASH** |
+
+---
+
+### VULN 001 详情
+
+**触发方式**：构造 624 字节的恶意 ISMA 加密 MP4，其中：
+- `iSFM` atom 设 `iv_length=1`（使 `m_IvLength=1`）
+- 样本数据首字节（IV）= `0x09`，使 `bso=9`，`bso%16=9 >= 9`
+
+**ASAN 确认**：
+```
+==600961==ERROR: AddressSanitizer: stack-buffer-overflow
+READ of size 1 at 0x7fff80d372c0
+  #0 AP4_IsmaCipher::DecryptSampleData() Ap4IsmaCryp.cpp:214
+  [128, 144) 'zero_enc' (line 208) <== Memory access at offset 144 overflows
+```
+
+**UBSAN 同时报告**：
+```
+Ap4IsmaCryp.cpp:214: runtime error: index 16 out of bounds for type 'unsigned char [16]'
+```
+
+调用栈精准命中漏洞报告描述的路径：`main() → DecryptSampleData() → zero_enc[offset+i]` 越界读取栈内存（读取了 `iv`、`bso_bytes` 等相邻栈变量）。
+
+**生成的文件**：
+- `vuln_001_gen.py` — MP4 构造脚本
+- `vuln_001.mp4` — 624 字节恶意 MP4
+- `vuln_001_run.sh` — 执行脚本
+- `vuln_001_notes.md` — 技术说明
+- `vuln_001_result.txt` — 完整 ASAN 输出
+- `vuln_001_status.txt` — `VERIFIED_CRASH`

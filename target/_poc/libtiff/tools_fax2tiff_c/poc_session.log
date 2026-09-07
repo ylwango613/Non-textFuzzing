@@ -1,0 +1,7 @@
+## Summary
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| VULN 001 — G3 1D Fax CLEANUP_RUNS Heap OOB Write | **SKIPPED** | `tiffsplit` uses `TIFFReadRawStrip`/`TIFFReadRawTile` (tiffsplit.c:251, 284) to copy strips verbatim — the fax decoder (`Fax3Decode1D` / `CLEANUP_RUNS`) is never invoked. The vulnerability is only reachable via tools that call `TIFFReadEncodedStrip` or `TIFFReadScanline` (e.g., `fax2tiff`, `tiff2pdf`). |
+
+No runnable PoC was generated. Files written: `vuln_001_status.txt` (first line: `SKIPPED`) and `vuln_001_notes.md` with source-level justification.

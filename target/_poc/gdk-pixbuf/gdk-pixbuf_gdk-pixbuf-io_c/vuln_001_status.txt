@@ -1,0 +1,13 @@
+VERIFIED_CRASH
+
+Date: 2026-09-07
+Binary: /data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/bin/gdk-pixbuf-pixdata
+Input: vuln_001.gdkp (24 bytes, length=24, rowstride=10000, width=100, height=100)
+ASAN log: asan_001.log.*
+
+Crash: AddressSanitizer: heap-buffer-overflow
+  READ of size 1,000,000 at gdk_pixbuf_from_pixdata (libgdk_pixbuf-2.0.so)
+  triggered via: main → gdk_pixbuf_new_from_file → _gdk_pixbuf_generic_image_load
+    → generic_load_incrementally → pixdata_image_load_increment → try_load
+    → gdk_pixbuf_from_pixdata → memcpy (OOB)
+  0 bytes to the right of 128-byte GString region

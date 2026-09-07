@@ -1,0 +1,60 @@
+==1869664==ERROR: AddressSanitizer failed to allocate 0x352000 (3481600) bytes of AddrHashMap (error code: 12)
+==1869664==Process memory map follows:
+	0x556426d56000-0x556426e0c000	/data/ylwang/non-textfuzz/target/flvmeta/build_test/src/flvmeta
+	0x556426e0c000-0x556426e8a000	/data/ylwang/non-textfuzz/target/flvmeta/build_test/src/flvmeta
+	0x556426e8a000-0x556426ea8000	/data/ylwang/non-textfuzz/target/flvmeta/build_test/src/flvmeta
+	0x556426ea8000-0x556426ea9000	/data/ylwang/non-textfuzz/target/flvmeta/build_test/src/flvmeta
+	0x556426ea9000-0x556426f75000	/data/ylwang/non-textfuzz/target/flvmeta/build_test/src/flvmeta
+	0x7f834f29c000-0x7f834f29f000	
+	0x7f834f29f000-0x7f834f339000	/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
+	0x7f834f339000-0x7f834f44a000	/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
+	0x7f834f44a000-0x7f834f4b9000	/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
+	0x7f834f4b9000-0x7f834f4ba000	/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
+	0x7f834f4ba000-0x7f834f4c5000	/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
+	0x7f834f4c5000-0x7f834f4c8000	/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
+	0x7f834f4c8000-0x7f834f4cd000	
+	0x7f834f4cd000-0x7f834f4d0000	/usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+	0x7f834f4d0000-0x7f834f4e7000	/usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+	0x7f834f4e7000-0x7f834f4eb000	/usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+	0x7f834f4eb000-0x7f834f4ec000	/usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+	0x7f834f4ec000-0x7f834f4ed000	/usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+	0x7f834f4ed000-0x7f834f515000	/usr/lib/x86_64-linux-gnu/libc.so.6
+	0x7f834f515000-0x7f834f6aa000	/usr/lib/x86_64-linux-gnu/libc.so.6
+	0x7f834f6aa000-0x7f834f702000	/usr/lib/x86_64-linux-gnu/libc.so.6
+	0x7f834f702000-0x7f834f703000	/usr/lib/x86_64-linux-gnu/libc.so.6
+	0x7f834f703000-0x7f834f707000	/usr/lib/x86_64-linux-gnu/libc.so.6
+	0x7f834f707000-0x7f834f709000	/usr/lib/x86_64-linux-gnu/libc.so.6
+	0x7f834f709000-0x7f834f716000	
+	0x7f834f716000-0x7f834f71d000	/usr/lib/x86_64-linux-gnu/libubsan.so.1.0.0
+	0x7f834f71d000-0x7f834f75d000	/usr/lib/x86_64-linux-gnu/libubsan.so.1.0.0
+	0x7f834f75d000-0x7f834f774000	/usr/lib/x86_64-linux-gnu/libubsan.so.1.0.0
+	0x7f834f774000-0x7f834f776000	/usr/lib/x86_64-linux-gnu/libubsan.so.1.0.0
+	0x7f834f776000-0x7f834f779000	/usr/lib/x86_64-linux-gnu/libubsan.so.1.0.0
+	0x7f834f779000-0x7f834fd4b000	
+	0x7f834fd4b000-0x7f834fd59000	/usr/lib/x86_64-linux-gnu/libm.so.6
+	0x7f834fd59000-0x7f834fdd5000	/usr/lib/x86_64-linux-gnu/libm.so.6
+	0x7f834fdd5000-0x7f834fe30000	/usr/lib/x86_64-linux-gnu/libm.so.6
+	0x7f834fe30000-0x7f834fe31000	/usr/lib/x86_64-linux-gnu/libm.so.6
+	0x7f834fe31000-0x7f834fe32000	/usr/lib/x86_64-linux-gnu/libm.so.6
+	0x7f834fe32000-0x7f834fe56000	/usr/lib/x86_64-linux-gnu/libasan.so.6.0.0
+	0x7f834fe56000-0x7f834ff2d000	/usr/lib/x86_64-linux-gnu/libasan.so.6.0.0
+	0x7f834ff2d000-0x7f834ff5f000	/usr/lib/x86_64-linux-gnu/libasan.so.6.0.0
+	0x7f834ff5f000-0x7f834ff60000	/usr/lib/x86_64-linux-gnu/libasan.so.6.0.0
+	0x7f834ff60000-0x7f834ff64000	/usr/lib/x86_64-linux-gnu/libasan.so.6.0.0
+	0x7f834ff64000-0x7f834ff67000	/usr/lib/x86_64-linux-gnu/libasan.so.6.0.0
+	0x7f834ff67000-0x7f835081d000	
+	0x7f835081d000-0x7f8350835000	
+	0x7f8350835000-0x7f8350837000	/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+	0x7f8350837000-0x7f8350861000	/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+	0x7f8350861000-0x7f835086c000	/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+	0x7f835086c000-0x7f835086d000	
+	0x7f835086d000-0x7f835086f000	/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+	0x7f835086f000-0x7f8350871000	/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+	0x7ffd838dc000-0x7ffd838fd000	[stack]
+	0x7ffd8395e000-0x7ffd83962000	[vvar]
+	0x7ffd83962000-0x7ffd83964000	[vdso]
+	0xffffffffff600000-0xffffffffff601000	[vsyscall]
+==1869664==End of process memory map.
+==1869664==AddressSanitizer CHECK failed: ../../../../src/libsanitizer/sanitizer_common/sanitizer_common.cpp:54 "((0 && "unable to mmap")) != (0)" (0x0, 0x0)
+    <empty stack>
+

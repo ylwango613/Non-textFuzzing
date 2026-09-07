@@ -1,0 +1,11 @@
+TIFFReadDirectory: Warning, vuln_002.tif: Bogus "StripByteCounts" field, ignoring and calculating from imagelength.
+/tmp/pal2rgb_out_002.tif: Integer overflow in TIFFScanlineSize.
+/tmp/pal2rgb_out_002.tif: Integer overflow in TIFFScanlineSize.
+Warning, assuming 8-bit colormap.
+/tmp/pal2rgb_out_002.tif: Integer overflow in TIFFScanlineSize.
+/tmp/pal2rgb_out_002.tif: Integer overflow in TIFFScanlineSize.
+TIFFFillStrip: vuln_002.tif: Read error on strip 0; got 1 bytes, expected 536870911.
+==425823==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000071 at pc 0x561545e30306 bp 0x7ffd087867f0 sp 0x7ffd087867e0
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/pal2rgb+0x8305) in main
+==456214==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000091 at pc 0x55939b66d306 bp 0x7fff96133ca0 sp 0x7fff96133c90
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/pal2rgb+0x8305) in main

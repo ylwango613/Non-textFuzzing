@@ -1,0 +1,17 @@
+The subagent has completed. Here is the summary:
+
+---
+
+## PoC Generation Summary — `libtiff_tif_pixarlog_c`
+
+| VULN # | Name | Status |
+|--------|------|--------|
+| 001 | PixarLogDecode heap buffer overflow (8BITABGR, 3-channel) | **SKIPPED** |
+
+**Reason for SKIPPED**: Three independent blockers prevent command-line triggering via `tiffsplit`:
+
+1. `tiffsplit` uses `TIFFReadRawStrip()` (raw copy path), so `PixarLogDecode()` is never invoked.
+2. `TIFFTAG_PIXARLOGDATAFMT` is a pseudo-tag — it cannot be embedded in a TIFF file's IFD, only set programmatically by an application.
+3. `PixarLogGuessDataFmt()` never auto-selects `PIXARLOGDATAFMT_8BITABGR`, so no file-level attribute can push execution into the vulnerable branch.
+
+Files written: `vuln_001_status.txt` (first line: `SKIPPED`) and `vuln_001_notes.md` explaining all blockers.

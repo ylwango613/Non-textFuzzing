@@ -1,0 +1,3 @@
+TIFFReadDirectory: Warning, vuln_004.tif: TIFF directory is missing required "StripByteCounts" field, calculating from imagelength.
+==607316==ERROR: LeakSanitizer: detected memory leaks
+SUMMARY: AddressSanitizer: 2365 byte(s) leaked in 5 allocation(s).

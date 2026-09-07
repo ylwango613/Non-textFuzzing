@@ -1,0 +1,12 @@
+両サブエージェントが完了しました。以下が最終結果です。
+
+---
+
+## 汇总结果
+
+| VULN 編号 | 関数 | 状態 | 理由 |
+|-----------|------|------|------|
+| VULN 001 | `TIFFNewScanlineSize()` (L332-336) | **SKIPPED** | tiffsplit は RGBA API (`TIFFRGBAImageGet`) を使用しない。触発パス `TIFFRGBAImageGet() → gtStripContig()` には tiffsplit 経由では到達不可能。 |
+| VULN 002 | `TIFFRasterScanlineSize()` (L369-371) | **SKIPPED** | tiffsplit は `TIFFRasterScanlineSize()` も `cpImage()` も呼ばない。攻撃パスで必要な `cpImage()` は `tiffcp.c` の関数であり、tiffsplit バイナリには含まれない。 |
+
+**結論**: `tif_strip.c` で発見された 2 件の漏洞はいずれも、PoC バイナリ `tiffsplit` の実行パスでは到達不能なコードパス（RGBA API / tiffcp専用関数）に存在するため、両方 SKIPPED となりました。これらの漏洞を実際に再現するには `tiff2rgba` や `tiffcp` バイナリが必要です。

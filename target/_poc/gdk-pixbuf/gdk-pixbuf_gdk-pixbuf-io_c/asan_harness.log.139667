@@ -1,0 +1,50 @@
+=================================================================
+==139667==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x503000000388 at pc 0x7fc9f04be397 bp 0x7ffc268a40b0 sp 0x7ffc268a3858
+READ of size 3 at 0x503000000388 thread T0
+    #0 0x7fc9f04be396 in __interceptor_memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827
+    #1 0x7fc9f03c83ca in gdk_pixbuf_from_pixdata (/data/ylwang/non-textfuzz/target/gdk-pixbuf/build_test/lib/libgdk_pixbuf-2.0.so.0+0xad3ca)
+    #2 0x55a31ed0e2f9 in main (/data/ylwang/non-textfuzz/target/_poc/gdk-pixbuf/gdk-pixbuf_gdk-pixbuf-io_c/harness_001+0x42f9)
+    #3 0x7fc9ef949d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x7fc9ef949e3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #5 0x55a31ed0d2e4 in _start (/data/ylwang/non-textfuzz/target/_poc/gdk-pixbuf/gdk-pixbuf_gdk-pixbuf-io_c/harness_001+0x32e4)
+
+0x503000000388 is located 0 bytes to the right of 24-byte region [0x503000000370,0x503000000388)
+allocated by thread T0 here:
+    #0 0x7fc9f0538887 in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:145
+    #1 0x7fc9f01de738 in g_malloc (/lib/x86_64-linux-gnu/libglib-2.0.so.0+0x5e738)
+    #2 0x7fc9ef949d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 in __interceptor_memcpy
+Shadow bytes around the buggy address:
+  0x0a067fff8020: fd fd fd fd fa fa fd fd fd fd fa fa fd fd fd fd
+  0x0a067fff8030: fa fa fd fd fd fd fa fa fd fd fd fd fa fa fd fd
+  0x0a067fff8040: fd fd fa fa fd fd fd fa fa fa fd fd fd fd fa fa
+  0x0a067fff8050: 00 00 00 00 fa fa 00 00 00 00 fa fa 00 00 00 00
+  0x0a067fff8060: fa fa 00 00 00 00 fa fa 00 00 00 00 fa fa 00 00
+=>0x0a067fff8070: 00[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a067fff8080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a067fff8090: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a067fff80a0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a067fff80b0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a067fff80c0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==139667==ABORTING

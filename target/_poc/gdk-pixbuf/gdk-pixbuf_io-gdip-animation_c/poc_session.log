@@ -1,0 +1,30 @@
+全 PoC が完成しました。結果サマリーを以下に示します。
+
+---
+
+## PoC 生成結果まとめ
+
+| VULN | 脆弱性名 | ステータス | 理由 |
+|------|----------|-----------|------|
+| **001** | Heap OOB Read in `gdip_bitmap_get_frame_delay` (CWE-125) | `SKIPPED` | GDI+ は Windows 専用ライブラリ、Linux ビルドに GIF ローダー無し |
+| **002** | NULL Ptr Deref via unchecked `g_try_malloc` (CWE-476) | `SKIPPED` | GDI+ ローダー不在 + OOM 条件が必要（ファイルのみでは誘発不可） |
+
+### 生成ファイル一覧
+
+```
+_poc/gdk-pixbuf/gdk-pixbuf_io-gdip-animation_c/
+├── vuln_001_gen.py      # 5フレーム GIF (DelayEntry=2 のみ) 生成スクリプト
+├── vuln_001.gif         # 生成された悪意ある GIF (345 bytes)
+├── vuln_001_run.sh      # 実行スクリプト (chmod +x 済み)
+├── vuln_001_notes.md    # 脆弱性詳細・環境要件の説明
+├── vuln_001_status.txt  # SKIPPED (1行目)
+├── vuln_002_gen.py      # 20フレーム大型 GIF (NETSCAPE loop拡張) 生成スクリプト
+├── vuln_002.gif         # 生成された悪意ある GIF (10,461 bytes)
+├── vuln_002_run.sh      # 実行スクリプト (chmod +x 済み)
+├── vuln_002_notes.md    # 2つのブロッカー詳細説明
+└── vuln_002_status.txt  # SKIPPED (1行目)
+```
+
+### SKIPPED の根本理由
+
+両脆弱性は `io-gdip-utils.c` の GDI+ API 依存コードに存在します。GDI+ (`GdiPlus.dll` / `libgdiplus`) は Windows 専用ライブラリであり、このビルドには GIF/GDI+ ローダーがコンパイルされていません（確認済み: ライブラリ内の `fill_vtable` シンボルは `_gdk_pixbuf__pixdata_fill_vtable` のみ）。実際の ASAN クラッシュ確認には **Windows + GDI+ 対応の gdk-pixbuf ビルド** が必要です。

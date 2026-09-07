@@ -1,0 +1,12 @@
+## 결과 요약
+
+| VULN # | 제목 | 상태 |
+|--------|------|------|
+| 001 | Win32ErrorHandler / Win32WarningHandler Heap Buffer Overflow via Unchecked vsprintf | **SKIPPED** |
+
+**SKIPPED 사유**: `tif_win32.c`의 `Win32ErrorHandler`/`Win32WarningHandler`는 Windows 전용 코드입니다. 세 가지 확인 결과:
+1. 소스 코드가 `<windows.h>`에 의존하며 Win32 API만 사용
+2. 타겟 바이너리는 Linux ELF x86-64 (Linux 5.15 환경)
+3. `nm` 으로 확인 시 해당 심볼이 바이너리에 존재하지 않음
+
+Linux 빌드는 `tif_unix.c`를 사용하므로 이 취약점 코드 경로는 아예 컴파일되지 않습니다. 커맨드라인으로 TIFF 파일을 전달해도 해당 코드에 도달할 수 없어 SKIPPED 처리했습니다.

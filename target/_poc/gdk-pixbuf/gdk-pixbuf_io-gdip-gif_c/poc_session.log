@@ -1,0 +1,33 @@
+両サブエージェント完了。最終結果を報告します。
+
+---
+
+## PoC 生成結果まとめ
+
+| ID | 脆弱性 | ステータス | 理由 |
+|----|--------|-----------|------|
+| VULN 001 | OOB Heap Read in `gdip_bitmap_get_frame_delay` (CWE-125) | **SKIPPED** | Windows GDI+ 専用、Linux バイナリに GDI+ なし |
+| VULN 002 | NULL Pointer Dereference via unchecked `g_try_malloc` (CWE-476) | **SKIPPED** | 同上、GIF ローダー自体が未登録 |
+
+---
+
+## 共通の根本原因
+
+両脆弱性とも `io-gdip-*.c`（GDI+ バックエンド）に存在するが、対象バイナリは **Linux ビルド**であり：
+
+1. バイナリに `gdip` シンボルが一切存在しない
+2. `loaders.cache` に GIF ローダーエントリが登録されていない（JPEG・PNG のみ）
+3. 実行すると `Couldn't recognize the image file format for file '*.gif'` で終了
+
+GDI+ は Windows の `gdiplus.dll` に依存する Windows 専用 API であり、Linux 環境では脆弱なコードパスに到達不可能。
+
+---
+
+## 生成済みファイル
+
+`/data/ylwang/non-textfuzz/target/_poc/gdk-pixbuf/gdk-pixbuf_io-gdip-gif_c/` に以下を作成:
+
+- `vuln_001_gen.py` / `vuln_001.gif` / `vuln_001_run.sh` / `vuln_001_notes.md` / `vuln_001_status.txt`
+- `vuln_002_gen.py` / `vuln_002.gif` / `vuln_002_alt.gif` / `vuln_002_run.sh` / `vuln_002_notes.md` / `vuln_002_status.txt`
+
+**結論**: 当該レポートの全脆弱性は Linux 環境では再現不可。Windows 環境上の GDI+ バックエンドビルドでのみ検証可能。

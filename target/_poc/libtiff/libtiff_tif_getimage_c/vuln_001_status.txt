@@ -1,0 +1,24 @@
+SKIPPED
+
+Reason 1 – Wrong tool for the described code path:
+  tiffsplit does not call TIFFRGBAImageBegin(), TIFFRGBAImageGet(), or
+  gtTileContig() anywhere in its source code. Its tiled-image pipeline is:
+    main() -> tiffcp() -> cpTiles() -> TIFFReadRawTile() / TIFFWriteRawTile()
+  The gtTileContig vulnerability is only reachable via the TIFFRGBAImage API.
+
+Reason 2 – TIFFReadDirectory rejects the file before cpTiles() is reached:
+  When TileWidth=65536 and TileLength=65536, libtiff's TIFFVTileSize()
+  detects the 32-bit integer overflow via multiply() and reports:
+    "Integer overflow in TIFFVTileSize."
+  TIFFReadDirectory then fails with:
+    "cannot handle zero tile size."
+  The TIFF is treated as invalid and TIFFOpen() returns NULL, so no further
+  processing (including cpTiles) occurs.
+
+ASAN output (asan.log): Only LeakSanitizer memory-leak reports.
+  No heap-buffer-overflow, use-after-free, or other OOB errors detected.
+
+To reproduce the actual vulnerability, use a harness that calls
+TIFFRGBAImageBegin() + TIFFRGBAImageGet() (e.g. tiff2rgba or a custom
+driver), and target a libtiff version where TIFFReadDirectory does not
+reject zero tile sizes.

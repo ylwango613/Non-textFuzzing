@@ -1,0 +1,14 @@
+All 4 PoCs are complete. Here is the final summary:
+
+---
+
+## PoC Results — gdk-pixbuf (`gdk-pixbuf.c`)
+
+| VULN | Title | Status | Evidence |
+|------|-------|--------|----------|
+| **001** | Heap Buffer Overflow — RLE repeat-run `0x80` | **VERIFIED_CRASH** | ASAN: `heap-buffer-overflow WRITE of size 3`, 0 bytes past end of 48-byte buffer in `gdk_pixbuf_from_pixdata()` |
+| **002** | Heap OOB Read — truncated RLE input | **VERIFIED_CRASH** | ASAN: `heap-buffer-overflow READ of size 3`, 0 bytes past end of 128-byte buffer in `gdk_pixbuf_from_pixdata()` |
+| **003** | Integer Overflow in `gdk_pixbuf_new_from_bytes()` | **SKIPPED** | No image loader calls this API; `gdk-pixbuf-pixdata` uses `gdk_pixbuf_new_from_file()` which bypasses the vulnerable code path entirely |
+| **004** | Infinite Loop DoS — RLE literal-run `0x00` | **UNVERIFIED** | `pixdata_get_length()` in `io-pixdata.c` guards against zero-length literal runs before `gdk_pixbuf_from_pixdata()` is called, so the binary rejects the file as "Image pixel data corrupt". Underlying bug exists but is not reachable via `gdk-pixbuf-pixdata`. |
+
+**Key discovery**: The correct `pixdata_type` field encoding is `0x02010001` (not `0x00020001` as written in the report) — `GDK_PIXDATA_ENCODING_RLE (0x02<<24) | GDK_PIXDATA_SAMPLE_WIDTH_8 (0x01<<16) | GDK_PIXDATA_COLOR_TYPE_RGB (0x01)`. All generated files are in `/data/ylwang/non-textfuzz/target/_poc/gdk-pixbuf/gdk-pixbuf_gdk-pixbuf_c/`.

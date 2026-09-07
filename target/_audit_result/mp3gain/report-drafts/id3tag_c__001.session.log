@@ -1,0 +1,1 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/mp3gain/report-drafts/id3tag_c__001.md` has been written with the required structure: the `## Bug0:` heading, one-sentence description, complete self-contained PoC Python script (with absolute paths removed), bash run commands, inline ASAN result lines, and a three-sentence Impact section.

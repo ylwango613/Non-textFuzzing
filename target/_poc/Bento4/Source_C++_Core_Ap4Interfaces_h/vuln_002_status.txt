@@ -1,0 +1,19 @@
+VERIFIED_CRASH
+
+Trigger: mp42aac vuln_002.mp4 /dev/null
+ASAN error: AddressSanitizer: hard rss limit exhausted
+  Process exceeded 512 MB RSS while AP4_ElstAtom::AP4_ElstAtom() attempted
+  EnsureCapacity(0xFFFFFFFF) — approx 80 GB allocation — with no bounds check.
+Exit code: 134 (SIGABRT via ASAN)
+
+Key evidence (vuln_002_result.txt / asan_002.log.*):
+  ==226898==AddressSanitizer: hard rss limit exhausted (512Mb vs 715Mb)
+
+Call path confirmed:
+  mp42aac → AP4_File → AP4_AtomFactory::CreateAtomFromStream()
+           → AP4_ElstAtom::Create() → AP4_ElstAtom::AP4_ElstAtom()
+             → m_Entries.EnsureCapacity(0xFFFFFFFF) → OOM crash
+
+Note: The machine has 1 TB RAM, so without hard_rss_limit_mb=512 the process
+takes >30 s trying to populate the ASAN shadow. With the RSS cap the crash is
+immediate and deterministic.

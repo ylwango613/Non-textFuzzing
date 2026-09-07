@@ -1,0 +1,16 @@
+UNVERIFIED
+mp42aac does not link AP4_HintTrackReader (confirmed via nm: no HintTrackReader symbols).
+The binary only processes TYPE_AUDIO tracks via WriteSamples(); it never calls
+AP4_HintTrackReader::Create() or GetNextPacket(), so the underflow path in
+WriteSampleRtpData (GetSampleNum()-1 when sample_num=0) is not reachable.
+
+Run result: mp42aac found the audio track (track_id=2, 0 samples) and exited
+cleanly with no crash and no ASAN report. The hint track was silently ignored.
+
+The crafted MP4 is correctly structured:
+  - Hint track (track_id=1): tref/hint->track_id=2, stco offset=32, 1 sample of
+    32 bytes whose SAMPLE constructor has sample_num=0 (underflow trigger).
+  - Audio track (track_id=2): mp4a/AAC-LC stsd, empty sample table.
+
+The underflow will trigger in any binary that instantiates AP4_HintTrackReader
+and calls GetNextPacket() on this file (e.g., mp4rtphintinfo or a fuzzing harness).

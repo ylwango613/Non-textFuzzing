@@ -1,0 +1,12 @@
+UNVERIFIED
+mp42aac output: "ERROR: unable to parse sample description" (no crash)
+Reason: mp42aac does NOT call AP4_HintTrackReader::Create(). It only processes
+  audio tracks and returns early when the stsd has no sample entries.
+  The AP4_HintTrackReader constructor (the vulnerable function) is never invoked.
+Correct trigger binary: mp4rtphintinfo (Source/C++/Apps/Mp4RtpHintInfo/)
+  -- calls AP4_HintTrackReader::Create(*hint_track, *movie, ssrc, reader)
+  -- this binary is NOT compiled in build_test/bin/
+Vulnerability confirmed by static analysis:
+  Ap4HintTrackReader.cpp:67-70: movie.GetTrack(media_track_id) not null-checked
+  before m_MediaTrack->GetMediaTimeScale() -> SIGSEGV when ID=0xDEADBEEF absent
+PoC file vuln_002.mp4 is correct and would trigger crash with mp4rtphintinfo.

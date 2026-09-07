@@ -1,0 +1,7 @@
+## 汇总结果
+
+| VULN | 漏洞名称 | 状态 |
+|------|---------|------|
+| 001 | Integer Overflow in TIFFWriteRationalArray malloc | **SKIPPED** |
+
+**跳过原因**：该漏洞无法通过向 tiffsplit 传入构造的 TIFF 文件触发。关键阻断点在读取路径：`_TIFFCheckMalloc` 尝试为 count=0x80000001 的 RATIONAL tag 分配 ~8 GB 内存，在系统上必然失败，导致 `TIFFSetField()` 根本不会被调用，tag 不会存入 `td_customValues`，写路径 `TIFFWriteRationalArray()` 永远不会以攻击者控制的大 count 执行。实际运行验证：tiffsplit 输出 `"Failed to allocate memory for to fetch tag value"` 后正常退出，无 ASAN/UBSAN 报错。触发该漏洞需要通过源码注册自定义 tag（`TIFFMergeFieldInfo()` + `TIFFSetField()`），不属于命令行文件输入可触发范围。

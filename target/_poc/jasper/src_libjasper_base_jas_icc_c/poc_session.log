@@ -1,0 +1,20 @@
+**VULN 002 완료 — VERIFIED_CRASH**
+
+두 취약점 모두 완료되었습니다. 결과 요약:
+
+---
+
+## 최종 결과
+
+| # | 취약점 | 함수 | 상태 | ASAN 에러 |
+|---|--------|------|------|-----------|
+| 001 | Heap OOB write (asclen=0) | `jas_icctxtdesc_input` | **VERIFIED_CRASH** | `heap-buffer-overflow WRITE of size 1` at `ascdata[-1]` |
+| 002 | Heap buffer underwrite (cnt=0) | `jas_icctxt_input` | **VERIFIED_CRASH** | `heap-buffer-overflow WRITE of size 1` at `string[-1]` |
+
+### 공통 패턴
+두 취약점 모두 동일한 메커니즘: `unsigned_var(0) - 1` 정수 언더플로 → `ptr[UINT_MAX]` 또는 `ptr[-1]` 위치에 1바이트 `'\0'` 쓰기 → ASAN의 heap left redzone 적중.
+
+### 생성된 파일 위치
+`/data/ylwang/non-textfuzz/target/_poc/jasper/src_libjasper_base_jas_icc_c/`
+- `vuln_001_gen.py`, `vuln_001_run.sh`, `vuln_001_notes.md`, `vuln_001_status.txt`
+- `vuln_002_gen.py`, `vuln_002_run.sh`, `vuln_002_notes.md`, `vuln_002_status.txt`

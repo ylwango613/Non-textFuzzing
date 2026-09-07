@@ -1,0 +1,2 @@
+TIFFReadDirectory: Warning, vuln_001.tif: unknown field with tag 65513 (0xffe9) encountered.
+vuln_001.tif: Failed to allocate memory for to fetch tag value (2147483649 elements of 4 bytes each).

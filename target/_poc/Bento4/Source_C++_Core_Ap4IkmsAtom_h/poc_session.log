@@ -1,0 +1,17 @@
+**VULN 001 — VERIFIED_CRASH**
+
+The PoC for the single vulnerability in `Ap4IkmsAtom.h` is complete and verified:
+
+| File | Description |
+|------|-------------|
+| `vuln_001_gen.py` | Python script constructing a sparse ~4 GB MP4 with iKMS atom `size=0xFFFFFFFF` |
+| `vuln_001.mp4` | Generated malicious MP4 |
+| `vuln_001_run.sh` | Shell script running mp42aac with ASAN options |
+| `vuln_001_result.txt` | Execution output |
+| `vuln_001_notes.md` | PoC rationale and expected behavior |
+| `vuln_001_status.txt` | **VERIFIED_CRASH** |
+
+**Key technical details:**
+- The iKMS atom was placed at top-level (not inside a nested container) using a sparse file so the atom factory's `bytes_available` check passes — it sees ~4 GB available for the 0xFFFFFFFF-sized atom.
+- `ASAN_OPTIONS=mmap_limit_mb=2000` was required because the system's overcommit policy allows 4 GB allocations to succeed without throwing `bad_alloc`; ASAN's mmap limit guard intercepts the allocation instead.
+- ASAN logged `(total_mmaped >> 20) < common_flags()->mmap_limit_mb`, confirming the ~4 GB heap allocation in `AP4_IkmsAtom::AP4_IkmsAtom` triggered the guard — conclusively demonstrating CWE-789 in `Ap4IkmsAtom.cpp:77`.

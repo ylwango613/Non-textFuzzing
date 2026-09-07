@@ -1,0 +1,15 @@
+=== VULN 002 — tiffsplit run ===
+TIF: /data/ylwang/non-textfuzz/target/_poc/libtiff/libtiff_tif_getimage_c/vuln_002.tif
+
+TIFFReadDirectory: Warning, /data/ylwang/non-textfuzz/target/_poc/libtiff/libtiff_tif_getimage_c/vuln_002.tif: Bogus "StripByteCounts" field, ignoring and calculating from imagelength.
+TIFFReadRawStrip: /data/ylwang/non-textfuzz/target/_poc/libtiff/libtiff_tif_getimage_c/vuln_002.tif: Read error at scanline 4294967295, strip 0; got 16 bytes, expected 262144.
+
+=== ASAN log ===
+==2580879==ERROR: LeakSanitizer: detected memory leaks
+SUMMARY: AddressSanitizer: 2458 byte(s) leaked in 5 allocation(s).
+
+=== NOTE ===
+tiffsplit calls cpStrips() (raw strip copy) and NEVER calls
+TIFFRGBAImageBegin / TIFFRGBAImageGet / gtStripContig.
+The VULN 002 code path is therefore NOT reachable via tiffsplit.
+Status: SKIPPED

@@ -1,0 +1,13 @@
+## VULN: Heap OOB Read in MP3GAIN_MINMAX APE Field Parsing
+- **漏洞类别**: memory-safety
+- **函数**: ReadMP3APETag()
+- **行号**: 243-253
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:L)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP3 file
+- **外部触发路径**: mp3gain main() -> ReadMP3GainAPETag() -> ReadMP3APETag() -> MP3GAIN_MINMAX branch at line 243
+- **描述**: 与 MP3GAIN_UNDO 同根因：`vsize` 无下限校验，可为 0。当 item name 匹配 "MP3GAIN_MINMAX" 时，line 247 执行 `memcpy(tmpString, vp, 3)`（读 3 字节，而 value 仅 1 字节时越界 2 字节），line 251 执行 `memcpy(tmpString, vp, 3)`（vp=value+4，读 3 字节，越界 7 字节）。两次 memcpy 均将堆外数据复制进栈上的 `tmpString[10]` 缓冲区。
+- **触发条件**: 攻击者构造 APE tag，包含 name="MP3GAIN_MINMAX"（任意大小写）、vsize=0 的 APE item，放置于 MP3 文件尾部。
+- **安全影响**: 读取 value 缓冲区后方的堆数据（可能含指针、其他字段内容），信息泄露；结合进一步利用可能辅助绕过 ASLR。
+

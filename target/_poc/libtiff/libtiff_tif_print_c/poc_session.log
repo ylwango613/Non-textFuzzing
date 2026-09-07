@@ -1,0 +1,9 @@
+All 3 agents have completed. Here is the summary:
+
+| VULN | Title | Status | Reason |
+|------|-------|--------|--------|
+| 001 | Heap OOB Read via Out-of-Order COLORMAP/BITSPERSAMPLE | **SKIPPED** | `tiffsplit` never calls `TIFFPrintDirectory()`; only `tiffinfo -c` reaches the vulnerable code at tif_print.c:464-470 |
+| 002 | Heap OOB Read via Out-of-Order TRANSFERFUNCTION/BITSPERSAMPLE | **SKIPPED** | Same reason — `tiffsplit` has no call to `TIFFPrintDirectory()`; vulnerable path at tif_print.c:478-481 unreachable |
+| 003 | NULL Pointer Dereference via Out-of-Order EXTRASAMPLES/TRANSFERFUNCTION | **SKIPPED** | Same reason — `tiffsplit` has no call to `TIFFPrintDirectory()`; vulnerable path at tif_print.c:482-484 unreachable |
+
+All 3 vulnerabilities in `libtiff/tif_print.c` are in `TIFFPrintDirectory()`, which is exclusively called by `tiffinfo` (with the `-c` flag) and not by `tiffsplit`. Since the only permitted trigger binary is `tiffsplit`, none of these vulnerabilities can be reached via command-line TIFF file input, and all were correctly marked SKIPPED per the rules.

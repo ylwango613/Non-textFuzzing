@@ -1,0 +1,13 @@
+## VULN: TIFFReadRawStrip1 mmap bounds-check uint32 overflow → OOB read
+- **漏洞类别**: memory-safety
+- **函数**: TIFFReadRawStrip1()
+- **行号**: 197-209
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 7.1 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted TIFF file
+- **外部触发路径**: tiffsplit main() → TIFFOpen() → tiffcp() → cpStrips() → TIFFReadRawStrip() → TIFFReadRawStrip1() (mmap 分支, line 197-208)
+- **描述**: 在内存映射（mmap）路径中，函数对 strip 的可读性做边界检查的代码为 `td->td_stripoffset[strip] + size > tif->tif_size`（第 197 行）。`td_stripoffset[strip]` 类型为 `toff_t`（uint32），`size` 类型为 `tsize_t`（int32），两者相加按 uint32 模运算处理。当攻击者将 TIFF 文件中的 StripOffset 字段设置为接近 UINT32_MAX 的值（如 0xFFFFFF00），且 StripByteCount 为小正整数（如 256）时：`0xFFFFFF00 + 256 = 0x100000000` 在 uint32 下溢出为 `0`，条件 `0 > tif_size` 为假，边界检查被绕过。随后 `_TIFFmemcpy(buf, tif->tif_base + 0xFFFFFF00, 256)` 从映射基址 +4GiB 偏移处读取数据，该地址远超实际映射文件区域，触发 OOB read。对比同文件的 `TIFFFillStrip` 函数（第 300–310 行），其注释明确指出该加法会溢出并采用两步安全比较 `bytecount > tif_size || offset > tif_size - bytecount`，但 `TIFFReadRawStrip1` 的修复补丁从未应用。
+- **触发条件**: 构造 TIFF 文件，设置 `StripOffset[n]` ≥ `UINT32_MAX - StripByteCount[n] + 1`（如 StripOffset=0xFFFFFF00, StripByteCount=256），令 `(offset + bytecount) mod 2^32 ≤ tif_size`。文件在具有 mmap 支持的系统（Linux 默认开启 HAVE_MMAP）上用 tiffsplit 解析即可触发。
+- **安全影响**: 可靠 crash（SIGSEGV/DoS）；若进程地址空间中 mmap_base+offset 恰好落入已映射页（如共享库、堆等），可造成堆外任意地址内容被写入栈/堆缓冲区（信息泄露）；在 32 位进程中地址回绕后可能进一步升级为可利用的堆缓冲区溢出。
+

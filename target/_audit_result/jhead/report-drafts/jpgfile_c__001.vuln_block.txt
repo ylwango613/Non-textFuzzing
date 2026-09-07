@@ -1,0 +1,13 @@
+## VULN: GPS Lat/Long Out-of-Bounds Read via Under-counted Components
+- **漏洞类别**: memory-safety
+- **函数**: ProcessGpsInfo()
+- **行号**: 141-163 (gpsinfo.c)
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N)
+- **严重程度**: Medium
+- **攻击向量**: crafted JPEG file
+- **外部触发路径**: jhead main() -> ReadImgFile() -> ReadJpegFile() -> ReadJpegSections() -> process_EXIF(Data+8, itemlen-8) -> ProcessExifDir() [TAG_GPSINFO handler] -> ProcessGpsInfo(SubdirStart, OffsetBase, ExifLength)
+- **描述**: `ProcessGpsInfo()` 中处理 `TAG_GPS_LAT` 和 `TAG_GPS_LONG` 时，for 循环硬编码迭代 3 次（`for (a=0;a<3;a++)`）来读取三组有理数，但前面的边界验证只校验了 `OffsetVal + Components*ComponentSize <= ExifLength`。当攻击者将 IFD 条目的 `Components` 字段设置为 1 或 2（而非合法的 3）时，边界检查只验证 8 或 16 字节的范围，但循环仍会读取 24 字节（3×8，FMT_URATIONAL）。迭代 a=1 时 `ConvertAnyFormat(ValuePtr+8, ...)` 和 `Get32s(ValuePtr+12)` 超出已验证范围（Components=1 时），迭代 a=2 时 `ConvertAnyFormat(ValuePtr+16, ...)` 和 `Get32s(ValuePtr+20)` 进一步越界，最多读取 16 字节（Components=1）超出已验证内存区域的未初始化堆内存。由于 `jpgfile.c` 在 `malloc(itemlen+20)` 后只对前 20 字节调用 `memset(Data,0,20)`，末尾 20 字节 padding 区域（`Data[itemlen..itemlen+19]`）为未初始化状态，越界读取正好落入此区域，包含先前堆分配的残留内容。
+- **触发条件**: 构造如下 JPEG 文件：EXIF 段内含 GPS IFD，其中 `TAG_GPS_LAT`（或 `TAG_GPS_LONG`）条目的 `Format=FMT_URATIONAL`（5），`Components=1`（正常应为 3），`OffsetVal` 指向 EXIF 段末尾 8 字节处（令 OffsetVal = ExifLength - 8 使越界读最大化）。
+- **安全影响**: 读取最多 16 字节未初始化堆内存（位于 malloc padding 区），可能泄露进程堆上的残留数据（指针值、先前释放对象内容、堆元数据），构成信息泄露。在 AddressSanitizer 下可触发 heap-buffer-overflow 报告，用于进一步辅助堆布局分析或利用。
+

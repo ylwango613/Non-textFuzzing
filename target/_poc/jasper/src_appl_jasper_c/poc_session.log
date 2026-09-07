@@ -1,0 +1,27 @@
+Both subagents have completed. Here is the final summary:
+
+---
+
+## PoC Results — `jasper/src_appl_jasper_c`
+
+| # | Vulnerability | Status | Details |
+|---|---|---|---|
+| 001 | Heap OOB read — CDEF/CMAP numchans mismatch (`jp2_dec.c:403`) | **VERIFIED_CRASH** | ASAN reports `heap-buffer-overflow` READ of size 8 at 0 bytes past a 24-byte CDEF `ents` allocation. Loop iterates `numchans=3` (from CMAP) but only 1 `jp2_cdefchan_t` was allocated (from CDEF), hitting OOB at `i=1`. |
+| 002 | Heap OOB read — CMAP `pcol` unchecked vs PCLR `numchans` (`jp2_dec.c:372,377`) | **UNVERIFIED** | The PoC correctly reaches the code path and triggers `"error: invalid CMAP LUT index"`, but the `build_test` binary already has a bounds-check guard compiled in at line 343 (`if pcol >= numchans → error`), preventing the OOB before ASAN can observe it. The vulnerability exists in the unpatched source. |
+
+### Artifacts produced
+```
+_poc/jasper/src_appl_jasper_c/
+  vuln_001_gen.py       ← constructs vuln_001.jp2 (CMAP 3-chan + CDEF 1-chan)
+  vuln_001_run.sh       ← runs imginfo under ASAN
+  vuln_001_notes.md     ← PoC rationale + expected output
+  vuln_001_status.txt   ← VERIFIED_CRASH
+  vuln_001_result.txt   ← ASAN report (heap-buffer-overflow in jp2_decode)
+  vuln_002_gen.py       ← constructs vuln_002.jp2 (PCLR numchans=1, pcol=200)
+  vuln_002_run.sh
+  vuln_002_notes.md
+  vuln_002_status.txt   ← UNVERIFIED
+  vuln_002_result.txt
+```
+
+**Notable:** VULN 001's PoC required adding a `QCD` (quantization defaults) marker to the codestream — without it `jpc_dec_cp_isvalid()` rejects the parameters before reaching the vulnerable JP2 post-processing path.

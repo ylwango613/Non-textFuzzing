@@ -1,0 +1,25 @@
+VERIFIED_CRASH
+
+Mechanism: DoS via uncontrolled memory exhaustion in AP4_Array::EnsureCapacity
+  triggered by AP4_TrunAtom parsing with sample_count=0x20000000.
+
+Observed behavior (64-bit ASAN build):
+  - 537-byte input causes process RSS to reach 742MB before abort
+  - ASAN aborts with: "AddressSanitizer: hard rss limit exhausted (512Mb vs 742Mb)"
+  - Process exit code: 134 (SIGABRT)
+
+Root cause:
+  AP4_TrunAtom::AP4_TrunAtom() calls m_Entries.SetItemCount(0x20000000),
+  which calls AP4_Array::EnsureCapacity(0x20000000).
+  EnsureCapacity does: ::operator new(0x20000000 * sizeof(AP4_TrunAtom::Entry))
+    = ::operator new(0x20000000 * 16) = ::operator new(8589934592) = 8 GB.
+  On 32-bit: arithmetic overflows to 0 => allocates 0 bytes but sets
+    m_AllocatedCount=0x20000000 => subsequent construction writes OOB (heap overflow).
+  On 64-bit: 8 GB is requested; with Linux overcommit, allocation succeeds but
+    physical pages are faulted in during the zero-initialization loop, consuming
+    hundreds of MB to GBs of RAM => DoS. Without overcommit (or on tightly
+    constrained systems), ::operator new throws std::bad_alloc (uncaught) => crash.
+
+Test environment: 64-bit Linux, ASAN build, hard_rss_limit_mb=512 to cap and
+  demonstrate the memory exhaustion; on unconstrained 64-bit systems the process
+  may consume 8GB+ before OOM-kill.

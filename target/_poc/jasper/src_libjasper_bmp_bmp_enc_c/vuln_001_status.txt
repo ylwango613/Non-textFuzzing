@@ -1,0 +1,2 @@
+SKIPPED
+Reason: imginfo does not invoke bmp_encode/bmp_putdata (the BMP encoder path). The vulnerability in bmp_enc.c:bmp_putdata() (lines 284-342) is only reachable via the jasper conversion tool (jasper -f crafted.jp2 -T bmp -o out.bmp), not through imginfo. Since the PoC trigger condition requires imginfo as the entry point and imginfo cannot reach the vulnerable code, this PoC is skipped.

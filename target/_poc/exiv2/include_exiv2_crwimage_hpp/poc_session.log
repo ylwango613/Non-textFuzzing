@@ -1,0 +1,7 @@
+## 汇总
+
+| VULN | 状态 | 说明 |
+|------|------|------|
+| 001 | **VERIFIED_CRASH** | CRW CIFF 目录无限递归导致栈溢出，ASAN 报告 `stack-overflow`，调用链 `CiffDirectory::readDirectory` ↔ `CiffDirectory::doRead` 已确认 |
+
+PoC 文件位于 `/data/ylwang/non-textfuzz/target/_poc/exiv2/include_exiv2_crwimage_hpp/`，包含 `vuln_001_gen.py`、`vuln_001_run.sh`、`vuln_001_notes.md`、`vuln_001_result.txt`、`vuln_001_status.txt`。

@@ -1,0 +1,8 @@
+SKIPPED
+
+이 취약점은 tiffsplit 바이너리를 통해 트리거할 수 없습니다.
+tiffsplit은 TIFFReadRawStrip()만 호출하며, G4 디코더(Fax4Decode/EXPAND2D)는 절대 호출되지 않습니다.
+G4 디코더는 TIFFReadEncodedStrip() 또는 TIFFReadScanline()을 통해서만 도달 가능합니다.
+
+참고: 동일 빌드의 tiffinfo -d 바이너리로는 ASAN heap-buffer-overflow가 확인됨 (Fax4Decode via EXPAND2D).
+자세한 내용은 vuln_001_notes.md 참조.

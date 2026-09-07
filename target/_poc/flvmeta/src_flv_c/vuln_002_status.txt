@@ -1,0 +1,6 @@
+UNVERIFIED
+Code path check.c:659 IS reached (confirmed by "onMetaData event not found" warning for
+the non-standard name "onCustomFuzzer"). malloc(64) succeeds under normal conditions.
+Crash requires malloc to return NULL; the ASAN-instrumented binary needs ~250 MB VA for
+shadow memory, making ulimit-based malloc-failure injection impractical without a
+non-instrumented build or LD_PRELOAD malloc hook (forbidden by task rules).

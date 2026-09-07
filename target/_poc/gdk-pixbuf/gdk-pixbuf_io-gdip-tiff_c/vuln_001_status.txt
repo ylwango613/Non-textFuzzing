@@ -1,0 +1,20 @@
+SKIPPED
+
+Reason: The vulnerability in gdip_bitmap_get_frame_delay() (io-gdip-utils.c:494-498)
+cannot be triggered via gdk-pixbuf-pixdata on this Linux system for two independent reasons:
+
+1. TOOL MISMATCH: gdk-pixbuf-pixdata is a pixdata format converter
+   (gdk_pixdata_from_pixbuf / gdk_pixdata_serialize). It does not exercise the
+   GDI+ TIFF loader code path (gdk_pixbuf__gdip_image_stop_load ->
+   gdip_buffer_to_bitmap -> gdip_bitmap_get_frame_delay).
+
+2. PLATFORM MISMATCH: io-gdip-tiff.c and io-gdip-utils.c implement a Win32 GDI+
+   backend. The required GDI+ API functions (GdipGetPropertyItemSize,
+   GdipGetPropertyItem) are Windows-only. No GDI+ module was compiled into the
+   Linux build:
+   - No *gdip* .so found under build_test/
+   - No GdipGet* or gdip_bitmap* symbols in libgdk_pixbuf-2.0.so.0
+   - Loaders cache lists no GDI+ loaders; only PNG/JPEG are available
+
+To reproduce this vulnerability, a Windows build of gdk-pixbuf with the
+GDI+ backend compiled in would be required.

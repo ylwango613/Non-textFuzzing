@@ -1,0 +1,21 @@
+VERIFIED_CRASH
+
+ASAN Report Summary (PID 216046):
+==================================================================
+ERROR: AddressSanitizer: heap-buffer-overflow
+READ of size 1 at address 0x5030000002c6 (thread T0)
+
+Crash location (top of stack):
+  #0  AP4_HvccAtom::AP4_HvccAtom(unsigned int, unsigned char const*)
+      Ap4HvccAtom.cpp:282  <-- payload[22] OOB read
+  #1  AP4_HvccAtom::Create(unsigned int, AP4_ByteStream&)
+      Ap4HvccAtom.cpp  (called with size=30)
+
+Heap allocation that overflowed:
+  "0x5030000002c6 is located 0 bytes to the right of 22-byte region
+   [0x5030000002b0, 0x5030000002c6)"
+  Allocated in: AP4_HvccAtom::Create() -> AP4_DataBuffer::AP4_DataBuffer(22)
+
+PoC file: vuln_001.mp4 (586 bytes)
+Trigger:  hvcC box size=30 -> payload_size=22 -> guard (22<22)==false ->
+          constructor reads payload[22] one byte past the 22-byte heap buffer.

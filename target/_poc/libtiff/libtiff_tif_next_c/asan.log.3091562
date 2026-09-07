@@ -1,0 +1,58 @@
+=================================================================
+==3091562==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x519000000e80 at pc 0x7f55b5498a4d bp 0x7fff1a195410 sp 0x7fff1a195400
+READ of size 1 at 0x519000000e80 thread T0
+    #0 0x7f55b5498a4c in NeXTDecode (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x37aa4c)
+    #1 0x7f55b5505cbd in TIFFReadEncodedStrip (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3e7cbd)
+    #2 0x564bbb28b553 in cpDecodedStrips (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffcp+0x11553)
+    #3 0x564bbb28a544 in tiffcp (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffcp+0x10544)
+    #4 0x564bbb2874d0 in main (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffcp+0xd4d0)
+    #5 0x7f55b4d87d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7f55b4d87e3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #7 0x564bbb2859e4 in _start (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffcp+0xb9e4)
+
+0x519000000e80 is located 0 bytes to the right of 1024-byte region [0x519000000a80,0x519000000e80)
+allocated by thread T0 here:
+    #0 0x7f55b5938887 in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:145
+    #1 0x7f55b551a12c in _TIFFmalloc (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3fc12c)
+    #2 0x7f55b550c108 in TIFFReadBufferSetup (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3ee108)
+    #3 0x7f55b5508720 in TIFFFillStrip (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3ea720)
+    #4 0x7f55b5505b65 in TIFFReadEncodedStrip (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x3e7b65)
+    #5 0x564bbb28b553 in cpDecodedStrips (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffcp+0x11553)
+    #6 0x564bbb28a544 in tiffcp (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffcp+0x10544)
+    #7 0x564bbb2874d0 in main (/data/ylwang/non-textfuzz/target/libtiff/build_test/bin/tiffcp+0xd4d0)
+    #8 0x7f55b4d87d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/libtiff/build_test/lib/libtiff.so.3+0x37aa4c) in NeXTDecode
+Shadow bytes around the buggy address:
+  0x0a327fff8180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a327fff8190: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a327fff81a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a327fff81b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a327fff81c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x0a327fff81d0:[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a327fff81e0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a327fff81f0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a327fff8200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a327fff8210: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a327fff8220: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==3091562==ABORTING
