@@ -1,0 +1,13 @@
+## VULN: AP4_SbgpAtom Bounds-Check Integer Overflow → Check Bypass → OOM/Null Deref
+- **漏洞类别**: memory-safety
+- **函数**: AP4_SbgpAtom::AP4_SbgpAtom()
+- **行号**: 87-95
+- **CWE**: CWE-190 (Integer Overflow or Wraparound)
+- **CVSS v3.1**: 6.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac → AP4_File → AP4_AtomFactory::CreateAtomFromStream → AP4_SbgpAtom::Create → AP4_SbgpAtom::AP4_SbgpAtom(size, version, flags, stream)
+- **描述**: 在 `Ap4SbgpAtom.cpp:87`，边界检查 `if (remains < entry_count*8)` 中 `entry_count*8` 为 `uint32_t` 运算，当 `entry_count >= 0x20000000` 时乘积溢出为 0，使 `remains < 0`（uint32_t 比较）永远为 false，边界检查完全失效。随后 `m_Entries.SetItemCount(entry_count)` 以攻击者指定的超大 entry_count 分配内存，在标准 C++ 下触发 `std::bad_alloc` 崩溃（DoS）；在 nothrow 环境中 SetItemCount 的错误返回值被忽略，随后 `m_Entries[i] = entry` 写入 NULL 指针（内存破坏）。
+- **触发条件**: 构造 sbgp box，将 `entry_count` 设置为 `0x20000000`，确保 box 中 `remains` 非零（≥ 1 字节剩余）以代入比较。
+- **安全影响**: DoS（进程因未捕获 bad_alloc 崩溃）或 nothrow 平台上 NULL 指针写入破坏内存完整性。
+

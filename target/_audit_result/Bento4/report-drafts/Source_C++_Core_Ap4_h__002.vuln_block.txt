@@ -1,0 +1,14 @@
+## VULN: Ap4Stz2Atom.cpp — stz2 sample_count 整数溢出导致堆缓冲区越界写
+
+- **漏洞类别**: 整数溢出 → 堆缓冲区溢出（Integer Overflow → Heap-based Buffer Overflow）
+- **函数**: `AP4_Stz2Atom::AP4_Stz2Atom(AP4_UI32, AP4_UI08, AP4_UI32, AP4_ByteStream&)`
+- **行号**: Ap4Stz2Atom.cpp:88–119（关键语句在第 88–91 行）
+- **CWE**: CWE-190 (Integer Overflow or Wraparound)，继发 CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H = **7.8 (High)**
+- **严重程度**: High
+- **攻击向量**: 攻击者提供一个 MP4 文件，其中 stbl 包含 stz2 box，field_size=8，sample_count=0x20000001
+- **外部触发路径**: `mp42aac crafted.mp4 out.aac` → `new AP4_File(*input)` → `AP4_AtomFactory::CreateAtomFromStream` → `AP4_Stz2Atom::Create` → `AP4_Stz2Atom::AP4_Stz2Atom`
+- **描述**: 第 88 行无条件调用 `m_Entries.SetItemCount(sample_count)`，此时既未验证 sample_count 与 box 剩余字节的关系，也未进行整数溢出检查。对于 field_size=8、sample_count=0x20000001，在 32 位平台上 `EnsureCapacity` 中 `0x20000001 * sizeof(AP4_UI08)` = `0x20000001 * 1` = 1（另一种情形下溢出取决于元素类型），但 sample_count 过大本身足以让 placement-new 循环写出界。对于 AP4_Array<AP4_UI08>（1 字节元素）：`EnsureCapacity(0x20000001)` 分配 `0x20000001 * 1 = 0x20000001` 字节；若系统允许（或 overcommit），则 SetItemCount 中 placement-new 循环正常；但后续第 89 行 `table_size = (0x20000001 * 8 + 7) / 8`（32 位乘法溢出）= `(8 + 7) / 8` = 1，仅分配 1 字节的 buffer，而第 114-115 行循环以 sample_count=0x20000001 次访问 `buffer[i]`（m_FieldSize==8 分支），从第 2 次迭代起越界读写。在 field_size ≥ 4 且 sample_count 使乘积溢出时，第 90 行大小检查 `(table_size+8) > size`（正确常量应为 `table_size + 20 + AP4_FULL_ATOM_HEADER_SIZE > size`）因 table_size 被截断为小值而失效，不能阻止后续越界。在 64 位平台，SetItemCount 分配 `(size_t)sample_count * sizeof(T)` = 0x20000001 字节或 4 GB+，可能 bad_alloc 崩溃。
+- **触发条件**: stz2 box 的 field_size=8（或 4/16）且 sample_count=0x20000001，此时 table_size 溢出为极小值，size 检查无法拦截，随后循环以 sample_count 次迭代访问过小的 buffer。
+- **安全影响**: 32 位构建：堆越界写，可导致 RCE。64 位构建：DoS（std::bad_alloc）或堆越界读（如 overcommit 使 SetItemCount 成功但 buffer 仅 1 字节时循环 OOB 读 buffer）。
+

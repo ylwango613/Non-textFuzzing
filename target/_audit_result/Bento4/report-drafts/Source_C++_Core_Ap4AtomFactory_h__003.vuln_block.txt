@@ -1,0 +1,13 @@
+## VULN: AP4_SaioAtom – Integer overflow in bounds-check `entry_count*(version==0?4:8)` → check bypassed → heap OOB
+- **漏洞类别**: memory-safety
+- **函数**: AP4_SaioAtom::AP4_SaioAtom()
+- **行号**: 106-126
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 7.8 (AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac input.mp4 → AP4_AtomFactory::CreateAtomFromStream() → AP4_SaioAtom::Create(size, stream) → new AP4_SaioAtom(size, version, flags, stream)
+- **描述**: Ap4SaioAtom.cpp 第110行 `if (remains < entry_count*(m_Version==0?4:8))` 同样受整数溢出影响：version=1 时因子为 8，`entry_count = 0x20000000` 时乘积回绕为 0（32-bit unsigned），边界检查恒为 false 而被绕过；version=0 时因子为 4，溢出阈值为 `entry_count ≥ 0x40000000`。两种情况下随后第113行 `m_Entries.SetItemCount(entry_count)` 及第114–126行循环对 `m_Entries[i]` 写入均在堆越界区域执行（32-bit），或触发 `std::bad_alloc`（64-bit DoS）。
+- **触发条件**: MP4 中 `saio` box（可出现于 `moov/trak/mdia/minf/stbl/saio` 或 `moof/traf/saio`）设 version=1、`entry_count = 0x20000000`，或 version=0、`entry_count = 0x40000000`。
+- **安全影响**: 32-bit 目标堆内存破坏（潜在 RCE）；64-bit 目标崩溃（DoS）。
+

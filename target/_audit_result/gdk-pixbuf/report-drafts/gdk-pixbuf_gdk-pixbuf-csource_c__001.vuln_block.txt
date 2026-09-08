@@ -1,0 +1,13 @@
+## VULN: Heap Buffer Overflow via Zero-Length Constant Run in GdkPixdata RLE Decoder
+- **漏洞类别**: memory-safety
+- **函数**: gdk_pixbuf_from_pixdata()
+- **行号**: 462-483 (gdk-pixdata.c)
+- **CWE**: CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 8.8 (AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted GdkPixdata image file (.gdkp)
+- **外部触发路径**: gdk-pixbuf-csource input.gdkp → gdk_pixbuf_new_from_file() → io-pixdata.c: pixdata_image_stop_load() → gdk_pixdata_deserialize() → gdk_pixbuf_from_pixdata() → RLE decode do-while loop
+- **描述**: 在 gdk_pixbuf_from_pixdata() 的 RLE 解码器中，当处理 encoding==RLE 的 pixdata 时，若读到常量游程长度字节 0x80（length = 0x80 - 128 = 0），check_overrun 被计算为 `image_buffer + 0*bpp > image_limit` = FALSE，导致 length 不被截断。随后进入 `do { memcpy(image_buffer, rle_buffer, bpp); image_buffer += bpp; } while (--length)` 循环：初始 length=0，第一次迭代后 `--length = UINT_MAX`（无符号下溢），循环继续执行约 2^32 次，持续向 image_buffer 写入直到触碰未映射页面。攻击者控制 rle_buffer 指向的内容（紧跟 0x80 之后的 4 字节），因此同时控制写入的数据内容。
+- **触发条件**: 构造一个 GdkPixdata 二进制流：魔数 'GdkP'，pixdata_type = RGBA|RLE|SAMPLE_WIDTH_8，width/height/rowstride 合法，pixel_data 中包含字节 0x80（一个长度字段减 128 后为 0 的常量游程条目）。
+- **安全影响**: 32 位系统上堆指针回绕，可覆盖任意堆内存（函数指针、堆元数据），潜在 RCE；64 位系统上快速越界写入触发崩溃（DoS）。
+

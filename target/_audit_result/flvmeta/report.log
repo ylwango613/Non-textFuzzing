@@ -1,1 +1,6 @@
 [2026-09-08 02:13:52] WRITTEN Bug1 <- src_dump_yaml_c#001 [CRASH]
+[2026-09-08 02:14:18] WRITTEN Bug2 <- src_dump_raw_c#002 [CRASH]
+[2026-09-08 02:14:19] WRITTEN Bug3 <- src_dump_json_c#001 [CRASH]
+[2026-09-08 02:14:22] DEDUP-SKIP src_dump_raw_c#001 (parallel, key=amf_data_read::CWE-674)
+[2026-09-08 02:14:41] WRITTEN Bug4 <- src_dump_yaml_c#002 [CRASH]
+[2026-09-08 10:37:25] DEDUP-SKIP src_dump_raw_c#001 (key=amf_data_read::CWE-674)

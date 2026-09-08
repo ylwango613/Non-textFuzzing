@@ -1,0 +1,13 @@
+## VULN: AP4_CttsAtom Missing Bounds Check Plus Integer Overflow → Heap Buffer Over-read
+- **漏洞类别**: memory-safety
+- **函数**: AP4_CttsAtom::AP4_CttsAtom()
+- **行号**: 77-97
+- **CWE**: CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 7.4 (AV:L/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac → AP4_File → AP4_AtomFactory::CreateAtomFromStream → AP4_CttsAtom::Create → AP4_CttsAtom::AP4_CttsAtom(size, version, flags, stream)
+- **描述**: 在 `Ap4CttsAtom.cpp:77-97`，ctts atom 构造函数直接用文件中读取的 `entry_count`（`uint32_t`）进行分配，而没有执行同类 box（stco/co64/stsc/stsz）均有的 `entry_count <= (size - header) / entry_size` 边界检查。第 80 行 `new unsigned char[entry_count*8]`：当 `entry_count >= 0x20000000` 时，`entry_count * 8`（`uint32_t` 运算）溢出为 0，分配零字节缓冲区。随后 `stream.Read(buffer, 0)` 返回成功（读 0 字节），`m_Entries.SetItemCount(entry_count)` 的返回值被忽略，循环 `for (i=0; i<entry_count; i++) m_Entries[i].m_SampleCount = AP4_BytesToUInt32BE(&buffer[i*8])` 越界读取 `buffer`（heap OOB read）。对 `m_Entries[i]` 的写入若 `m_Items` 为 NULL（nothrow 分配器失败后 SetItemCount 错误码被忽略）则产生 NULL 指针写入崩溃。
+- **触发条件**: 构造包含 ctts box 的 MP4 文件，将 `entry_count` 字段设置为 `0x20000000` 或更大。在 4 GB+ 可用堆的 64 位系统（或启用内存过度提交的 Linux）上，SetItemCount 分配 4 GB 后触发 OOB read；在无异常或 nothrow 环境中触发 NULL deref write。
+- **安全影响**: 堆越界读取导致相邻堆内存泄漏（信息泄露），或进程崩溃（DoS）。与 stco/co64/stsc/stsz 的安全差距对比明确，属典型 missing input validation → 内存破坏。
+

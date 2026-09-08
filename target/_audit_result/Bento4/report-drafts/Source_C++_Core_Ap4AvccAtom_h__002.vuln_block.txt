@@ -1,0 +1,13 @@
+## VULN: OOB Heap Read in AP4_AvccAtom::Create() — num_pic_params Access Before Bounds Check
+- **漏洞类别**: memory-safety
+- **函数**: AP4_AvccAtom::Create()
+- **行号**: 88-89
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 5.3 (AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:L)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac main() → AP4_File / AP4_AtomFactory::CreateAtomFromStream() → AP4_AtomFactory case AP4_ATOM_TYPE_AVCC (Ap4AtomFactory.cpp:479) → AP4_AvccAtom::Create(size_32=14, stream)
+- **描述**: 在 `Create()` 中，seq-param 循环结束后唯一保证的不变式是 `cursor <= payload_size`。第 88 行 `unsigned int num_pic_params = payload[cursor++]` 先读 `payload[cursor]` 再递增，而边界检查 `if (cursor > payload_size) return NULL` 在第 89 行——读取已发生后才执行。当 `cursor == payload_size` 时（例如：size=14 → payload_size=6，num_seq_params=0 → 循环不执行 → cursor=6=payload_size），`payload[6]` 读取了分配了 6 字节的缓冲区的末尾之后的 1 字节，构成堆越界读。
+- **触发条件**: 构造 MP4 文件中的 `avcC` box，size=14（0x0000000E），payload 共 6 字节：payload[0]=0x01（版本）、payload[1-4] 任意、payload[5]=0xE0（num_seq_params&31==0，无序列参数）。`Create(14, stream)` 调用后，seq-param 循环零次迭代，cursor=6=payload_size，读 payload[6] 越界。
+- **安全影响**: 堆越界读 1 字节，泄露紧邻该缓冲区之后的堆内容（可能是其他 box 解析数据或 allocator 元数据），可用于信息泄露（ASLR 辅助绕过）或程序崩溃（DoS）。
+

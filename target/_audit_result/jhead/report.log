@@ -13,3 +13,6 @@
 [2026-09-08 02:12:58] DEDUP-SKIP exif_c#001 (key=ProcessGpsInfo::CWE-125)
 [2026-09-08 02:12:58] DEDUP-SKIP gpsinfo_c#001 (key=ProcessGpsInfo::CWE-125)
 [2026-09-08 02:12:58] DEDUP-SKIP jpgfile_c#001 (key=ProcessGpsInfo::CWE-125)
+[2026-09-08 10:37:24] DEDUP-SKIP exif_c#001 (key=ProcessGpsInfo::CWE-125)
+[2026-09-08 10:37:24] DEDUP-SKIP gpsinfo_c#001 (key=ProcessGpsInfo::CWE-125)
+[2026-09-08 10:37:24] DEDUP-SKIP jpgfile_c#001 (key=ProcessGpsInfo::CWE-125)

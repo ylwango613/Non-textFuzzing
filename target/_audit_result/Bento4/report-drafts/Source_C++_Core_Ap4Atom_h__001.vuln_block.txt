@@ -1,0 +1,13 @@
+## VULN: AP4_NullTerminatedStringAtom – Heap OOB Write via Integer Underflow in Index (size == 8)
+- **漏洞类别**: memory-safety
+- **函数**: `AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom(AP4_Atom::Type, AP4_UI64, AP4_ByteStream&)`
+- **行号**: Ap4Atom.cpp:470-473
+- **CWE**: CWE-191 (Integer Underflow / Wrap-around) → CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 7.5 (AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: `mp42aac input.mp4` → `AP4_File` → `AP4_DefaultAtomFactory::CreateAtomFromStream` → factory switch `case AP4_ATOM_TYPE_8ID_:` → `new AP4_NullTerminatedStringAtom(type, size_64=8, stream)` → constructor line 470: `AP4_Size str_size = (AP4_Size)8 - 8 = 0`; line 471: `new char[0]`; line 473: `str[0-1]` = `str[0xFFFFFFFF]`
+- **描述**: 构造函数计算 `str_size = (AP4_Size)size - AP4_ATOM_HEADER_SIZE`，当 `size == 8`（工厂允许的最小值，满足 `size >= 8` 的检查）时，`str_size = 0`。随后执行 `str[str_size-1] = '\0'`，由于 `str_size` 是无符号 32 位整数，`0 - 1 = 0xFFFFFFFF`，导致写入 `str + 4294967295`（约 4 GB 之外），发生堆越界写入。
+- **触发条件**: 在 MP4 文件中构造一个类型为 `8id ` 的 box，将 box size 字段设置为恰好 8（即仅含 8 字节 box 头，无任何 payload），工厂不会拒绝该尺寸。
+- **安全影响**: 在 64 位系统上访问未映射内存，进程立即崩溃（可靠的拒绝服务 DoS）；在 32 位系统上地址回绕，'\0' 被写入 `str - 1` 位置（前一堆块的末字节），可用于堆元数据破坏，在条件具备时可升级为远程代码执行（RCE）。
+

@@ -1,0 +1,13 @@
+## VULN: AP4_SbgpAtom – Integer overflow in bounds-check expression `entry_count*8` → check bypassed → heap OOB
+- **漏洞类别**: memory-safety
+- **函数**: AP4_SbgpAtom::AP4_SbgpAtom()
+- **行号**: 83-96
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 7.8 (AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac input.mp4 → AP4_AtomFactory::CreateAtomFromStream() → AP4_SbgpAtom::Create(size, stream) → new AP4_SbgpAtom(size, version, flags, stream)
+- **描述**: Ap4SbgpAtom.cpp 第87行存在整数溢出绕过边界检查：`if (remains < entry_count*8)` 中 `entry_count`（AP4_UI32）与 `8`（int，提升为 unsigned int）做 32-bit 乘法，当 `entry_count = 0x20000000` 时乘积回绕为 0（`unsigned int`），使得条件变为 `remains < 0U`，在无符号语义下恒为 false，防护失效。随后第90行 `m_Entries.SetItemCount(entry_count)` 以不受限的超大计数执行，在 32-bit 构建中 `EnsureCapacity` 内 `::operator new(0x20000000 * 8)` 溢出为 0，返回极小分配，`m_Items` 只有 0 字节可用；紧接着 SetItemCount 的 placement-new 循环和第91–96行 for 循环对 `m_Entries[i]` 的访问均构成堆越界写。
+- **触发条件**: MP4 文件中 `moov/trak/mdia/minf/stbl/sbgp` 或 `moof/traf/sbgp` box 的 `entry_count` 字段设为 ≥ 0x20000000 的值（如 0x20000000）即可触发整数溢出使防护失效。
+- **安全影响**: 32-bit 目标堆内存破坏，可能实现 RCE；64-bit 目标抛出 `std::bad_alloc`（DoS）。
+

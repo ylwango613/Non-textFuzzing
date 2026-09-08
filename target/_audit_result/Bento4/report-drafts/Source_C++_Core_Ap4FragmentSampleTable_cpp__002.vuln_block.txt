@@ -1,0 +1,13 @@
+## VULN: Unchecked trun sample_count causes integer overflow in EnsureCapacity → heap OOB write in AP4_TrunAtom constructor loop (32-bit)
+- **漏洞类别**: memory-safety
+- **函数**: AP4_TrunAtom::AP4_TrunAtom() (parsing constructor)
+- **行号**: 104-151 (Ap4TrunAtom.cpp); 166-185 (Ap4Array.h)
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 7.8 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac input.mp4 → AP4_Movie → AP4_MovieFragment → AP4_ContainerAtom (traf) → AP4_TrunAtom::Create → AP4_TrunAtom::AP4_TrunAtom(size, version, flags, stream) → stream.ReadUI32(sample_count) → m_Entries.SetItemCount(sample_count) → AP4_Array<Entry>::EnsureCapacity(0x10000000) → ::operator new(0) → returns 0-byte ptr → loop: stream.ReadUI32(m_Entries[i].sample_size) → OOB write at m_Items[0]
+- **描述**: `AP4_TrunAtom` 的流解析构造函数（Ap4TrunAtom.cpp:104–151）从 MP4 字节流直接读取 4 字节 `sample_count`，未与 atom 声明的 `size` 字段作任何交叉验证（即不检查 `sample_count * per_entry_bytes <= remaining_atom_bytes`）。之后调用 `m_Entries.SetItemCount(sample_count)` → `EnsureCapacity(sample_count)`：在 32-bit 平台，当 `sample_count=0x10000000`，`sizeof(Entry)=16` 时，`count*sizeof(T)=0x10000000*16=0x100000000 mod 2^32=0`，`::operator new(0)` 返回合法非空指针（0 字节分配），`m_AllocatedCount` 被设为 0x10000000，`m_ItemCount` 也被设为 0x10000000。随即进入 per-sample 字段解析循环（第 128–151 行）：若 trun_flags 包含任意 per-sample 标志（如 `AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT=0x0200`），则 `stream.ReadUI32(m_Entries[0].sample_size)` 向 `m_Items[0]` 写入——该地址超出 0 字节堆分配，造成堆越界写。后续所有 `m_Entries[i]`（i=1,2,...）均为 OOB 写，写入内容来自 MP4 文件后续字节（攻击者可控）。
+- **触发条件**: 构造 MP4 文件：moof→traf→trun，trun atom box size 可以很小（例如 28 字节）但 `sample_count` 字段 = 0x10000000，且 trun flags 包含至少一个 per-sample 标志（如 `0x0200` SAMPLE_SIZE_PRESENT）。trun atom 内无需提供完整的 per-sample 数据；stream.ReadUI32 失败返回 0 仍会触发越界写（写入零值）。在 32-bit 编译的 mp42aac 上处理即可触发。
+- **安全影响**: 堆越界写，写入数量可达 `0x10000000 * 字段数量` 次，写入内容部分由 MP4 文件后续字节决定（攻击者可控），可覆盖相邻堆块数据或 metadata，具备 RCE 潜力。在 64-bit 系统上，`::operator new(0x10000000*16)` 尝试分配 4GB，抛出 `std::bad_alloc`（未捕获），进程崩溃（DoS）。
+

@@ -16,3 +16,19 @@
 [2026-09-07 23:12:02] VULN xpdf/GfxState.h: 1 findings
 [2026-09-07 23:17:17] VULN xpdf/HTMLGen.cc: 1 findings
 [2026-09-07 23:58:26] DONE: 141 new, 20 skipped, 10 vulns
+[2026-09-08 02:18:32] VULN xpdf/JPXStream.cc: 1 findings
+[2026-09-08 02:40:49] VULN xpdf/OptionalContent.h: 1 findings
+[2026-09-08 02:56:11] VULN xpdf/PDF417Barcode.h: 3 findings
+[2026-09-08 02:56:55] VULN xpdf/PDF417Barcode.cc: 3 findings
+[2026-09-08 03:17:26] VULN xpdf/pdftohtml.cc: 1 findings
+[2026-09-08 03:24:48] VULN xpdf/pdftotext.cc: 1 findings
+[2026-09-08 03:49:22] VULN xpdf/ShadingImage.h: 1 findings
+[2026-09-08 03:56:09] VULN xpdf/Stream-CCITT.h: 2 findings
+[2026-09-08 04:03:41] VULN xpdf/Stream.h: 1 findings
+[2026-09-08 04:04:11] VULN xpdf/SplashOutputDev.h: 1 findings
+[2026-09-08 04:19:07] VULN xpdf/TileMap.cc: 2 findings
+[2026-09-08 04:25:34] VULN xpdf/TileMap.h: 1 findings
+[2026-09-08 04:28:35] VULN xpdf/UnicodeMap.cc: 2 findings
+[2026-09-08 04:29:19] VULN xpdf/UnicodeMap.h: 2 findings
+[2026-09-08 04:44:11] VULN xpdf/XFAScanner.h: 1 findings
+[2026-09-08 04:55:10] DONE: 80 new, 81 skipped, 23 vulns

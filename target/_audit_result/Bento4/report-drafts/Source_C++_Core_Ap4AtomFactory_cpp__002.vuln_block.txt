@@ -1,0 +1,13 @@
+## VULN: AP4_Stz2Atom table_size 32-bit integer overflow leading to heap OOB read
+- **漏洞类别**: memory-safety
+- **函数**: AP4_Stz2Atom::AP4_Stz2Atom()
+- **行号**: 88-120
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) / CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 8.1 (AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac → AP4_AtomFactory::CreateAtomFromStream() → AP4_Stz2Atom::Create() → new AP4_Stz2Atom(size, version, flags, stream)
+- **描述**: Ap4Stz2Atom.cpp 第 90-92 行中，`table_size = (sample_count * m_FieldSize + 7) / 8` 的乘法以 `AP4_Cardinal(unsigned int) * AP4_UI08(unsigned char)` 完成（结果为 32-bit），当 m_FieldSize=8 且 sample_count=0x20000000 时，`0x20000000 * 8 = 0x100000000` 32-bit 溢出为 0，table_size = (0+7)/8 = 0。关键：第 91 行大小校验 `(table_size+8) > size` 使用已溢出的 table_size（值为 0），条件变为 `8 > size`，对任何 size >= 8 的原子均不触发（而 Create 只要求 size >= 12），从而绕过了大小检查。随后 `new unsigned char[0]` 分配 0 字节 buffer，`stream.Read(buffer, 0)` 读 0 字节成功，但 for 循环仍以原始 `sample_count = 0x20000000` 次遍历并访问 `buffer[i]`（case 8），从第一次迭代即发生堆 OOB 读。同时 `m_Entries.SetItemCount(sample_count)` 的 `EnsureCapacity` 用 64-bit 乘法分配 512MB（`0x20000000 * 4`），在内存充足时成功，后续写入 m_Entries 合法但 buffer 读取为 OOB。
+- **触发条件**: 构造 stz2 atom，field_size=8（0x08），sample_count=0x20000000，atom 声明 size 可仅为 20 字节，目标系统需有 >=512MB 可用内存
+- **安全影响**: 攻击者可从 buffer 之后的堆内存（其他对象、堆元数据、相邻分配）读取 512MB 数据写入 m_Entries，造成大量堆信息泄露；并产生极高 CPU/内存负载构成 DoS
+

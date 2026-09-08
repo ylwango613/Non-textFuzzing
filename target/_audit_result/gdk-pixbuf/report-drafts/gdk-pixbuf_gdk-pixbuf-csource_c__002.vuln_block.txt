@@ -1,0 +1,13 @@
+## VULN: Out-of-Bounds Heap Read via Missing rle_buffer Bounds Check in GdkPixdata Decoder
+- **漏洞类别**: memory-safety
+- **函数**: gdk_pixbuf_from_pixdata()
+- **行号**: 452-503 (gdk-pixdata.c)
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 7.5 (AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted GdkPixdata image file (.gdkp)
+- **外部触发路径**: gdk-pixbuf-csource input.gdkp → gdk_pixbuf_new_from_file() → io-pixdata loader → gdk_pixdata_deserialize() → gdk_pixbuf_from_pixdata() → RLE decode while loop reads rle_buffer OOB
+- **描述**: gdk_pixbuf_from_pixdata() 的 RLE 解码器以 `while (image_buffer < image_limit)` 作为循环终止条件，仅检查输出缓冲区是否填满，从不检查 rle_buffer 是否超出 pixel_data 边界（无 `rle_buffer < pixel_data + pixel_data_size` 校验）。若构造的 RLE 数据在 image_limit 被达到之前耗尽，rle_buffer 会读取 pixel_data 后的堆内存。配合 gdk_pixdata_deserialize() 中的错误长度检查（见下一条漏洞），可更容易触发。
+- **触发条件**: 构造 .gdkp 文件：pixdata_type=RLE|RGBA，height×rowstride 声明大量输出字节，但实际 pixel_data 内的 RLE 编码仅能解码出少量输出字节，致使 rle_buffer 在 image_buffer 到达 image_limit 前越出 pixel_data 末端。
+- **安全影响**: 读取堆上相邻内存（信息泄露）；若读到未映射页则崩溃（DoS）。
+

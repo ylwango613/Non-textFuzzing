@@ -1,0 +1,13 @@
+## VULN: AP4_CttsAtom – Missing entry_count bounds check enables integer-overflow heap-buffer-overflow
+- **漏洞类别**: memory-safety
+- **函数**: AP4_CttsAtom::AP4_CttsAtom()
+- **行号**: 77-98
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 7.8 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac main() → new AP4_File(*input) → AP4_File::ParseStream() → AP4_AtomFactory::CreateAtomFromStream() → AP4_CttsAtom::Create(size_32, stream) → new AP4_CttsAtom(size, version, flags, stream)
+- **描述**: AP4_CttsAtom 构造函数从文件直接读取 entry_count（AP4_UI32），既不与 size 参数作比较，也不做任何上界检查（对比 AP4_StcoAtom/AP4_StszAtom 均有 `m_EntryCount > (size-header-4)/N` 的截断）。随后计算 `entry_count * 8` 时两处（SetItemCount 传入 EnsureCapacity 的 `count * sizeof(T)` 在 32-bit 上、以及 `new unsigned char[entry_count*8]` 的乘法）均为 32-bit AP4_UI32 算术，当 `entry_count = 0x20000001` 时乘积溢出为 8；EnsureCapacity 仅分配 8 字节但将 m_AllocatedCount 设为 0x20000001，随后 SetItemCount 的构造循环从 i=1 起写入 m_Items[1] 即越界；buffer 同样仅分配 8 字节，后续循环在 i≥1 时 `buffer[i*8]`（OOB 读）和 `m_Entries[i]`（OOB 写）均越界。在 64-bit 系统上 sizeof(T) 的 64-bit 算术使 EnsureCapacity 申请约 4 GB，抛出 std::bad_alloc 导致进程崩溃（DoS）。
+- **触发条件**: 在 MP4 文件的 moov→trak→mdia→minf→stbl 容器中嵌入一个 ctts box，box size 字段设为任意合法值（如 24），但 entry_count 字段设为 0x20000001（或任何使 `entry_count*8` 32-bit 溢出的值），box 内包含至少 8 字节填充数据。
+- **安全影响**: 32-bit 构建上：受控的堆缓冲区溢出写，可通过堆利用技术实现任意代码执行（RCE）；64-bit 构建上：进程因 std::bad_alloc 或 null pointer dereference 崩溃（DoS）。
+

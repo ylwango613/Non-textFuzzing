@@ -1,0 +1,13 @@
+## VULN: AP4_TrunAtom – No bounds check on file-controlled `sample_count` → unbounded SetItemCount → heap OOB
+- **漏洞类别**: memory-safety
+- **函数**: AP4_TrunAtom::AP4_TrunAtom()
+- **行号**: 104-151
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 7.8 (AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac input.mp4 → AP4_AtomFactory::CreateAtomFromStream() (in context moof/traf) → AP4_TrunAtom::Create(size, stream) → new AP4_TrunAtom(size, version, flags, stream)
+- **描述**: Ap4TrunAtom.cpp 第104–105行从 MP4 文件直接读取 `sample_count`（AP4_UI32）并在无任何上界校验的情况下第127行调用 `m_Entries.SetItemCount(sample_count)`。`AP4_TrunAtom::Entry` 结构含4个 AP4_UI32 字段，`sizeof(Entry)=16`（0x10）字节。在 32-bit 构建中，当 `sample_count ≥ 0x10000000` 时 `EnsureCapacity` 内 `::operator new(sample_count * 16)` 溢出（如 `0x10000001 * 16 = 16` bytes），`m_Items` 只有16字节（1个 Entry）；但随后 SetItemCount 的 placement-new 循环即在 `m_Items[1]` 处越界写堆，接下来第128–151行 for 循环 `stream.ReadUI32(m_Entries[i].sample_duration)` 等每次写都越界，连续破坏堆内存。在 64-bit 构建中，巨型分配触发 `std::bad_alloc`（DoS）。
+- **触发条件**: 分片 MP4（fragmented MP4）中 `moof→traf→trun` box 的 `sample_count` 字段设为 ≥ 0x10000000（32-bit溢出阈值），flags 字段设置至少1个样本字段存在位（如 sample_size_present）。mp42aac 通过 AP4_Movie 解析 moof 时会触发此路径。
+- **安全影响**: 32-bit 目标堆内存破坏，可能实现 RCE；64-bit DoS。
+

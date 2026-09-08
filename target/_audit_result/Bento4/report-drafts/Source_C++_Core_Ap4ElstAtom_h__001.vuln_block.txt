@@ -1,0 +1,13 @@
+## VULN: Integer Overflow in AP4_Array EnsureCapacity Causes Heap Buffer Overflow in elst Parser
+- **漏洞类别**: memory-safety
+- **函数**: AP4_ElstAtom::AP4_ElstAtom() / AP4_Array<T>::EnsureCapacity()
+- **行号**: Ap4ElstAtom.cpp:72-94 / Ap4Array.h:172-184
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 7.5 (AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac main() → AP4_File → AP4_DefaultAtomFactory → AP4_ElstAtom::Create() → new AP4_ElstAtom(size, version, flags, stream) → AP4_Array<AP4_ElstEntry>::EnsureCapacity(entry_count) → ::operator new(count * sizeof(T)) [32-bit overflow] → AP4_Array<AP4_ElstEntry>::Append() OOB write
+- **描述**: `entry_count` 从 elst box 数据流中读取（AP4_UI32），无任何上界校验。随后调用 `m_Entries.EnsureCapacity(entry_count)`，在 `EnsureCapacity` 内部执行 `count * sizeof(T)`。在 32-bit 编译目标上，`count`（AP4_Cardinal = unsigned int，32 位）乘以 `sizeof(AP4_ElstEntry)`（亦为 32 位 size_t）产生 32-bit 整数溢出，导致 `::operator new` 仅分配极少字节（如 count=0x0CCCCCCD，sizeof=20 时溢出为 154 字节），但 `m_AllocatedCount` 被赋值为原始大值 `count`。此后构造函数循环 `entry_count` 次调用 `Append`，`Append` 检查 `m_AllocatedCount < m_ItemCount+1` 始终为假而不触发重新分配，直接通过 placement new 向越界偏移写入 `AP4_ElstEntry` 对象，造成堆缓冲区溢出。此外，`EnsureCapacity` 返回值在 Ap4ElstAtom.cpp:73 被完全忽略，使任何静默失败路径均无法中断后续循环。同一代码库中其他 atom（stss、stsc、saio）均在读取 entry_count 后显式校验 `(size - header) / entry_size < entry_count`，独 elst 缺此保护。
+- **触发条件**: 构造一个合法 MP4 文件，其 moov/trak/edts/elst box 中将 size 字段设置为最小合法值（如 16 字节，仅含 full atom header 和 entry_count 字段），同时将 entry_count 设为能使 `entry_count * sizeof(AP4_ElstEntry)` 在 32-bit 运算中溢出的特定大值（如 0x0CCCCCCD）；在 32-bit 部署的 mp42aac 上解析该文件即可触发。
+- **安全影响**: 堆内存越界写入任意 AP4_ElstEntry 内容（包含攻击者可控的 SegmentDuration/MediaTime/MediaRate 字段），可覆盖堆管理元数据或相邻对象，最坏情况下可实现远程代码执行（RCE）；在 64-bit 目标上退化为 `std::bad_alloc` 导致进程崩溃（DoS）。
+

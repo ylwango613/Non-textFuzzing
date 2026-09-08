@@ -1,0 +1,13 @@
+## VULN: AP4_CttsAtom missing entry_count bounds check leading to integer overflow and heap buffer overflow
+- **漏洞类别**: memory-safety
+- **函数**: AP4_CttsAtom::AP4_CttsAtom()
+- **行号**: 77-98 (Ap4CttsAtom.cpp); overflow root at Ap4Array.h:172
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-787 (Out-of-bounds Write)
+- **CVSS v3.1**: 8.8 (AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac input.mp4 → AP4_File(*input) → AP4_AtomFactory::CreateAtomFromStream() → AP4_CttsAtom::Create(size, stream) → AP4_CttsAtom::AP4_CttsAtom(size, version, flags, stream)
+- **描述**: AP4_CttsAtom 构造函数直接将 AP4_ByteStream::ReadUI32() 读到的 entry_count 字段（来自 ctts box payload，攻击者完全可控）传给 `m_Entries.SetItemCount(entry_count)`（Ap4CttsAtom.cpp:79）和 `new unsigned char[entry_count*8]`（行 80），前者调用 AP4_Array<AP4_CttsTableEntry>::EnsureCapacity(entry_count)（Ap4Array.h:172）。在 32-bit 目标上，`count * sizeof(AP4_CttsTableEntry)` = `AP4_Cardinal(uint32) × 8` 以 32-bit 无符号乘法计算，当 entry_count = 0x20000001 时结果为 0x00000008（整数回绕），`::operator new(8)` 仅分配 8 字节，但 m_AllocatedCount 被赋值为 0x20000001；随后 SetItemCount 内的构造循环 `for(i=0; i<0x20000001; i++) new(&m_Items[i]) T()` 从 i=1 起即向 8 字节缓冲区之外写入，造成大规模堆缓冲区溢出。同时 `new unsigned char[entry_count*8]`（行 80）因相同的 32-bit 乘法溢出也只分配 8 字节，行 88-96 的赋值循环 `m_Entries[i].m_SampleCount = AP4_BytesToUInt32BE(&buffer[i*8])` 于 i=1 起发生越界读写。对比 stco（Ap4StcoAtom.cpp:72-73）、stsz（Ap4StszAtom.cpp:87-89）、stsc（Ap4StscAtom.cpp:10）均有明确的 `entry_count > (size - header)/entry_size` 越界截断保护，ctts 完全缺失该校验。在 64-bit 目标上，EnsureCapacity 中 AP4_Cardinal(uint32) × size_t(uint64) 提升为 64-bit 乘法无溢出，尝试分配约 4 GB 内存，抛出 std::bad_alloc；因整个解析调用栈均无 try-catch，异常向上传播导致程序崩溃（DoS）；而 `entry_count*8`（行 80）仍以 32-bit 算术计算（AP4_UI32 × int），所分配 buffer 依然极小，理论上仍可触发越界访问。
+- **触发条件**: 构造一个 moov/trak/mdia/minf/stbl/ctts box，box header size 字段合法（例如 20 字节），但 entry_count 字段设置为 0x20000001（32-bit 靶机）或任意超大值（64-bit DoS）；其余 MP4 结构正常，使 mp42aac 能够正常打开文件并触发 ctts 解析路径。
+- **安全影响**: 在 32-bit 构建上攻击者可利用堆布局实现任意写，进而达到远程代码执行（RCE）；在 64-bit 构建上触发未处理的 std::bad_alloc 异常，导致进程崩溃（拒绝服务，DoS）。
+

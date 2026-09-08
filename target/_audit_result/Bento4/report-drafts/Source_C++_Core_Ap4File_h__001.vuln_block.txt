@@ -1,0 +1,13 @@
+## VULN: stz2 integer overflow sample_count*m_FieldSize leads to heap buffer over-read
+- **漏洞类别**: memory-safety
+- **函数**: `AP4_Stz2Atom::AP4_Stz2Atom(AP4_UI32, AP4_UI08, AP4_UI32, AP4_ByteStream&)`
+- **行号**: 88-120
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 7.1 (AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:N/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: `main() → AP4_File(stream) → ParseStream() → AP4_DefaultAtomFactory::CreateAtomFromStream() → AP4_Stz2Atom::Create(size, stream) → new AP4_Stz2Atom(size, version, flags, stream)` → 构造函数内 `table_size = (sample_count*m_FieldSize+7)/8` 整数溢出
+- **描述**: 在 `Ap4Stz2Atom.cpp` 第 90 行，`sample_count`（AP4_UI32）与 `m_FieldSize`（AP4_UI08）相乘时使用 32 位无符号算术：`unsigned int table_size = (sample_count*m_FieldSize+7)/8`。当攻击者在 MP4 文件中将 `m_FieldSize` 设为 16、`sample_count` 设为 0x10000000 时，`0x10000000 * 16 = 0x100000000` 发生 uint32_t 溢出，截断为 0，导致 `table_size = (0+7)/8 = 0`。随后的保护检查 `if ((table_size+8) > size) return;` 变为 `8 > size`，对于任何合法原子（size ≥ 12）均为 false，无法拦截。接着 `new unsigned char[0]` 分配零字节缓冲区，`stream.Read(buffer, 0)` 读取 0 字节且返回成功。随后 for 循环（case 16）对 `i=0..sample_count-1` 执行 `m_Entries[i] = AP4_BytesToUInt16BE(&buffer[i*2])`，从零字节缓冲区越界读取堆内存（从 buffer[0] 起即为 OOB），覆写整个 m_Entries 数组。
+- **触发条件**: 构造含 `m_FieldSize=16`、`sample_count=0x10000000` 的 stz2 box（只需 20 字节），无需实际样本数据。运行环境需有约 1 GB 空闲堆内存供 `m_Entries.SetItemCount(0x10000000)` 分配（`AP4_Array<AP4_UI32>` 每项 4 字节，共 1 GB）。
+- **安全影响**: 堆越界读取可泄露堆元数据及相邻分配内容；循环随 i 增大持续读取越来越远的堆内存，最终触发 SIGSEGV 崩溃（拒绝服务）；被污染的 m_Entries 样本尺寸可传播至后续 GetSampleSize() 调用，在处理媒体样本时引发进一步的非法内存访问；若通过受控文件偏移可构造 RCE 原语。
+

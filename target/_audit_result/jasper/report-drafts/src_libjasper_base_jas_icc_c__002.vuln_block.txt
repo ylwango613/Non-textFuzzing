@@ -1,0 +1,13 @@
+## VULN: Heap buffer underwrite in jas_icctxt_input when cnt is zero
+- **漏洞类别**: memory-safety
+- **函数**: jas_icctxt_input()
+- **行号**: 1214-1218
+- **CWE**: CWE-787 (Out-of-bounds Write)
+- **CVSS v3.1**: 7.8 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted JP2/JPEG-2000 image file with embedded ICC profile
+- **外部触发路径**: `imginfo -f crafted.jp2` → `jp2_decode()` (jp2_dec.c:298) → `jas_iccprof_createfrombuf(dec->colr->data.colr.iccp, iccplen)` → `jas_iccprof_load()` (jas_icc.c:341, `len = tagtabent->len - 8`) → tag dispatch → `jas_icctxt_input(attrval, in, cnt=0)`
+- **描述**: 在 `jas_iccprof_load()` 中，变量 `len`（类型 `int`）被赋值为 `tagtabent->len - 8`（无符号减法结果），当 `tagtabent->len == 8`（文件控制）时 `len = 0`，随后作为 `cnt` 传入 `jas_icctxt_input()`。函数内：（1）`jas_malloc(0)` 在 Linux/glibc 下返回非 NULL，通过 `!()` 检查；（2）`jas_stream_read(in, string, 0)` 返回 0 等于 `cnt`，通过长度校验；（3）第 1218 行 `txt->string[cnt - 1] = '\0'`，即 `txt->string[-1] = '\0'`，在 `string` 分配区起始地址**前 1 字节**写入 `\0`，造成堆缓冲区向前越界写（heap underwrite），可破坏 allocator 元数据或相邻堆对象。
+- **触发条件**: 构造 JP2 文件，嵌入含有 TXT 类型标签（如 `JAS_ICC_TAG_CPYRT`，type = `JAS_ICC_TYPE_TXT`）的 ICC profile，将该标签在 tag table 中的 `len` 字段设为 8（表示无数据字节，仅含 8 字节头部），使 `cnt = 8 - 8 = 0`。
+- **安全影响**: 向 `txt->string[-1]` 写入 1 字节 `\0`，破坏 glibc malloc chunk header 或相邻堆数据，可导致后续 free/malloc 时堆内存损坏，可能被精心利用以实现 RCE；最低影响为程序崩溃（DoS）。
+

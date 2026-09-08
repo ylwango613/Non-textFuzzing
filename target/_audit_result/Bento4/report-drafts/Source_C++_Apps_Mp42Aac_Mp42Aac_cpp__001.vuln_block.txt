@@ -1,0 +1,13 @@
+## VULN: AP4_CttsAtom missing bounds check + integer overflow in entry_count*8 → heap OOB read
+- **漏洞类别**: memory-safety
+- **函数**: AP4_CttsAtom::AP4_CttsAtom()
+- **行号**: 77-98 (Ap4CttsAtom.cpp)
+- **CWE**: CWE-190 (Integer Overflow or Wraparound), CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 7.1 (AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac input.mp4 → AP4_File::AP4_File() → AP4_AtomFactory::CreateAtomFromStream() → AP4_CttsAtom::Create(size, stream) → AP4_CttsAtom::AP4_CttsAtom(size, version, flags, stream)
+- **描述**: 构造函数从文件流中读取 `entry_count`（AP4_UI32，来自 ctts box data），未做任何上界校验直接调用 `m_Entries.SetItemCount(entry_count)`，然后计算 `new unsigned char[entry_count*8]`。此处 `entry_count`（AP4_UI32）与整数字面量 `8`（int）相乘，结果类型为 **unsigned int（32 位）**，当 `entry_count >= 0x20000000`（268,435,456）时乘积整数溢出为 0，导致分配 0 字节的缓冲区。后续循环 `for (unsigned i=0; i<entry_count; i++) { m_Entries[i].m_SampleCount = AP4_BytesToUInt32BE(&buffer[i*8]); ... }` 以 `entry_count` 次迭代读取 `buffer[i*8]` 和 `buffer[i*8+4]`，全部是对 0 字节缓冲区的越界堆读。在有足够内存（4 GB+）使 SetItemCount 先成功的系统上，越界读取堆上相邻内存，结果写入 m_Entries 进而影响后续 CTS offset 的计算；在内存受限的系统上 SetItemCount 抛出 std::bad_alloc 导致进程崩溃（DoS）。
+- **触发条件**: 在 moov/trak/mdia/minf/stbl 中放置一个 ctts box，其 `entry_count` 字段（偏移 16 字节处的 4 字节大端无符号整数）设为 `0x20000000` 或更大值（确保 `entry_count * 8` 的 32 位积溢出）；box 的 declared size 可设为最小合法值（≥12），不需要真实对应的 entry 数据。
+- **安全影响**: 在低内存系统（entry_count=0x20000000 时 SetItemCount 尝试申请 4 GB）造成进程崩溃（DoS，CWE-400/CWE-770）；在高内存服务器（4 GB+ 可用堆）上发生堆越界读，将堆上任意数据（包括可能的地址、密钥、其他对象内容）读入 m_Entries CTS 表，构成信息泄露，并可能通过后续错误偏移计算进一步影响控制流。
+

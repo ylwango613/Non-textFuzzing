@@ -1,0 +1,14 @@
+## VULN: Ap4CttsAtom.cpp — ctts entry_count 整数溢出导致堆缓冲区越界写
+
+- **漏洞类别**: 整数溢出 → 堆缓冲区溢出（Integer Overflow → Heap-based Buffer Overflow）
+- **函数**: `AP4_CttsAtom::AP4_CttsAtom(AP4_UI32, AP4_ByteStream&)`
+- **行号**: Ap4CttsAtom.cpp:77–97（关键语句在第 79、80 行）
+- **CWE**: CWE-190 (Integer Overflow or Wraparound)，继发 CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H = **7.8 (High)**
+- **严重程度**: High（32 位构建可导致 RCE；64 位构建导致 DoS）
+- **攻击向量**: 攻击者提供一个合法结构的 MP4 文件，其中 stbl 子树包含一个 size=16 字节的 ctts 全量 box（12 字节 full-atom 头 + 4 字节 entry_count 字段），entry_count 字段值设为 0x20000001
+- **外部触发路径**: `mp42aac crafted.mp4 out.aac` → `new AP4_File(*input)` → `AP4_AtomFactory::CreateAtomFromStream` → `AP4_CttsAtom::Create` → `AP4_CttsAtom::AP4_CttsAtom`（文件解析阶段，无需成功读取任何音频样本）
+- **描述**: 构造函数在第 77 行无验证地读取 `entry_count`（`AP4_UI32`，32 位无符号整数），既不校验其是否超出 box 可用字节数，也不检测后续乘法是否溢出。第 79 行 `m_Entries.SetItemCount(entry_count)` 调用 `EnsureCapacity`，在 32 位平台上计算 `entry_count * sizeof(AP4_CttsTableEntry)` = `0x20000001 * 8`，结果溢出为 8，仅分配 8 字节；`SetItemCount` 内部对 0x20000001 个元素执行 placement-new 循环，立即从第 2 次迭代起发生大规模堆外写。第 80 行 `new unsigned char[entry_count*8]` 同样溢出，分配 8 字节，与 m_Items 一起成为过小的目标。在 64 位平台上，EnsureCapacity 中 `count * sizeof(T)` 以 size_t（64 位）计算，产生约 4 GB 的分配请求，触发 `std::bad_alloc`，进程崩溃。
+- **触发条件**: 构造一个 MP4 文件，使 moov/trak/mdia/minf/stbl/ctts box 的 size=16（或任意合法大小），entry_count=0x20000001（或任意满足 `entry_count * 8` mod 2^32 结果 < 实际数据量的值）。该 box 将通过工厂层的 `size ≥ 8` 合法性检查并进入构造函数。
+- **安全影响**: 32 位构建：堆内存在 SetItemCount 内部被大面积覆写，攻击者可通过堆风水（heap feng shui）实现任意代码执行（RCE）。64 位构建：`std::bad_alloc` 未被捕获，`std::terminate` 终止进程，导致拒绝服务（DoS）。
+

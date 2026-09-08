@@ -1,0 +1,13 @@
+## VULN: AP4_TrunAtom missing sample_count bounds check before heap allocation
+- **漏洞类别**: memory-safety
+- **函数**: AP4_TrunAtom::AP4_TrunAtom()
+- **行号**: 127-151
+- **CWE**: CWE-400 (Uncontrolled Resource Consumption) / CWE-789 (Memory Allocation with Excessive Size Value)
+- **CVSS v3.1**: 6.5 (AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac → AP4_AtomFactory::CreateAtomFromStream() → AP4_TrunAtom::Create() → new AP4_TrunAtom(size, version, flags, stream)
+- **描述**: Ap4TrunAtom.cpp 第 127 行 `m_Entries.SetItemCount(sample_count)` 在读取 `sample_count` 后没有任何与 atom 大小的边界校验即调用 SetItemCount。`sample_count` 直接来自文件 4-byte 字段（最大 0xFFFFFFFF），EnsureCapacity 将尝试分配 `sample_count * sizeof(Entry)` 字节（Entry 含 4 个 AP4_UI32 字段，sizeof=16），对 sample_count=0x10000000 即需要 1GB。若系统内存不足，`::operator new` 抛出 bad_alloc 或（在 nothrow 系统上）返回 NULL 后 SetItemCount 错误码被忽略，后续 `m_Entries[i].sample_duration = ...` 在 m_Items=NULL 时为空指针解引用，造成进程崩溃。
+- **触发条件**: 构造 trun atom，sample_count 字段为超大值（如 0xFFFFFFFF），仅需包含正常头部即可触发
+- **安全影响**: 强制目标进程分配极大堆内存直至 OOM，或在 nothrow 分配器下导致空指针解引用，均造成进程崩溃（DoS）
+

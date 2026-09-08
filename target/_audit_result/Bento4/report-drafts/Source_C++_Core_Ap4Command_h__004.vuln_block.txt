@@ -1,0 +1,13 @@
+## VULN: AP4_DecoderConfigDescriptor hardcoded-constant subtraction integer underflow → OOB read
+- **漏洞类别**: memory-safety
+- **函数**: AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor()
+- **行号**: 71-100 (Ap4DecoderConfigDescriptor.cpp)
+- **CWE**: CWE-191 (Integer Underflow) → CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 6.8 (AV:L/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac input.mp4 → AP4_File → esds atom → AP4_EsdsAtom → CreateDescriptorFromStream → AP4_DecoderConfigDescriptor(stream, header_size, payload_size=12) → 13 バイト固定読み取り後 → AP4_SubStream(stream, start+13, 12u - 13u = 0xFFFFFFFF)
+- **描述**: コンストラクタ内で ReadUI08 × 2 + ReadUI24 + ReadUI32 × 2 = 計 13 バイトを固定消費した後、`AP4_SubStream(stream, start+13, payload_size-13)` を生成する。`payload_size < 13` のとき `payload_size - 13` が uint32_t アンダーフローし（例: payload_size=0 → 0xFFFFFFF3）、巨大 `m_Size` を持つサブストリームが生成される。このサブストリームを介してデスクリプタファクトリが宣言境界を越えてデータを読み続け、誤解釈 payload_size からの大アロケーションによる DoS および OOB リードが生じる。
+- **触发条件**: esds atom 内の DecoderConfig デスクリプタ（タグ 0x04）に `payload_size ≤ 12` を宣言した MP4 ファイル。
+- **安全影响**: 宣言されたデスクリプタ境界を越えたファイルデータの OOB リードと、誤解釈された大 payload_size による無制限ヒープアロケーション DoS（OOM クラッシュ）。
+

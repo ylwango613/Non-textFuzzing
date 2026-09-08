@@ -1,0 +1,13 @@
+## VULN: AP4_TrunAtom Unvalidated sample_count → Null Pointer Dereference / Heap Overflow
+- **漏洞类别**: memory-safety
+- **函数**: AP4_TrunAtom::AP4_TrunAtom()
+- **行号**: 104-151 (Ap4TrunAtom.cpp)
+- **CWE**: CWE-476 (NULL Pointer Dereference) / CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 6.1 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac main() → AP4_DefaultAtomFactory::CreateAtomFromStream() → AP4_TrunAtom::Create(size_32, stream) → new AP4_TrunAtom(size, version, flags, stream)
+- **描述**: 构造函数第105行从流中读取 `sample_count`（AP4_UI32），第127行调用 `m_Entries.SetItemCount(sample_count)` 但未检查返回值，也未将 `sample_count` 与 atom `size` 字段做上界校验。`AP4_TrunAtom::Entry` 为 16 字节，`EnsureCapacity(sample_count)` 在 64-bit 平台上计算 `(size_t)sample_count * 16`：当 `sample_count = 0x10000000` 时尝试分配 4 GB，OOM 失败后 `m_Items` 保持 NULL、`m_ItemCount` 保持 0，但 `SetItemCount` 的错误返回值被忽略。随后第128-151行循环 `for (i=0; i<sample_count; i++)` 对 `m_Entries[i]`（即 `m_Items[i]`）直接解引用，造成 NULL 指针解引用；32-bit 平台上 `sample_count * 16` 同样溢出为 0，SetItemCount 中 placement new 循环越 0 字节缓冲区写入，形成堆缓冲区溢出。
+- **触发条件**: 构造包含 fragmented MP4（moof/traf/trun）结构的 MP4 文件，trun atom 的 `sample_count` 字段设置为 `0x10000000` 或更大值，atom `size` 可为最小值（12 字节）。
+- **安全影响**: 64-bit 平台上 NULL 指针解引用导致进程崩溃（DoS）；32-bit 平台上堆缓冲区溢出可能实现任意代码执行。
+

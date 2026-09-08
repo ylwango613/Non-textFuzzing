@@ -1,0 +1,13 @@
+## VULN: Heap buffer overflow via TIFFScanlineSize integer overflow writing to malloc(0) obuf
+- **漏洞类别**: memory-safety
+- **函数**: main()
+- **行号**: 180-195
+- **CWE**: CWE-122 (Heap-Based Buffer Overflow)
+- **CVSS v3.1**: 7.8 (AV:L/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted TIFF file
+- **外部触发路径**: pal2rgb main() → _TIFFmalloc(TIFFScanlineSize(out)) [returns malloc(0) due to overflow] → pixel loop writes imagewidth*3 bytes to 0-size heap block (lines 188-191)
+- **描述**: `TIFFScanlineSize(out)` 内部调用 `multiply(tif, scanline, bitspersample, ...)` 计算输出扫描线字节数。当 `imagewidth ≥ 178,956,971` 时（CONTIG 模式，samplesperpixel=3，bitspersample=8），`multiply()` 中 `uint32 bytes = 536,870,913 * 8 = 4,294,967,304` 截断为 `8`，溢出检查触发，`multiply()` 返回 0，`TIFFScanlineSize(out)` 返回 0。随后 `_TIFFmalloc(0)` 在 Linux/glibc 上返回一个合法但无可用字节的非 NULL 指针（heap 上最小对齐块）。pal2rgb.c:181 将其赋给 `obuf` 而不做任何零大小检查。之后在 line 188-191 的像素循环中，代码向 `obuf` 连续写入 `imagewidth * 3`（约 536MB）字节，远超 0 字节分配边界，造成严重的堆缓冲区溢出，破坏 heap 相邻内存块的元数据和内容。
+- **触发条件**: 攻击者构造 TIFF 文件：PHOTOMETRIC_PALETTE，bitspersample=8，imagewidth ≥ 178,956,971，imagelength=1（最小化文件大小），COMPRESSION_NONE，在 StripOffsets 指向的位置放置 ≥178,956,971 字节合法调色板索引数据（约 170MB 文件）。以默认参数调用 `pal2rgb crafted.tif out.tif`（无需 `-p` 参数，默认 CONTIG）。系统需有约 170MB 空闲内存使 ibuf 分配成功，obuf 随后以 malloc(0) 完成分配，循环触发堆溢出。
+- **安全影响**: 堆内存大量越界写入（每行约 536MB），几乎必然导致进程崩溃（DoS）。在精心控制的堆布局下（heap feng shui），相邻 heap 元数据被覆盖可能导致任意代码执行（RCE）。
+

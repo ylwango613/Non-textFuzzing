@@ -5,3 +5,10 @@
 [2026-09-08 02:13:41] wrote gdk-pixbuf_gdk-pixbuf-csource_c_v2
 [2026-09-08 02:13:41] DEDUP-SKIP gdk-pixbuf_gdk-pixbuf-io_c_v2 (key=`gdk_pixbuf_from_pixdata::CWE-125)
 [2026-09-08 02:13:41] DEDUP-SKIP gdk-pixbuf_gdk-pixbuf-pixdata_c_v2 (key=gdk_pixbuf_from_pixdata::CWE-125)
+[2026-09-08 02:14:01] wrote gdk-pixbuf_gdk-pixbuf-io_c_v1
+[2026-09-08 02:14:03] wrote gdk-pixbuf_gdk-pixbuf-pixdata_c_v1
+[2026-09-08 02:14:03] DEDUP-SKIP gdk-pixbuf_gdk-pixdata_c_v1 (key=`gdk_pixbuf_from_pixdata::CWE-125)
+[2026-09-08 02:36:38] WRITTEN Bug1 <- gdk-pixbuf_gdk-pixbuf-csource_c#003 [CRASH]
+[2026-09-08 02:36:42] WRITTEN Bug2 <- gdk-pixbuf_gdk-pixbuf-csource_c#001 [CRASH]
+[2026-09-08 02:36:53] WRITTEN Bug3 <- gdk-pixbuf_gdk-pixbuf-pixdata_c#001 [CRASH]
+[2026-09-08 02:36:57] WRITTEN Bug4 <- gdk-pixbuf_gdk-pixbuf-csource_c#002 [CRASH]

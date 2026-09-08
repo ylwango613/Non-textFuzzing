@@ -1,0 +1,18 @@
+## VULN: Heap OOB read — CDEF/CMAP numchans mismatch in jp2_dec.c:403
+**File:** `src/libjasper/jp2/jp2_dec.c`
+**Lines:** 403–413
+**Function:** `jp2_decode`
+**CWE:** CWE-125 (Out-of-Bounds Read)
+**CVSS 3.1:** 7.1 · AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:H
+
+**Root cause:** At line 403 the code loops `for (i = 0; i < dec->numchans; ++i)` and reads `dec->cdef->data.cdef.ents[i]`. `dec->numchans` is populated from the CMAP box (`cmapd->numchans`, set in `jp2_cmap_getdata`), while `dec->cdef->data.cdef.ents` is heap-allocated in `jp2_cdef_getdata` with a size of `cdef->numchans` read from the CDEF box. These two values are independently parsed from attacker-controlled input and never cross-validated. When the CDEF box specifies `M` channels and the CMAP box specifies `N > M` channels, the loop reads `ents[M]` through `ents[N-1]` beyond the end of the heap buffer.
+
+**Trigger:** Craft a JP2 file containing:
+1. A CMAP box with `numchans = N` (e.g., 3 channels)
+2. A CDEF box with `numchans = M` where `M < N` (e.g., 1 channel)
+3. Pass the file to `jasper --input <file>` or any program calling `jas_image_decode()` with format `jp2`.
+
+**Impact:** Up to `(N - M) * sizeof(jp2_cdefchan_t)` bytes of heap memory following the CDEF `ents` buffer are read and used as `channo`, `type`, and `assoc` fields. This leaks adjacent heap allocations (info-disclosure) and, if the out-of-range `channo` value passes the `>= dec->numchans` guard, causes further memory corruption via `jas_image_setcmpttype`. At minimum the process crashes (DoS).
+
+---
+
