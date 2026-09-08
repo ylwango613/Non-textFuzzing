@@ -1,0 +1,13 @@
+## VULN: Integer overflow in AP4_Array::EnsureCapacity → heap buffer overflow in AP4_FragmentSampleTable::AddTrun (32-bit)
+- **漏洞类别**: memory-safety
+- **函数**: AP4_FragmentSampleTable::AddTrun() / AP4_FragmentSampleTable::AP4_FragmentSampleTable()
+- **行号**: 67, 119-120, 173-215 (Ap4FragmentSampleTable.cpp); 166-185, 193-218 (Ap4Array.h)
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 7.8 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac input.mp4 → AP4_Movie::AP4_Movie → AP4_MovieFragment → AP4_ContainerAtom (traf) → AP4_FragmentSampleTable::AP4_FragmentSampleTable (constructor) → m_Samples.EnsureCapacity(sample_count) [Ap4FragmentSampleTable.cpp:67] → AP4_FragmentSampleTable::AddTrun → m_Samples.SetItemCount(start + trun->GetEntries().ItemCount()) [line 120] → AP4_Array<AP4_Sample>::SetItemCount → AP4_Array<AP4_Sample>::EnsureCapacity → ::operator new(count*sizeof(AP4_Sample)) [Ap4Array.h:172] → construction loop at m_Items[i] [Ap4Array.h:214]
+- **描述**: 在 32-bit 编译目标上，`AP4_TrunAtom` 构造函数将来自 MP4 文件字段的 `sample_count`（AP4_UI32）直接传入 `m_Entries.SetItemCount(sample_count)`，后者调用 `EnsureCapacity(count)`。`EnsureCapacity` 执行 `::operator new(count * sizeof(T))`，在 32-bit 平台上 `count * sizeof(T)` 可发生整数环绕（例如 count=0x20000000，sizeof(AP4_TrunAtom::Entry)=16：0x20000000×16=0x200000000 mod 2^32=0），分配 0 字节但将 `m_AllocatedCount` 置为 count=0x20000000。trun 无 per-sample flag 时内部循环为空，不产生即时崩溃。随后 `AP4_FragmentSampleTable` 构造函数调用 `m_Samples.EnsureCapacity(0x20000000)`：sizeof(AP4_Sample)≈40 字节，0x20000000×40=0x500000000 mod 2^32=0，同样分配 0 字节但设 `m_AllocatedCount=0x20000000`。接着 `AddTrun` 调用 `m_Samples.SetItemCount(start + 0x20000000=0x20000000)`；`EnsureCapacity` 因 `count<=m_AllocatedCount` 提前返回，随即执行构造循环 `new((void*)&m_Items[i]) AP4_Sample()` for i=0..0x1FFFFFFF——`m_Items` 指向 0 字节分配，所有写操作均为堆越界写。后续 AddTrun 主循环（第 173–215 行）通过无边界检查的 `operator[]` 访问 `m_Samples[start+i]`，可向堆中任意偏移写入攻击者可控的 `sample_size`、`sample_offset`、`dts` 等字段值，造成任意堆内存破坏。
+- **触发条件**: 构造一个包含 fragmented track 的 MP4 文件：moof→traf→trun，trun atom 中 `sample_count` = 0x20000000（约 537M），trun_flags = 0（无 per-sample 字段），trun atom body 仅约 24 字节。在 32-bit 编译的 mp42aac 上处理该文件即可触发。
+- **安全影响**: 堆内存任意破坏，可覆盖相邻堆块元数据或对象指针；攻击者通过精心布局堆可将此漏洞升级为任意代码执行（RCE）。在 64-bit 系统上，`count*sizeof(T)` 不溢出，`::operator new` 抛出 `std::bad_alloc`（未捕获），进程崩溃，形成可靠 DoS。
+

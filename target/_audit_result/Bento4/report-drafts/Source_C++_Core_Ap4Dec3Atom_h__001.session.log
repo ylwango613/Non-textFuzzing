@@ -1,0 +1,1 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/Bento4/report-drafts/Source_C++_Core_Ap4Dec3Atom_h__001.md` is written and contains exactly the required structure: the `## Bug0:` title, a one-sentence description, a `### PoC` section with the self-contained Python generation script and bash commands, the ASAN result lines, and a `### Impact` section with two to three sentences.

@@ -1,0 +1,1 @@
+# xpdf (pdftotext) Vulnerabilities

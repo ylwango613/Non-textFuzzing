@@ -1,0 +1,13 @@
+## VULN: AP4_TfraAtom – No bounds check on file-controlled `entry_count` → unbounded SetItemCount → heap OOB
+- **漏洞类别**: memory-safety
+- **函数**: AP4_TfraAtom::AP4_TfraAtom()
+- **行号**: 86-181
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 7.5 (AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac input.mp4 → AP4_AtomFactory::CreateAtomFromStream() → AP4_TfraAtom::Create(size, stream) → new AP4_TfraAtom(size, version, flags, stream)
+- **描述**: Ap4TfraAtom.cpp 第86–88行从文件读取 `entry_count`（AP4_UI32）后直接调用 `m_Entries.SetItemCount(entry_count)`，无上界验证。`AP4_TfraAtom::Entry` 含 m_Time(UI64)、m_MoofOffset(UI64)、m_TrafNumber(UI32)、m_TrunNumber(UI32)、m_SampleNumber(UI32)，在64-bit上约占32字节（含对齐）。在 32-bit 构建中，当 `entry_count * sizeof(Entry)` 在 32-bit 乘法中溢出时，`EnsureCapacity` 分配极小缓冲区；随后 SetItemCount 的 placement-new 循环和第89–181行 for 循环（每次调用 ReadUI64/ReadUI32 并写入 `m_Entries[i].m_Time` 等字段）在越界区域执行堆写入，造成堆内存破坏。
+- **触发条件**: MP4 文件 `mfra→tfra` box（Movie Fragment Random Access box）中 `entry_count` 字段设为可触发溢出的超大值（依 sizeof(Entry) 不同，阈值在 0x8000000~0x20000000 之间）。mp42aac 在解析 mfra 区域时会触发此路径。
+- **安全影响**: 32-bit 目标堆内存破坏（潜在 RCE）；64-bit `std::bad_alloc` 崩溃（DoS）。
+

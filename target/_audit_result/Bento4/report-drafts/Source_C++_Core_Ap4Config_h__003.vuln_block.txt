@@ -1,0 +1,13 @@
+## VULN: AP4_TrunAtom unchecked SetItemCount failure leads to null pointer dereference in sample loop
+- **漏洞类别**: memory-safety
+- **函数**: AP4_TrunAtom::AP4_TrunAtom(AP4_UI32, AP4_UI08, AP4_UI32, AP4_ByteStream&)
+- **行号**: 127-151
+- **CWE**: CWE-252 (Unchecked Return Value) → CWE-476 (NULL Pointer Dereference)
+- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac main() → AP4_File(input) → AP4_AtomFactory（解析 moof/traf/trun box）→ AP4_TrunAtom::Create() → new AP4_TrunAtom(size, version, flags, stream)
+- **描述**: `Ap4TrunAtom.cpp` 第 127 行 `m_Entries.SetItemCount(sample_count)` 返回值未检查。若 `sample_count` 超大（攻击者在 trun box 中设置大值），EnsureCapacity 内 `::operator new` 失败：在有异常构建中抛出 bad_alloc（DoS）；在 `-fno-exceptions` 构建中返回 NULL，EnsureCapacity 返回 `AP4_ERROR_OUT_OF_MEMORY`，SetItemCount 返回错误（未检查），`m_Items` 仍为 NULL。随后 for 循环第 128-151 行直接访问 `m_Entries[i]`（即 `m_Items[i]`），m_Items 为 NULL → 空指针解引用 → 进程崩溃。在 32 位平台上，`sample_count * sizeof(Entry)`（sizeof(Entry)=16）也可能整数溢出为 0，产生微小分配后 for 循环越界写入（堆破坏）。
+- **触发条件**: MP4 文件包含 moof → traf → trun box 子树，trun 的 sample_count 字段设为极大值（如 0x10000000）；box size 可以极小（系统尝试分配大量内存即可触发）。
+- **安全影响**: 64 位标准构建：未处理的 bad_alloc 或 NULL 解引用导致进程崩溃（DoS）；32 位构建：潜在堆破坏，可能升级为 RCE。
+

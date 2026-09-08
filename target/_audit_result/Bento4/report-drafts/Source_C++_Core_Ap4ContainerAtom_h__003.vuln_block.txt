@@ -1,0 +1,13 @@
+## VULN: AP4_StcoAtom/AP4_Co64Atom Unsigned Integer Underflow Bypasses Bounds Check → OOM Heap Allocation
+- **漏洞类别**: memory-safety
+- **函数**: AP4_StcoAtom::AP4_StcoAtom() / AP4_Co64Atom::AP4_Co64Atom()
+- **行号**: 78-82 (Ap4StcoAtom.cpp) / 78-81 (Ap4Co64Atom.cpp)
+- **CWE**: CWE-191 (Integer Underflow) → CWE-789 (Memory Allocation with Excessive Size Value)
+- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac main() → AP4_DefaultAtomFactory::CreateAtomFromStream() → AP4_StcoAtom::Create(size_32, stream) → new AP4_StcoAtom(size, version, flags, stream)
+- **描述**: `AP4_StcoAtom` 构造函数第78行的上界校验 `m_EntryCount > (size - AP4_FULL_ATOM_HEADER_SIZE - 4) / 4` 在 `size < AP4_FULL_ATOM_HEADER_SIZE + 4 = 16` 时发生无符号整数下溢：`Create` 仅检查 `size >= AP4_FULL_ATOM_HEADER_SIZE = 12`，故 size ∈ {12,13,14,15} 均可通过。以 size=12 为例，`(12 - 12 - 4) / 4 = 0xFFFFFFFC / 4 = 0x3FFFFFFF`，校验实际放行最多 0x3FFFFFFF 条目。第81行 `new AP4_UI32[m_EntryCount]` 与第82行 `new unsigned char[m_EntryCount * 4]` 均尝试分配约 4 GB，触发进程级 OOM 崩溃。`AP4_Co64Atom` 第78行有完全相同的模式（除数从 4 改为 8）。
+- **触发条件**: 构造包含 `stco` atom 的 MP4 文件，atom `size` 字段设置为 12（最小合法值），`entry_count` 字段设置为大于 0 的任意值（如 1），在 32-bit 上 entry_count 约 0x3FFFFFFF 可触发；在 64-bit 上任意非零值都会使分配尝试超过 4 GB。
+- **安全影响**: 进程因无法满足超大内存分配请求而崩溃（std::bad_alloc 或 SIGABRT），造成拒绝服务（DoS）。
+

@@ -1,3 +1,10 @@
 [2026-09-08 02:13:27] wrote src_appl_imginfo_c_v1
 [2026-09-08 02:13:43] wrote src_libjasper_base_jas_icc_c_v2
 [2026-09-08 02:13:45] wrote src_libjasper_base_jas_icc_c_v1
+[2026-09-08 02:14:01] wrote src_libjasper_jpc_jpc_dec_c_v2
+[2026-09-08 02:14:08] wrote src_libjasper_jpc_jpc_dec_c_v1
+[2026-09-08 02:14:10] wrote src_libjasper_jpc_jpc_t2cod_c_v1
+[2026-09-08 02:36:43] WRITTEN Bug1 <- src_appl_imginfo_c#001 [CRASH]
+[2026-09-08 02:36:44] WRITTEN Bug2 <- src_libjasper_base_jas_icc_c#001 [CRASH]
+[2026-09-08 02:36:50] WRITTEN Bug3 <- src_appl_jasper_c#001 [CRASH]
+[2026-09-08 02:38:03] WRITTEN Bug4 <- src_libjasper_base_jas_icc_c#002 [CRASH]

@@ -23,3 +23,21 @@
 [2026-09-07 23:41:41] VULN src/crwimage_int.hpp: 1 findings
 [2026-09-07 23:42:52] VULN src/crwimage_int.cpp: 1 findings
 [2026-09-07 23:56:28] DONE: 150 new, 15 skipped, 12 vulns
+[2026-09-08 02:31:41] VULN src/image.cpp: 1 findings
+[2026-09-08 03:14:59] VULN src/orfimage.cpp: 1 findings
+[2026-09-08 04:04:05] VULN src/tiffcomposite_int.cpp: 1 findings
+[2026-09-08 04:12:29] VULN src/tiffcomposite_int.hpp: 1 findings
+[2026-09-08 04:15:12] VULN src/tiffimage.cpp: 1 findings
+[2026-09-08 04:28:37] VULN src/tiffvisitor_int.hpp: 1 findings
+[2026-09-08 04:46:34] VULN xmpsdk/src/ExpatAdapter.cpp: 1 findings
+[2026-09-08 04:50:37] VULN xmpsdk/src/ParseRDF.cpp: 1 findings
+[2026-09-08 04:56:18] VULN xmpsdk/src/WXMPMeta.cpp: 2 findings
+[2026-09-08 05:01:45] VULN xmpsdk/src/XMLParserAdapter.hpp: 3 findings
+[2026-09-08 05:04:42] VULN xmpsdk/src/XML_Node.cpp: 1 findings
+[2026-09-08 05:12:28] VULN xmpsdk/src/XMPIterator.hpp: 1 findings
+[2026-09-08 05:17:05] VULN xmpsdk/src/XMPMeta.cpp: 3 findings
+[2026-09-08 05:18:13] VULN xmpsdk/src/XMPMeta.hpp: 1 findings
+[2026-09-08 05:24:51] VULN xmpsdk/src/XMPMeta-Parse.cpp: 2 findings
+[2026-09-08 05:38:57] VULN xmpsdk/src/XMPUtils.cpp: 3 findings
+[2026-09-08 05:38:57] VULN xmpsdk/src/XMPUtils-FileInfo.cpp: 1 findings
+[2026-09-08 05:38:57] DONE: 95 new, 70 skipped, 25 vulns

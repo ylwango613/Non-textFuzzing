@@ -1,0 +1,62 @@
+[2026-09-08 10:38:11] WRITTEN Bug1 <- Source_C++_Core_Ap4Atom_cpp#001 [CRASH]
+[2026-09-08 10:38:23] WRITTEN Bug2 <- Source_C++_Apps_Mp42Aac_Mp42Aac_cpp#001 [CRASH]
+[2026-09-08 10:38:26] WRITTEN Bug3 <- Source_C++_Core_Ap4Array_h#001 [CRASH]
+[2026-09-08 10:38:49] WRITTEN Bug4 <- Source_C++_Apps_Mp42Aac_Mp42Aac_cpp#002 [CRASH]
+[2026-09-08 10:39:03] DEDUP-SKIP Source_C++_Core_Ap4AtomFactory_cpp#001 (parallel, key=AP4_CttsAtom::AP4_CttsAtom::CWE-190)
+[2026-09-08 10:39:41] DEDUP-SKIP Source_C++_Core_Ap4AtomFactory_cpp#002 (parallel, key=AP4_Stz2Atom::AP4_Stz2Atom::CWE-190)
+[2026-09-08 10:39:42] WRITTEN Bug5 <- Source_C++_Core_Ap4AtomFactory_cpp#003 [CRASH]
+[2026-09-08 10:39:44] WRITTEN Bug6 <- Source_C++_Core_Ap4AtomFactory_cpp#004 [CRASH]
+[2026-09-08 10:40:10] WRITTEN Bug7 <- Source_C++_Core_Ap4AtomFactory_cpp#005 [CRASH]
+[2026-09-08 10:40:52] WRITTEN Bug8 <- Source_C++_Core_Ap4AtomFactory_h#003 [CRASH]
+[2026-09-08 10:41:06] WRITTEN Bug9 <- Source_C++_Core_Ap4AtomFactory_h#002 [CRASH]
+[2026-09-08 10:41:07] DEDUP-SKIP Source_C++_Core_Ap4AtomSampleTable_cpp#001 (key=AP4_CttsAtom::AP4_CttsAtom::CWE-190)
+[2026-09-08 10:41:08] WRITTEN Bug10 <- Source_C++_Core_Ap4AtomFactory_h#005 [CRASH]
+[2026-09-08 10:41:09] WRITTEN Bug11 <- Source_C++_Core_Ap4AtomFactory_h#004 [CRASH]
+[2026-09-08 10:41:09] DEDUP-SKIP Source_C++_Core_Ap4AtomSampleTable_h#001 (key=AP4_CttsAtom::AP4_CttsAtom::CWE-190)
+[2026-09-08 10:41:09] DEDUP-SKIP Source_C++_Core_Ap4AtomSampleTable_h#002 (key=AP4_Stz2Atom::AP4_Stz2Atom::CWE-190)
+[2026-09-08 10:41:32] WRITTEN Bug12 <- Source_C++_Core_Ap4Atom_h#001 [CRASH]
+[2026-09-08 10:41:54] WRITTEN Bug13 <- Source_C++_Core_Ap4AtomSampleTable_cpp#002 [CRASH]
+[2026-09-08 10:42:11] WRITTEN Bug14 <- Source_C++_Core_Ap4AvccAtom_cpp#002 [CRASH]
+[2026-09-08 10:42:12] WRITTEN Bug15 <- Source_C++_Core_Ap4Atom_h#002 [CRASH]
+[2026-09-08 10:42:13] DEDUP-SKIP Source_C++_Core_Ap4Config_h#001 (key=AP4_CttsAtom::AP4_CttsAtom::CWE-190)
+[2026-09-08 10:42:13] DEDUP-SKIP Source_C++_Core_Ap4Config_h#002 (key=AP4_Stz2Atom::AP4_Stz2Atom::CWE-190)
+[2026-09-08 10:42:13] DEDUP-SKIP Source_C++_Core_Ap4Constants_h#001 (key=AP4_CttsAtom::AP4_CttsAtom::CWE-190)
+[2026-09-08 10:42:13] DEDUP-SKIP Source_C++_Core_Ap4Constants_h#002 (key=AP4_Stz2Atom::AP4_Stz2Atom::CWE-190)
+[2026-09-08 10:42:13] DEDUP-SKIP Source_C++_Core_Ap4Constants_h#003 (key=AP4_TrunAtom::AP4_TrunAtom::CWE-190)
+[2026-09-08 10:42:13] DEDUP-SKIP Source_C++_Core_Ap4ContainerAtom_h#001 (key=AP4_CttsAtom::AP4_CttsAtom::CWE-190)
+[2026-09-08 10:42:30] DEDUP-SKIP Source_C++_Core_Ap4AvccAtom_h#001 (parallel, key=AP4_AvccAtom::Create::CWE-125)
+[2026-09-08 10:42:52] DEDUP-SKIP Source_C++_Core_Ap4AvccAtom_h#002 (parallel, key=AP4_AvccAtom::Create::CWE-125)
+[2026-09-08 10:43:02] WRITTEN Bug16 <- Source_C++_Core_Ap4Config_h#003 [CRASH]
+[2026-09-08 10:43:27] WRITTEN Bug17 <- Source_C++_Core_Ap4Command_h#004 [CRASH]
+[2026-09-08 10:43:27] DEDUP-SKIP Source_C++_Core_Ap4_cpp#003 (key=AP4_SbgpAtom::AP4_SbgpAtom::CWE-190)
+[2026-09-08 10:43:27] DEDUP-SKIP Source_C++_Core_Ap4_cpp#004 (key=AP4_SaioAtom::AP4_SaioAtom::CWE-190)
+[2026-09-08 10:43:40] WRITTEN Bug18 <- Source_C++_Core_Ap4ContainerAtom_h#002 [CRASH]
+[2026-09-08 10:44:04] WRITTEN Bug19 <- Source_C++_Core_Ap4_cpp#001 [CRASH]
+[2026-09-08 10:44:05] DEDUP-SKIP Source_C++_Core_Ap4CttsAtom_cpp#001 (key=AP4_CttsAtom::AP4_CttsAtom::CWE-190)
+[2026-09-08 10:44:05] DEDUP-SKIP Source_C++_Core_Ap4CttsAtom_h#001 (key=AP4_CttsAtom::AP4_CttsAtom::CWE-190)
+[2026-09-08 10:44:22] WRITTEN Bug20 <- Source_C++_Core_Ap4ContainerAtom_h#003 [CRASH]
+[2026-09-08 10:44:29] WRITTEN Bug21 <- Source_C++_Core_Ap4_cpp#002 [CRASH]
+[2026-09-08 10:44:41] WRITTEN Bug22 <- Source_C++_Core_Ap4_cpp#005 [CRASH]
+[2026-09-08 10:44:51] WRITTEN Bug23 <- Source_C++_Core_Ap4_cpp#006 [CRASH]
+[2026-09-08 10:44:52] DEDUP-SKIP Source_C++_Core_Ap4DecoderConfigDescriptor_cpp#001 (key=AP4_DecoderConfigDescriptor::AP4_DecoderConfigDescriptor::CWE-191)
+[2026-09-08 10:45:22] WRITTEN Bug24 <- Source_C++_Core_Ap4Dac4Atom_cpp#002 [CRASH]
+[2026-09-08 10:45:36] WRITTEN Bug25 <- Source_C++_Core_Ap4Dec3Atom_cpp#001 [CRASH]
+[2026-09-08 10:45:37] WRITTEN Bug26 <- Source_C++_Core_Ap4Dac4Atom_cpp#001 [CRASH]
+[2026-09-08 10:45:38] DEDUP-SKIP Source_C++_Core_Ap4FileCopier_h#001 (key=AP4_NullTerminatedStringAtom::AP4_NullTerminatedStringAtom::CWE-787)
+[2026-09-08 10:45:38] DEDUP-SKIP Source_C++_Core_Ap4File_cpp#001 (key=AP4_CttsAtom::AP4_CttsAtom::CWE-190)
+[2026-09-08 10:45:38] DEDUP-SKIP Source_C++_Core_Ap4File_cpp#003 (key=AP4_Stz2Atom::AP4_Stz2Atom::CWE-190)
+[2026-09-08 10:45:38] DEDUP-SKIP Source_C++_Core_Ap4File_h#002 (key=`AP4_CttsAtom::AP4_CttsAtom::CWE-190)
+[2026-09-08 10:45:56] DEDUP-SKIP Source_C++_Core_Ap4Dec3Atom_h#001 (parallel, key=AP4_Dec3Atom::AP4_Dec3Atom::CWE-125)
+[2026-09-08 10:45:58] DEDUP-SKIP Source_C++_Core_Ap4FragmentSampleTable_cpp#002 (key=AP4_TrunAtom::AP4_TrunAtom::CWE-190)
+[2026-09-08 10:45:59] WRITTEN Bug27 <- Source_C++_Core_Ap4ElstAtom_cpp#001 [CRASH]
+[2026-09-08 10:46:21] WRITTEN Bug28 <- Source_C++_Core_Ap4ElstAtom_h#001 [CRASH]
+[2026-09-08 10:46:22] DEDUP-SKIP Source_C++_Core_Ap4_h#001 (key=`AP4_CttsAtom::AP4_CttsAtom::CWE-190)
+[2026-09-08 10:46:26] WRITTEN Bug29 <- Source_C++_Core_Ap4File_h#001 [CRASH]
+[2026-09-08 10:46:52] WRITTEN Bug30 <- Source_C++_Core_Ap4FragmentSampleTable_cpp#001 [CRASH]
+[2026-09-08 10:46:54] DEDUP-SKIP Source_C++_Core_Ap4Interfaces_h#001 (key=AP4_CttsAtom::AP4_CttsAtom::CWE-190)
+[2026-09-08 10:46:54] DEDUP-SKIP Source_C++_Core_Ap4Interfaces_h#002 (key=AP4_ElstAtom::AP4_ElstAtom::CWE-190)
+[2026-09-08 10:46:57] WRITTEN Bug31 <- Source_C++_Core_Ap4HvccAtom_cpp#001 [CRASH]
+[2026-09-08 10:47:09] DEDUP-SKIP Source_C++_Core_Ap4HvccAtom_h#001 (parallel, key=AP4_HvccAtom::AP4_HvccAtom::CWE-125)
+[2026-09-08 10:47:20] DEDUP-SKIP Source_C++_Core_Ap4_h#002 (parallel, key=`AP4_Stz2Atom::AP4_Stz2Atom::CWE-190)
+[2026-09-08 10:47:50] WRITTEN Bug32 <- Source_C++_Core_Ap4_h#003 [CRASH]
+[2026-09-08 10:48:13] WRITTEN Bug33 <- Source_C++_Core_Ap4IsfmAtom_h#001 [CRASH]

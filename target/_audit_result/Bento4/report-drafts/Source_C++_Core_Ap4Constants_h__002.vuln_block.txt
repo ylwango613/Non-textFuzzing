@@ -1,0 +1,13 @@
+## VULN: stz2 table_size integer overflow bypasses size check → heap OOB read
+- **漏洞类别**: memory-safety
+- **函数**: AP4_Stz2Atom::AP4_Stz2Atom()
+- **行号**: 89-120
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-126 (Buffer Over-read)
+- **CVSS v3.1**: 7.1 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: main() → AP4_File::AP4_File() → AP4_AtomFactory::CreateAtomFromStream() → AP4_Stz2Atom::Create() → AP4_Stz2Atom::AP4_Stz2Atom(size, version, flags, stream)
+- **描述**: stz2 构造函数读取 sample_count（来自文件字段）后，直接调用 `m_Entries.SetItemCount(sample_count)` 且无任何前置上界校验。随后计算 `table_size = (sample_count * m_FieldSize + 7) / 8`，其中乘法 `sample_count * m_FieldSize` 在 unsigned int（32-bit）算术中进行。当 `m_FieldSize = 16`（合法值）且 `sample_count = 0x10000001` 时，`0x10000001 × 16 = 0x100000010` 在 32-bit 溢出截断为 `0x10 = 16`，导致 `table_size = (16+7)/8 = 2`（只有 2 字节）。随后的大小校验 `(table_size + 8) > size` 计算为 `10 > size`，对任何正常 box size（均 >10）的校验失败，保护措施被绕过。代码分配仅 2 字节的 `buffer`，并读取 2 字节。接着循环 `for (unsigned int i=0; i<0x10000001; i++) m_Entries[i] = AP4_BytesToUInt16BE(&buffer[i*2])` 对 i≥1 时访问 `buffer[2]`、`buffer[4]`……等越界位置，连续读取堆内存中 buffer 之后的区域（读取量约 512 MB），并将这些值写入 m_Entries 数组，造成堆越界读取（heap buffer over-read）与数据污染。
+- **触发条件**: 在 MP4 文件的 stbl 中嵌入 stz2 box，将 field_size 字段设为 16（有效值），将 sample_count 设为 0x10000001 或任何满足 `sample_count * 16` 在 32-bit 整数溢出的值（≥ 0x10000000）。前提：目标系统有足量 RAM（≥1 GB）以使 SetItemCount 的 1 GB 分配成功；否则触发 DoS。
+- **安全影响**: 在拥有足量 RAM 的系统上：程序从 buffer 后的堆内存中大量越界读取（信息泄露，可能暴露敏感地址或数据），读取结果被存入 m_Entries，导致后续样本大小数据被污染，可能引发后续的越界访问或被用于进一步利用。内存不足时进程崩溃（DoS）。
+

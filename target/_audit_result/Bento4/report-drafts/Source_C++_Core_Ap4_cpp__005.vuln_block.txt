@@ -1,0 +1,13 @@
+## VULN: AP4_TrunAtom Unchecked sample_count → Unbounded SetItemCount
+- **漏洞类别**: memory-safety
+- **函数**: AP4_TrunAtom::AP4_TrunAtom()
+- **行号**: 104-151
+- **CWE**: CWE-789 (Memory Allocation with Excessive Size Value)
+- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac → AP4_File → AP4_AtomFactory::CreateAtomFromStream → AP4_TrunAtom::Create → AP4_TrunAtom::AP4_TrunAtom(size, version, flags, stream)
+- **描述**: 在 `Ap4TrunAtom.cpp:127`，`m_Entries.SetItemCount(sample_count)` 在没有任何 `sample_count <= (size - header) / per_entry_size` 边界检查的情况下，直接使用从文件中读取的 `sample_count`（`uint32_t`）。攻击者可将 `sample_count` 设置为 0xFFFFFFFF，触发对 `sizeof(Entry) * 0xFFFFFFFF` 字节的分配请求（标准 C++ 下抛出 `std::bad_alloc`，DoS），SetItemCount 的失败返回值被忽略；在 nothrow 环境下后续循环中 `m_Entries[i]` 产生空指针写入，导致内存破坏。
+- **触发条件**: 构造包含 trun box 的分片 MP4，将 `sample_count` 设置为极大值（如 0x10000000）。
+- **安全影响**: DoS（进程崩溃），或 nothrow 平台上空指针写入引发内存破坏。
+

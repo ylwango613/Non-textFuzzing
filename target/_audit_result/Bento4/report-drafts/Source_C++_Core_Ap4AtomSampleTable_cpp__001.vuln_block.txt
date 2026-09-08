@@ -1,0 +1,13 @@
+## VULN: AP4_CttsAtom Integer Overflow → Heap Out-of-Bounds Read
+- **漏洞类别**: memory-safety
+- **函数**: AP4_CttsAtom::AP4_CttsAtom()
+- **行号**: 77-97
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-125 (Out-of-Bounds Read)
+- **CVSS v3.1**: 7.1 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac main() → new AP4_File(*input) → AP4_AtomFactory::CreateAtomFromStream → AP4_CttsAtom::Create → AP4_CttsAtom::AP4_CttsAtom(size, version, flags, stream) [Ap4CttsAtom.cpp:68] → line 79: stream.ReadUI32(entry_count) → line 80: m_Entries.SetItemCount(entry_count) → line 81: new unsigned char[entry_count*8] (overflow) → line 82: stream.Read(buffer, entry_count*8) → line 88-96: loop reads buffer[i*8] OOB
+- **描述**: `Ap4CttsAtom.cpp` 的解析构造函数中，`entry_count` 直接从 MP4 文件字节流读入，且没有任何与 atom 大小的边界校验（其他 atom 如 stco/stsz/stsc 均有此检验）。`m_Entries.SetItemCount(entry_count)` 通过 `EnsureCapacity` 内部使用 `size_t`（64 位）算术，可正常为 entry_count 个条目分配内存；但紧随其后的 `new unsigned char[entry_count*8]`（第 81 行）使用 `AP4_UI32 * int` 的 32 位无符号乘法，当 `entry_count >= 0x20000000`（536,870,912）时，`entry_count*8` 溢出为 0 或极小值，导致 `buffer` 被分配为 0 字节（`new unsigned char[0]`）。随后 `stream.Read(buffer, 0)` 实际上不读任何数据。循环 `for (unsigned i=0; i<entry_count; i++) { ... AP4_BytesToUInt32BE(&buffer[i*8]) ... }` 对 `buffer[8], buffer[16], ...` 等越界偏移做堆读取，越界范围从 8 字节到 `0x1FFFFFFF*8 ≈ 4GB`，遍历整个进程堆空间。
+- **触发条件**: 构造一个 MP4 文件，在 moov/trak/mdia/minf/stbl 中嵌入 ctts box，将其 `entry_count` 字段设置为 `0x20000000`（或 `0x20000001` 等使 entry_count*8 溢出为小值的任意数）。文件中 ctts box 的声明大小（size 字段）不需要与 entry_count 匹配（缺少边界检验）。在 Linux 64 位系统（默认内存过量提交 `vm.overcommit_memory=0` 或 =1）运行 `mp42aac crafted.mp4 out.aac`，文件解析阶段即触发漏洞。
+- **安全影响**: 堆越界读取可造成（1）进程崩溃（DoS）——循环迭代 5 亿次访问超量虚拟内存，触发 OOM killer；（2）堆信息泄露——从 `buffer` 相邻堆块读取的任意数据（堆指针、栈地址、密钥材料等）写入 `m_Entries` 数组中，若后续被转储或用于解密则可能导致信息泄露；（3）若配合其他漏洞，可能辅助绕过 ASLR。
+

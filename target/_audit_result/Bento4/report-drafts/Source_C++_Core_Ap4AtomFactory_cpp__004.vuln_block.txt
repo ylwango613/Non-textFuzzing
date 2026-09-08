@@ -1,0 +1,13 @@
+## VULN: AP4_TfraAtom missing entry_count bounds check before heap allocation
+- **漏洞类别**: memory-safety
+- **函数**: AP4_TfraAtom::AP4_TfraAtom()
+- **行号**: 87-88
+- **CWE**: CWE-400 (Uncontrolled Resource Consumption) / CWE-789 (Memory Allocation with Excessive Size Value)
+- **CVSS v3.1**: 6.5 (AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac → AP4_AtomFactory::CreateAtomFromStream() → AP4_TfraAtom::Create() → new AP4_TfraAtom(size, version, flags, stream)
+- **描述**: Ap4TfraAtom.cpp 第 87-88 行，从文件读取 `entry_count` 后不验证其与 atom size 的关系即调用 `m_Entries.SetItemCount(entry_count)`。tfra Entry 结构含 time(UI64)、moof_offset(UI64)、traf/trun/sample number，sizeof 约 24 字节。entry_count=0x08000000 即需 3GB 分配，造成 bad_alloc 崩溃。此外，若使用 nothrow 分配后 SetItemCount 返回值未被检查，后续循环访问 NULL m_Items 造成空指针解引用。
+- **触发条件**: 构造 tfra atom，entry_count 字段为超大值，atom 其余部分可合法（含正确的字段宽度设置）
+- **安全影响**: 进程强制消耗大量内存直至 OOM 崩溃，或空指针解引用崩溃，均为 DoS
+

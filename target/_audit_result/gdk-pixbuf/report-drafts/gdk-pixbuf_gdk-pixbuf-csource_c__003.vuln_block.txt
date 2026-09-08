@@ -1,0 +1,13 @@
+## VULN: Off-by-Header-Length Integer Check in gdk_pixdata_deserialize Enables Truncated-Stream Attacks
+- **漏洞类别**: memory-safety
+- **函数**: gdk_pixdata_deserialize()
+- **行号**: 235 (gdk-pixdata.c)
+- **CWE**: CWE-131 (Incorrect Calculation of Buffer Size)
+- **CVSS v3.1**: 6.5 (AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted GdkPixdata image file (.gdkp)
+- **外部触发路径**: gdk-pixbuf-csource input.gdkp → gdk_pixbuf_new_from_file() → io-pixdata loader → gdk_pixdata_deserialize() (length check bypassed) → gdk_pixbuf_from_pixdata() (OOB read)
+- **描述**: gdk_pixdata_deserialize() 第 235 行的长度校验为 `if (stream_length < pixdata->length - GDK_PIXDATA_HEADER_LENGTH)` ，实际应为 `if (stream_length < pixdata->length)`。当前检查比正确逻辑宽松了整整 GDK_PIXDATA_HEADER_LENGTH（24 字节）：攻击者可提供总长度在区间 `[pixdata->length - 24, pixdata->length - 1]` 内的流，使 pixel_data 实际字节数比头部声明的少最多 24 字节，此校验仍通过。随后 gdk_pixbuf_from_pixdata() 使用 pixdata->height×pixdata->rowstride（头部中的大值）决定需要解码的输出量，而 rle_buffer 仅有截断的 pixel_data 可读，与上条 OOB read 漏洞组合可放大越界读取范围。
+- **触发条件**: 构造 .gdkp 流，其中 pixdata->length 声明值 = stream_length + K（1 ≤ K ≤ 24），使截断检查恰好绕过，同时 height×rowstride 足够大，令 RLE 解码器在 pixel_data 耗尽前无法填满输出缓冲区。
+- **安全影响**: 绕过长度保护，配合 OOB read 漏洞实现堆信息泄露或崩溃（DoS）。
+

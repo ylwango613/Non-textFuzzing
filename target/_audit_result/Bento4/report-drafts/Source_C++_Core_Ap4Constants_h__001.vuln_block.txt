@@ -1,0 +1,13 @@
+## VULN: ctts entry_count unbounded → heap overflow (32-bit) / DoS (64-bit)
+- **漏洞类别**: memory-safety
+- **函数**: AP4_CttsAtom::AP4_CttsAtom()
+- **行号**: 77-98
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 7.8 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: main() → AP4_File::AP4_File() → AP4_AtomFactory::CreateAtomFromStream() → AP4_CttsAtom::Create() → AP4_CttsAtom::AP4_CttsAtom(size, version, flags, stream)
+- **描述**: ctts 构造函数在从流读取 entry_count 后，直接调用 `m_Entries.SetItemCount(entry_count)`，没有像 stco/stsz 那样先对 entry_count 做上界校验（比较 (size - header) / 8）。在 32-bit 平台上，`EnsureCapacity(entry_count)` 内部计算 `count * sizeof(AP4_CttsTableEntry)` = `entry_count × 8`，当 entry_count ≥ 0x20000001 时，该乘法在 32-bit unsigned 算术中发生整数溢出（`0x20000001 × 8 = 0x100000008` → 截断为 8），导致 `::operator new(8)` 仅分配 8 字节，而 SetItemCount 随后对 `m_Items[0..entry_count-1]` 全部写入默认构造的 AP4_CttsTableEntry（8 字节/条），造成严重的堆缓冲区溢出（heap buffer overflow）。在 64-bit 平台上，4 GB+ 的分配导致 `std::bad_alloc` 抛出，进程崩溃（DoS）。此外，即便在 64-bit 上 SetItemCount 成功（大内存场景），后续 `new unsigned char[entry_count*8]` 也因同一 32-bit 整数溢出得到一个极小的 buffer，循环 `m_Entries[i] = AP4_BytesToUInt32BE(&buffer[i*8])` 对每个 i≥1 均读越界堆内存（heap OOB read）。
+- **触发条件**: 在 MP4 文件的 moov/trak/mdia/minf/stbl 中嵌入一个 ctts box（即使 box size 只有 20 字节），将 entry_count 字段设为 0x20000001（或类似可触发溢出的大值）。box size 只需满足 factory 的 `size > bytes_available` 检查，无需文件庞大。
+- **安全影响**: 32-bit 平台下：大量写入至堆越界区域（约 4 GB 写操作至 8 字节分配块），覆盖堆管理结构和相邻对象，攻击者在进行堆布局（heap grooming）后可实现任意代码执行（RCE）。64-bit 平台下：进程立即因 std::bad_alloc 崩溃（DoS）。
+

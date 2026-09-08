@@ -1,0 +1,13 @@
+## VULN: AP4_Stz2Atom integer overflow in (sample_count*m_FieldSize+7)/8 → heap OOB read
+- **漏洞类别**: memory-safety
+- **函数**: AP4_Stz2Atom::AP4_Stz2Atom()
+- **行号**: 88-121 (Ap4Stz2Atom.cpp)
+- **CWE**: CWE-190 (Integer Overflow or Wraparound), CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 7.1 (AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac input.mp4 → AP4_File::AP4_File() → AP4_AtomFactory::CreateAtomFromStream() → AP4_Stz2Atom::Create(size, stream) → AP4_Stz2Atom::AP4_Stz2Atom(size, version, flags, stream)
+- **描述**: 构造函数读取 `m_SampleCount`（AP4_UI32，来自 stz2 box 文件字段），无上界检查直接调用 `m_Entries.SetItemCount(sample_count)`，然后计算 `unsigned int table_size = (sample_count * m_FieldSize + 7) / 8`。`sample_count`（AP4_Cardinal = unsigned int，32 位）乘以 `m_FieldSize`（AP4_UI08，8 位，隐式提升到 unsigned int）的积为 **32 位**，当 m_FieldSize=16 且 sample_count=0x10000000（268,435,456）时：`0x10000000 * 16 = 0x100000000`，32 位截断后为 **0**，`table_size = (0+7)/8 = 0`。后续的边界校验 `if ((table_size+8) > size) return;` 仅检查了错误的阈值（缺少已消耗的 20 字节头部偏移，应为 +20 而非 +8），在任何 size≥9 的合法 box 上该校验通过。接下来 `new unsigned char[0]` 分配 0 字节，`stream.Read(buffer, 0)` 读取 0 字节成功；而循环 `for (unsigned int i=0; i<sample_count; i++) { m_Entries[i] = AP4_BytesToUInt16BE(&buffer[i*2]); }` 以 sample_count 次迭代读取 `buffer[i*2]`，全部是对 0 字节缓冲区的越界堆读。由于 m_Entries 被正确分配了 sample_count 个条目，所有越界读取的值被写入 sample size 表，影响后续样本数据的读取偏移与大小。
+- **触发条件**: 在 moov/trak/mdia/minf/stbl 中放置一个 stz2 box，将 `field_size`（第 12 字节）设为 16，将 `sample_count`（偏移 13-16 字节处）设为 `0x10000000` 或其他满足 `sample_count * field_size ≥ 2^32` 的值；box size 设为任意 ≥12 的值。mp42aac 使用 stz2 作为 stsz 的替代来源（AtomSampleTable 中 `m_Stz2Atom` 路径），无需同时存在 stsz box。
+- **安全影响**: 在内存充足的服务器（~1 GB 可用堆）上，m_Entries 正确分配，越界读取从 0 字节 buffer 附近的堆内存获取任意值写入 sample size 表，构成堆信息泄露；错误的 sample size 值被后续 ReadData/SetDataSize 使用，可能触发超大内存分配（DoS）或错误文件偏移访问。在内存不足时 SetItemCount 抛出 bad_alloc，进程崩溃（DoS）。
+

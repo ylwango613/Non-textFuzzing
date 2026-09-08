@@ -1,0 +1,14 @@
+## VULN: Ap4StscAtom.cpp — stsc bounds 检查使用错误头部常量导致越界读取相邻 box 数据
+
+- **漏洞类别**: 越界读（OOB Read — 错误 header 常量导致 box 边界跨越）
+- **函数**: `AP4_StscAtom::AP4_StscAtom(AP4_UI32, AP4_ByteStream&)`
+- **行号**: Ap4StscAtom.cpp:75–85（关键错误在第 75、77 行）
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: AV:L/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N = **4.4 (Medium)**
+- **严重程度**: Medium
+- **攻击向量**: 攻击者构造 stsc box（full atom），size 字段设置为一个使 `(size-8-4)/12 >= 1` 成立、但实际可用字节不足 12 的值（如 size=24，entry_count=1）
+- **外部触发路径**: `mp42aac crafted.mp4 out.aac` → `new AP4_File(*input)` → `AP4_AtomFactory::CreateAtomFromStream` → `AP4_StscAtom::Create` → `AP4_StscAtom::AP4_StscAtom`
+- **描述**: stsc 是 full atom（版本+标志占 4 字节），正确的有效载荷起始偏移为 `AP4_FULL_ATOM_HEADER_SIZE = 12`。但第 75 行初步检查和第 77 行 entry_count 上界检查均使用 `AP4_ATOM_HEADER_SIZE = 8`，比正确值少 4 字节。以 size=24、entry_count=1 为例：合法检查应为 `(24-12-4)/12 = 0 < 1`，应拒绝；实际检查 `(24-8-4)/12 = 1 >= 1`，通过。随后分配 `new unsigned char[12]`（正确大小），调用 `stream.Read(buffer, 12)`：stsc box 内 full-atom 头之后的可用字节为 `24-12-4 = 8`（entry_count 字段 4 字节已消耗），仅 8 字节在 stsc box 内，读取 12 字节时额外读取 4 字节来自下一个 box（通常为下一个 stbl 子 box 的前 4 字节——其 size 字段）。这 4 字节被解析为 stsc 表项的 `sample_description_index`，导致后续 `GetSampleForChunk` 返回攻击者控制的 desc 值，`sample.SetDescriptionIndex(desc-1)` 若 desc=0 则产生无符号下溢（0xFFFFFFFF）。
+- **触发条件**: stsc box 中 `size - 12 - 4`（正确剩余字节）< `entry_count * 12`，但 `size - 8 - 4`（错误剩余字节）>= `entry_count * 12`，差值最多 4 字节。
+- **安全影响**: 解析器读取相邻 box 的头部字节（攻击者完全控制）作为 stsc 表数据，可使 sample_description_index 被设为任意值；若调用者未验证该索引即用于数组访问（如 `GetSampleDescription(desc-1)` 在 desc=0 时），可导致越界数组访问或信息泄露。
+

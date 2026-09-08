@@ -1,0 +1,13 @@
+## VULN: AP4_SaizAtom unsigned integer underflow bypasses entry-count bounds check
+- **漏洞类别**: memory-safety
+- **函数**: AP4_SaizAtom::AP4_SaizAtom()
+- **行号**: 78-101
+- **CWE**: CWE-191 (Integer Underflow) / CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 6.5 (AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac → AP4_AtomFactory::CreateAtomFromStream() → AP4_SaizAtom::Create() → new AP4_SaizAtom(size, version, flags, stream)
+- **描述**: Ap4SaizAtom.cpp 第 78 行 `AP4_UI32 remains = size - GetHeaderSize()`（GetHeaderSize()=12），当 atom size=12（Create 允许的最小值）时 remains=0。若 flags bit 0 被置位（攻击者可控），第 82 行 `remains -= 8` 发生无符号下溢：0 - 8 = 0xFFFFFFF8。接着第 86 行 `remains -= 5` = 0xFFFFFFF3（继续溢出）。第 89 行的安全检查 `if (m_SampleCount > remains)` 与 0xFFFFFFF3（约 4GB）比较，任何合理的 m_SampleCount 均通过检查，完全失去保护作用。若攻击者在 atom 数据外（即紧随其后的相邻 atom 的字节）放置大 m_SampleCount 值（可达 0xFFFFFFF3），则 `new AP4_UI08[m_SampleCount]` 尝试分配近 4GB 内存，OOM 崩溃。若 m_SampleCount 为小值，stream.Read 会读取跨越 atom 边界的字节（来自下一个 atom），造成跨 atom 读取敏感数据。
+- **触发条件**: 构造 saiz atom，size=12，flags=0x000001（设置 bit 0），version=0；下一个 atom 的前 5 个字节作为 default_sample_info_size 和 m_SampleCount 被读取
+- **安全影响**: 通过精心布局使 m_SampleCount 超出 remains 检查后可造成 OOM DoS；配合跨 atom 读取可导致后续处理中使用错误的样本信息大小，产生数据混淆或间接内存访问错误
+

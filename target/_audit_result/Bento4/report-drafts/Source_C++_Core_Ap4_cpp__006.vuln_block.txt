@@ -1,0 +1,13 @@
+## VULN: AP4_TfraAtom Unchecked entry_count → Unbounded SetItemCount
+- **漏洞类别**: memory-safety
+- **函数**: AP4_TfraAtom::AP4_TfraAtom()
+- **行号**: 86-181
+- **CWE**: CWE-789 (Memory Allocation with Excessive Size Value)
+- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac → AP4_File → AP4_AtomFactory::CreateAtomFromStream → AP4_TfraAtom::Create → AP4_TfraAtom::AP4_TfraAtom(size, version, flags, stream)
+- **描述**: 在 `Ap4TfraAtom.cpp:88`，`m_Entries.SetItemCount(entry_count)` 直接使用文件中读取的 `entry_count`（`uint32_t`），无任何边界检查。攻击者可将 `entry_count` 设置为极大值（如 0x10000000），触发 `sizeof(Entry) * entry_count` 字节的堆分配，在标准 C++ 中因 `std::bad_alloc` 崩溃（DoS）；SetItemCount 返回值被忽略，在 nothrow 平台上后续循环中 `m_Entries[i]` 写入 NULL 指针（内存破坏）。
+- **触发条件**: 构造包含 mfra/tfra box 的 MP4 文件，将 `entry_count` 设置为 0x10000000 或更大。
+- **安全影响**: DoS（进程崩溃），或 nothrow 平台上空指针写入引发内存破坏。
+

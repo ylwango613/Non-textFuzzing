@@ -1,0 +1,13 @@
+## VULN: trun sample_count unbounded → heap overflow (32-bit) / DoS (64-bit)
+- **漏洞类别**: memory-safety
+- **函数**: AP4_TrunAtom::AP4_TrunAtom()
+- **行号**: 104-151
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 7.8 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: main() → AP4_File::AP4_File() → AP4_AtomFactory::CreateAtomFromStream() → AP4_TrunAtom::Create() → AP4_TrunAtom::AP4_TrunAtom(size, version, flags, stream)
+- **描述**: trun 构造函数读取 `sample_count`（AP4_UI32，来自文件字段）后，未做任何上界校验直接调用 `m_Entries.SetItemCount(sample_count)`（第 127 行）。AP4_TrunAtom::Entry 结构体含 4 个 AP4_UI32 字段，sizeof = 16 字节。在 32-bit 平台上，`EnsureCapacity(sample_count)` 计算 `sample_count × sizeof(Entry) = sample_count × 16`：当 `sample_count = 0x10000001` 时，`0x10000001 × 16 = 0x100000010` 在 32-bit unsigned 算术中截断为 `0x10 = 16`，导致 `::operator new(16)` 仅分配 16 字节，但 SetItemCount 继续对 `m_Items[0..0x10000000]` 每条写入 16 字节的 Entry 对象（默认构造），造成大量写入越界的堆缓冲区溢出（heap buffer overflow）。在 64-bit 平台上，`::operator new(0x10000001 × 16 = 0x100000010 ≈ 4 GB)` 导致 `std::bad_alloc`，进程崩溃。即便 mp42aac 主逻辑不直接使用 trun 数据，`new AP4_File(*input)` 在解析顶层原子时仍会解析 moof/traf/trun，该漏洞在解析阶段即被触发。
+- **触发条件**: 在 MP4 文件的 moof/traf 下嵌入 trun box（fragmented MP4 结构），将 sample_count 设为 0x10000001 或任何使 `sample_count × 16` 在 32-bit 整数溢出的值（≥ 0x10000000）。trun box 可以体积极小（仅声明极小的 box size），无需文件体积庞大。
+- **安全影响**: 32-bit 平台下：约 4 GB 的写操作指向仅 16 字节的堆分配块，大量覆盖堆管理元数据和相邻对象，攻击者通过堆布局可实现任意代码执行（RCE）。64-bit 平台下：进程因 std::bad_alloc 崩溃（DoS）。
+

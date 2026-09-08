@@ -1,0 +1,13 @@
+## VULN: AP4_Stz2Atom – Integer overflow in table_size computation yields under-sized buffer and heap OOB read/write
+- **漏洞类别**: memory-safety
+- **函数**: AP4_Stz2Atom::AP4_Stz2Atom()
+- **行号**: 88-121
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-125 (Out-of-bounds Read) / CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 7.8 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac main() → new AP4_File(*input) → AP4_File::ParseStream() → AP4_AtomFactory::CreateAtomFromStream() → AP4_Stz2Atom::Create(size_32, stream) → new AP4_Stz2Atom(size, version, flags, stream)
+- **描述**: AP4_Stz2Atom 构造函数先以 `m_Entries.SetItemCount(sample_count)` 预分配条目数组（第 89 行，此处同样无上界检查），然后在第 90 行以 `unsigned int table_size = (sample_count * m_FieldSize + 7) / 8` 计算所需缓冲区字节数。`sample_count`（AP4_UI32）与 `m_FieldSize`（AP4_UI08，取值 4/8/16）的乘法为 32-bit 无符号算术：当 `m_FieldSize=16` 且 `sample_count=0x10000000` 时，`0x10000000 * 16 = 0x100000000` 溢出为 0，table_size 变为 0。随后第 91 行的边界检查 `(0 + 8) > size` 对任意大于 8 的 size 均为 false，检查通过；第 92 行仅分配 0 字节的 buffer，第 93 行 Read(buffer, 0) 成功，之后进入 `case 16` 循环（第 116–118 行），对 `i` 从 0 到 0x10000000-1 执行 `buffer[i*2]`，从 i=1 起即为越界堆读，同时 `m_Entries[i]` 在 32-bit 溢出场景下也越界写回。
+- **触发条件**: 在 MP4 文件的 stbl 容器中嵌入一个 stz2 box，field_size 字段（第 4 字节）设为 16，sample_count 字段设为 0x10000000（或满足 `sample_count * m_FieldSize` 32-bit 溢出为 0 的任意值），box size 设为合法的大值使得 `(table_size+8) > size` 检查不触发。
+- **安全影响**: 32-bit 构建上：EnsureCapacity 整数溢出导致 m_Entries 仅分配极少内存，后续对 m_Entries[i] 的写入（OOB write）以及 buffer 的越界读（OOB read）共同造成堆破坏，可通过堆利用达到 RCE；64-bit 构建上：SetItemCount 申请约 1 GB 内存，若抛出 bad_alloc 则进程崩溃，m_Items 为 null 时后续访问 m_Entries[0] 导致 null pointer dereference（DoS）。
+

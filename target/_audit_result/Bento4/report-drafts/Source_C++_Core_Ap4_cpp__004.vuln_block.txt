@@ -1,0 +1,13 @@
+## VULN: AP4_SaioAtom Bounds-Check Integer Overflow → Check Bypass → OOM/Null Deref
+- **漏洞类别**: memory-safety
+- **函数**: AP4_SaioAtom::AP4_SaioAtom()
+- **行号**: 110-113
+- **CWE**: CWE-190 (Integer Overflow or Wraparound)
+- **CVSS v3.1**: 6.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac → AP4_File → AP4_AtomFactory::CreateAtomFromStream → AP4_SaioAtom::Create → AP4_SaioAtom::AP4_SaioAtom(size, version, flags, stream)
+- **描述**: 在 `Ap4SaioAtom.cpp:110`，边界检查 `if (remains < entry_count*(m_Version==0?4:8))` 中乘法为 `uint32_t` 运算，当 version=0 且 `entry_count >= 0x40000000` 时，`entry_count*4` 溢出为 0，绕过检查，允许后续 `m_Entries.SetItemCount(entry_count)` 接受攻击者控制的超大值，触发 OOM 崩溃（DoS）或 nothrow 下空指针写入（内存破坏）。与 sbgp 同构型漏洞，触发阈值不同（version=1 时 entry_count >= 0x20000000）。
+- **触发条件**: 构造 saio box（version=0），设置 `entry_count=0x40000000`，box 中保留足够 `remains`（≥ 1）。
+- **安全影响**: DoS（bad_alloc 崩溃）或 nothrow 平台内存破坏。
+

@@ -1,0 +1,13 @@
+## VULN: Integer Underflow in AP4_Dac4Atom::Create Leading to Oversized Heap Allocation
+- **漏洞类别**: memory-safety
+- **函数**: AP4_Dac4Atom::Create()
+- **行号**: 49-51
+- **CWE**: CWE-191 (Integer Underflow / Wraparound)
+- **CVSS v3.1**: 5.5 (AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac input.mp4 → AP4_AtomFactory parses "dac4" box with file-supplied size field < 8 → AP4_Dac4Atom::Create(size, stream) [line 49]: `unsigned int payload_size = size - AP4_ATOM_HEADER_SIZE` underflows → AP4_DataBuffer payload_data(payload_size) allocates ~4 GB → std::bad_alloc / OOM crash
+- **描述**: 第 49 行 `unsigned int payload_size = size - AP4_ATOM_HEADER_SIZE`（AP4_ATOM_HEADER_SIZE=8），`size` 直接来自 MP4 文件中的 box size 字段（AP4_UI32），在减法前没有任何 `size >= 8` 的前置校验。当 MP4 文件将 dac4 box 的 size 设为小于 8 的值（例如 4 或 0）时，无符号减法产生下溢，`payload_size` 变为约 0xFFFFFFF8（4,294,967,288）。随后第 50 行 `AP4_DataBuffer payload_data(payload_size)` 尝试在堆上分配约 4 GB 内存，触发 `std::bad_alloc` 或系统 OOM，若异常未被上层捕获则导致进程崩溃。
+- **触发条件**: 构造 MP4 文件，将 `dac4` box 的 4 字节 size 字段设置为任意小于 8 的值（例如 0x00000004 或 0x00000001）。
+- **安全影响**: 进程因 OOM/bad_alloc 崩溃，导致拒绝服务（DoS）。若 Bento4 在调用 Create() 前已在 AtomFactory 层对 size 做了 ≥8 的校验则此漏洞不可达，但代码本身无此防护。
+

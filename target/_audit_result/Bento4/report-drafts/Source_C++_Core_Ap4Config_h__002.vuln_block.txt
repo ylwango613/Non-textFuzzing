@@ -1,0 +1,13 @@
+## VULN: AP4_Stz2Atom integer overflow in table_size bypasses bounds check leading to heap over-read
+- **漏洞类别**: memory-safety
+- **函数**: AP4_Stz2Atom::AP4_Stz2Atom(AP4_UI32, AP4_UI08, AP4_UI32, AP4_ByteStream&)
+- **行号**: 88-121
+- **CWE**: CWE-190 (Integer Overflow or Wraparound) → CWE-125 (Out-of-bounds Read) / CWE-122 (Heap-based Buffer Overflow)
+- **CVSS v3.1**: 7.8 (AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac main() → AP4_File(input) → AP4_AtomFactory → AP4_Stz2Atom::Create() → new AP4_Stz2Atom(size, version, flags, stream)
+- **描述**: `Ap4Stz2Atom.cpp` 第 82 行读取 `m_SampleCount`（AP4_UI32，来自文件），无任何上界校验。第 89 行 `m_Entries.SetItemCount(sample_count)` 返回值未检查（与 ctts 同样模式）。第 90 行 `unsigned int table_size = (sample_count * m_FieldSize + 7) / 8`：当 `m_FieldSize=4` 且 `sample_count ≥ 0x40000000` 时，`sample_count * 4` 在 32 位 unsigned int 算术下溢出为 0，`table_size = (0+7)/8 = 0`。第 91 行边界检查 `(table_size+8) > size` 变为 `8 > size`，对任何 size≥8 的 box 均通过，完全绕过！之后 `new unsigned char[0]` 分配 0 字节缓冲区，`stream.Read(buffer, 0)` 读 0 字节成功，for 循环对 `buffer[i/2]`（field_size=4 分支）或 `buffer[i]`（field_size=8）或 `buffer[i*2]`（field_size=16）进行越界读（i≥1 立即越界），并对 `m_Entries[i]` 越界写（分配不足时）。
+- **触发条件**: MP4 文件包含 stz2 box，field_size=4，sample_count ≥ 0x40000000；box body 只需包含头字段，无需实际 sample 数据（stream.Read(0) 成功）。
+- **安全影响**: 32 位或 `-fno-exceptions` 构建：堆缓冲区越界读（信息泄露）及越界写（堆元数据/对象破坏），潜在 RCE；64 位标准构建：OOM bad_alloc 或堆越界读导致崩溃（DoS）。
+

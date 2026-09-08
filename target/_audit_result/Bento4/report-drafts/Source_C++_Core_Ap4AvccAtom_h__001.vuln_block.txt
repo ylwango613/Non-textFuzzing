@@ -1,0 +1,13 @@
+## VULN: OOB Heap Read in AP4_AvccAtom::Create() Before Size Guard (payload[0] on zero-byte buffer)
+- **漏洞类别**: memory-safety
+- **函数**: AP4_AvccAtom::Create()
+- **行号**: 68-80
+- **CWE**: CWE-125 (Out-of-bounds Read)
+- **CVSS v3.1**: 5.3 (AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:L)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac main() → AP4_File / AP4_AtomFactory::CreateAtomFromStream() → AP4_AtomFactory case AP4_ATOM_TYPE_AVCC (Ap4AtomFactory.cpp:479) → AP4_AvccAtom::Create(size_32=8, stream)
+- **描述**: 在 `Create()` 中，`payload_size = size - AP4_ATOM_HEADER_SIZE` 对 `size==8` 时产生 0（合法值）。随后 `AP4_DataBuffer payload_data(0)` 调用 `new AP4_Byte[0]`（C++ 标准允许，返回非空指针，但分配了零字节）。在第 75 行 `if (payload[0] != 1)` 直接读取 `payload[0]`，此时 `payload` 指向一个 0 字节缓冲区，`payload[0]` 越界读一字节。有效的大小下界检查 `if (payload_size < 6) return NULL` 位于第 80 行，比越界访问晚了五行，无法防止此读取。
+- **触发条件**: 在 MP4 文件中构造一个 `avcC` box，其 size 字段设为 0x00000008（仅含 8 字节头部，无 payload）。mp42aac 解析该 box 时调用 `Create(8, stream)`，即可触发对 0 字节堆缓冲区的越界读。
+- **安全影响**: 堆越界读 1 字节，读取紧随其后的堆内存内容（可能属于相邻分配块）。可用于信息泄露（辅助 ASLR 绕过）或触发进程崩溃（DoS）。
+

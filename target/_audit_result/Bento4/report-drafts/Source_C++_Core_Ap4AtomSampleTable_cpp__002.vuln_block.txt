@@ -1,0 +1,13 @@
+## VULN: AP4_CttsAtom Missing entry_count Bounds Check → Uncontrolled Memory Allocation (DoS)
+- **漏洞类别**: memory-safety
+- **函数**: AP4_CttsAtom::AP4_CttsAtom()
+- **行号**: 78-82
+- **CWE**: CWE-789 (Uncontrolled Memory Allocation) / CWE-400 (Uncontrolled Resource Consumption)
+- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
+- **严重程度**: Medium
+- **攻击向量**: crafted MP4 file
+- **外部触发路径**: mp42aac main() → new AP4_File(*input) → AP4_AtomFactory::CreateAtomFromStream → AP4_CttsAtom::Create → AP4_CttsAtom::AP4_CttsAtom(size, version, flags, stream) → line 79: stream.ReadUI32(entry_count) [无任何 size 边界检验] → line 80: m_Entries.SetItemCount(entry_count) 分配巨量内存 → OOM crash
+- **描述**: ctts atom 构造函数在读取 `entry_count` 后（第 79 行），直接调用 `m_Entries.SetItemCount(entry_count)`（第 80 行）和 `new unsigned char[entry_count*8]`（第 81 行），没有任何校验 `entry_count` 是否在 atom 大小所允许的范围之内。对比同文件夹内的 stco（`if (m_EntryCount > (size-AP4_FULL_ATOM_HEADER_SIZE-4)/4)`）、stsz（`if (m_SampleCount > (size-8)/4)`）、stsc（`if ((size-AP4_ATOM_HEADER_SIZE-4)/12 < entry_count)`），ctts 完全缺失此类防御。攻击者可将一个 atom size 仅为 16 字节的 ctts box 中的 `entry_count` 设置为 50,000,000，迫使解析器试图分配 400MB（m_Entries）+ 400MB（buffer）= 共 800MB 内存，并随后调用 `stream.Read(buffer, 400MB)` 从文件流读取远超 atom 边界的数据。
+- **触发条件**: 构造 ctts box：size 字段设置为 16（只含头部和 entry_count，不含任何条目数据），`entry_count` 字段设置为 50,000,000 或更大（但需 <0x20000000 以避免整数溢出触发另一漏洞路径）。运行 `mp42aac crafted.mp4 out.aac`，文件解析即触发。
+- **安全影响**: 进程尝试分配远超 atom 实际内容的内存和读取超量流数据，导致（1）OOM 崩溃（DoS）——系统可用内存耗尽；（2）信息泄露——从超出 atom 边界的文件区域读取数据（来自其他 box 的内容）写入堆中。在批量解析场景下（如媒体服务器）可造成持续性拒绝服务。
+
