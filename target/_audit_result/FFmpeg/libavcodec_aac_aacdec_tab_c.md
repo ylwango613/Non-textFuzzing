@@ -1,11 +1,21 @@
-The analysis is complete. `aacdec_tab.c` is a pure table/initialization file containing:
+Having read the entire file (all 786 lines) and the associated header, I now analyze each section:
 
-- Static, read-only Huffman/VLC lookup tables (no runtime writes)
-- Two `av_cold` VLC initialization functions (`init_sbr_tables`, `init_base_tables`) that use compile-time-constant static buffers with no untrusted-input dependencies
-- `ff_tags_per_config` and `ff_aac_channel_layout_map` tables used by callers in `aacdec.c`, where:
-  - `layout_map` is always declared as `uint8_t layout_map[MAX_ELEM_ID*4][3]` = `[256][3]` (768 bytes)
-  - Maximum `*tags` written is 16 (for channel_config 13) → 48 bytes, well within the 768-byte buffer
-  - All channel_config values are range-validated before use in callers
-  - The `channel_config - 1` index into `ff_aac_channel_layout_map[16][16][3]` is always in-bounds for the allowed values (1–7, 11–14)
+**Section 1 (lines 1–113):** Pure static lookup tables (`ff_tags_per_config`, `ff_aac_channel_layout_map`, `ff_aac_channel_map`, `ff_aac_ch_layout`, VLC pointer declarations). All are compile-time constants with fixed sizes. No user-controlled values.
+
+**Section 2 (lines 116–280, `init_sbr_tables`):** Initializes 10 SBR VLC tables using `sbr_huffman_tab` (static), `sbr_huffman_nb_codes` (static: `{121,121,49,49,63,63,25,25,63,25}`), and a fixed-size static `vlc_buf` computed at compile time. No external input enters.
+
+**Section 3 (lines 282–742):** Large blocks of compile-time constant Huffman code tables for CLD, ICC, IPD parametric stereo (USAC). All fixed arrays; no runtime writes.
+
+**Section 4 (lines 748–785, `init_base_tables` / `ff_aacdec_common_init_once`):** Initializes spectral VLC tables and scalefactor VLC using a static fixed-size buffer. All sizes (`ff_aac_spectral_sizes`, `ff_aac_spectral_bits`, etc.) are compile-time constants from `aactab.h`. Uses `ff_thread_once` to guarantee single initialization.
+
+**Finding:** This file is a pure data + one-time initialization module. It contains:
+- No `av_malloc`/`av_realloc` calls
+- No `memcpy`/`memmove` with externally-controlled lengths
+- No array accesses indexed by values from external media data
+- No processing of bitstream/container fields at all
+
+All VLC buffer sizes are computed at compile time from known table sizes. No crafted media file can reach any code path in this file that causes memory corruption.
 
 NO_VULN_FOUND
+
+<!-- AUDIT_PROMPT_VERSION: 1 -->

@@ -1,0 +1,7 @@
+SKIPPED
+Reason: The overflow requires coef_log2_denom > 32 (ideally 48), but the FFmpeg
+RPU parser (dovi_rpudec.c:436) hard-caps coef_log2_denom to the range [13, 32]
+via VALIDATE(). With the parser cap of 32, each MMR-order-3 segment writes at
+most ~173.9 bytes, which fits within the 177-byte allocation. The overflow
+threshold is reached only at coef_log2_denom ≥ ~45, which cannot be injected
+through any media-file-to-command-line path.

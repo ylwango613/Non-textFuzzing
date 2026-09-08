@@ -1,0 +1,18 @@
+The subagent has completed. Here is the summary:
+
+---
+
+## PoC Generation Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | size_t-to-int truncation of extradata_size → heap buffer overflow via negative memcpy | **SKIPPED** |
+
+**Reason for SKIPPED**: The vulnerability is theoretically valid but practically infeasible to trigger via a crafted media file:
+
+1. **Minimum ~2.15 GB vvcC box required** — vvcC NALU length is 16-bit (max 65535 bytes/NALU); triggering `new_extradata_size > INT_MAX` requires ~32,769 max-size NALUs totaling >2 GB of input data.
+2. **Dual 2 GB+ allocations needed** — FFmpeg must allocate one buffer for the raw vvcC input and another for the Annex-B reformatted extradata; either `av_reallocp` call will almost certainly fail with ENOMEM before the truncation site at line 182 is ever reached.
+3. **Final crash is not ASAN-reportable** — if truncation does occur, `extra_size` (negative int) promotes to ~2⁶³ as `size_t` in `memcpy`; the kernel kills the process with SIGKILL when page-faulting petabytes of address space, so ASAN never produces a structured report.
+
+Status file: `vuln_001_status.txt` → `SKIPPED`
+Notes file: `vuln_001_notes.md` → detailed reasoning written

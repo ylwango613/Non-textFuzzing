@@ -1,0 +1,29 @@
+VERIFIED_BEHAVIOR
+
+Summary:
+- Vulnerable function copy_av_subtitle() (fftools/ffmpeg_dec.c:505) is reachable via
+  fix_sub_duration_heartbeat() when -fix_sub_duration and -fix_sub_duration_heartbeat
+  are active and a DVB-Sub subtitle has been decoded.
+- The trigger path (DVB-Sub decode -> heartbeat -> subtitle_wrap_frame(copy=1) ->
+  copy_av_subtitle) was confirmed: 1 subtitle frame decoded in both test runs.
+- The integer overflow in copy_av_subtitle (h * linesize, both int) is NOT directly
+  triggerable via DVB-Sub because dvbsubdec.c applies av_image_check_size2 which
+  rejects dimensions where w*h >= INT_MAX, bounding h*linesize below INT_MAX.
+- A secondary UBSAN-detected integer overflow was found in dvbsubdec.c:1192:
+    "signed integer overflow: 1310680000 * 2 cannot be represented in type 'int'"
+  This bypasses the pixel buffer memory constraint check for 32767x40000 dimensions.
+- No ASAN heap error or crash observed. Process exits 0 in all runs.
+- Vulnerability is real in code but requires a subtitle codec without av_image_check_size2
+  guard (or with a codec-level overflow in its size check) to trigger the OOB/NULL path.
+
+Files:
+  vuln_001_gen.py       - MKV generator (DVB-Sub, two packets with different version numbers)
+  vuln_001_input.mkv    - Small-dim input (200x200, left in place after run)
+  vuln_001_run.sh       - Test runner (small + large dims, ASAN/UBSAN options)
+  vuln_001_result.txt   - Full run output
+  vuln_001_notes.md     - Detailed analysis
+
+Secondary bug:
+  dvbsubdec.c:1192 - signed integer overflow in region size check (CWE-190)
+  Bypasses "Pixel buffer memory constraint" check for large dimensions.
+  UBSAN report: 1310680000 * 2 overflows int32 for 32767x40000 region.

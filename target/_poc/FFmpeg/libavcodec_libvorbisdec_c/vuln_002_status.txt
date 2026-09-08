@@ -1,0 +1,45 @@
+UNVERIFIED
+
+Reason: The vulnerable function oggvorbis_decode_init() in libavcodec/libvorbisdec.c
+is the libvorbis external-library wrapper, compiled only when CONFIG_LIBVORBIS=1.
+The target binary at /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg was
+built with CONFIG_LIBVORBIS=0 (confirmed in build_test/config.h), so the vulnerable
+code path is not compiled into this binary.
+
+The generated vuln_002_input.mkv is structurally correct:
+  - Valid Matroska/EBML container
+  - A_VORBIS audio track
+  - CodecPrivate = [0x02, 0xFF] (2 bytes)
+  - Matroska demuxer passes codec_priv directly as extradata (matroskadec.c:3334-3340)
+
+With this binary, the internal vorbis decoder (vorbisdec.c) is used instead.
+It calls avpriv_split_xiph_headers() in xiph.c, which has a proper bounds check:
+  Line 43: requires extradata_size >= 3 (our data is only 2 bytes → rejected early)
+Hence the error message: "Extradata corrupt."
+
+To verify the crash, rebuild FFmpeg with --enable-libvorbis:
+  libvorbis .so files ARE present on the system:
+    /lib/x86_64-linux-gnu/libvorbis.so.0
+    /lib/x86_64-linux-gnu/libvorbisenc.so.2
+  Rebuild:
+    ./configure --enable-libvorbis [other flags] --extra-cflags='-fsanitize=address' ...
+    make -j$(nproc)
+  Then run:
+    ASAN_OPTIONS=abort_on_error=0 ./ffmpeg -i vuln_002_input.mkv -f null -
+
+Expected ASAN output with libvorbis-enabled build:
+  ==ERROR: AddressSanitizer: heap-buffer-overflow
+  READ of size 1 at <address beyond extradata buffer>
+  #0 oggvorbis_decode_init libavcodec/libvorbisdec.c:74
+      (while ((*p == 0xFF) && (sizesum < avccontext->extradata_size)))
+  #1 avcodec_open2
+  ...
+
+Code analysis confirms the OOB:
+  extradata = [0x02, 0xFF], extradata_size = 2
+  Line 68: *p == 0x02 → enters Xiph lacing branch
+  Line 71: p++ → p = &extradata[1] = 0xFF, sizesum = 1
+  Line 74: while(*p==0xFF && sizesum<2): *p=0xFF(true), 1<2(true) → enter loop
+  Line 78: p++ → p = &extradata[2] (ONE BYTE PAST END, OOB)
+  Line 74: while re-check: *p dereferences extradata[2] → OOB READ #1
+  Line 80: hsizes[i] += *p → dereferences extradata[2] → OOB READ #2

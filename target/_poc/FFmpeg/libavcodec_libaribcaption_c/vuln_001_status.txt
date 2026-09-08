@@ -1,0 +1,5 @@
+SKIPPED
+Reason: arib decoder not compiled into FFmpeg binary at /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg.
+`ffmpeg -decoders 2>/dev/null | grep -i arib` returns no output.
+The libaribcaption external library is also not installed on this system.
+To trigger this vulnerability, FFmpeg must be built with --enable-libaribcaption.

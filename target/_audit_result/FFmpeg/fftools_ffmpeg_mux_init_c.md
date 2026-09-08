@@ -1,35 +1,25 @@
-ファイルを6バッチで精読しました。各バッチの分析結果をまとめます。
+全7バッチの詳細読取とすべての主要候補の検証が完了しました。以下に分析結果を整理します。
 
----
+**バッチ別分析サマリー：**
 
-**バッチ1 (lines 0–600)**
-- `unescape()`: `av_malloc(len + 1)` — `len = strlen(str)` で安全。
-- `get_preset_file_2()`: `snprintf(filename, sizeof(filename), ...)` で固定サイズバッファに安全に書き込み。
-- `enc_stats_init()`: `GROW_ARRAY` で安全に拡張。
+1. **バッチ1 (L0-500)**: `unescape()`・`enc_stats_init()` — GROW_ARRAY は overflow guard 付き。`av_malloc(len+1)` で `strlen(str)` を越えないインデックス保証あり。問題なし。
 
-**バッチ2 (lines 600–1200)**
-- `parse_matrix_coeffs()`: `dest[i]` に対し i=0..63 の 64 回書き込み、割り当ては `av_mallocz(64 * sizeof(uint16_t))` — 境界内。
-- `av_realloc_array(video_enc->rc_override, i+1, sizeof(RcOverride))` — `av_realloc_array` 内で `av_size_mult` によるオーバーフロー検査あり。
+2. **バッチ2 (L500-999)**: `parse_matrix_coeffs()` — `dest[0]~dest[63]` 固定64要素、呼び側も `av_mallocz(64 * sizeof(uint16_t))` で一致。`av_realloc_array` の `rc_override` 成長も `i+1` で1ずつ増加、安全。
 
-**バッチ3 (lines 1200–1800)**
-- `streamcopy_init()` の side data コピー (line 1067–1079): `av_packet_side_data_new` が `sd_src->size` バイトを確保し、`memcpy(sd_dst->data, sd_src->data, sd_src->size)` で同サイズコピー — 安全。
-- `set_encoder_id()`: `sizeof(LIBAVCODEC_IDENT) + strlen(cname) + 2` は compile-time 定数とコーデック名で構成、攻撃者制御不可。
+3. **バッチ3 (L999-1500)**: `streamcopy_init()` L1067-1078 — `memcpy(sd_dst->data, sd_src->data, sd_src->size)`: `av_packet_side_data_new` が `size + AV_INPUT_BUFFER_PADDING_SIZE` を常に確保することを確認（libavcodec/packet.c L630）。宛先は常に `sd_src->size` 分の正確な領域を持つ。入力側 `sd_src->data` もデムキサーが同サイズ確保。安全。
 
-**バッチ4 (lines 1800–2400)**
-- `of_add_attachments()`: `if (len > INT_MAX - AV_INPUT_BUFFER_PADDING_SIZE)` チェック後に `av_malloc(len + AV_INPUT_BUFFER_PADDING_SIZE)` — 安全。`avio_read` の `int` 暗黙変換も `len <= INT_MAX - 64` が保証済み。
-- `copy_chapters()`: `av_realloc_f(os->chapters, is->nb_chapters + os->nb_chapters, ...)` — `is->nb_chapters` は `unsigned int` だが、現実的なファイルでは `UINT_MAX/2` を超えられない。
+4. **バッチ4 (L1500-2000)**: `copy_chapters()` — `av_realloc_f` は `av_size_mult` で積のオーバーフロー内部チェック済み、`is->nb_chapters + os->nb_chapters` が wrap しても `!tmp` でキャッチ。安全。
 
-**バッチ5 (lines 2400–3000)**
-- `of_parse_group_token()` / `of_parse_iamf_submixes()`: `idx >= oc->nb_stream_groups - 1` の境界チェック。`avformat_stream_group_create` 呼び出し後は `nb_stream_groups >= 1` が保証され、`nb_stream_groups == 0` による unsigned アンダーフローは現実的に発生しない。
-- `get_stream_group_index_from_id()` の戻り値負チェックも実装済み。
+5. **バッチ5 (L2000-2500)**: IAMF ストリームグループ処理 — コマンドラインオプション由来、メディアファイルから直接外部入力なし。
 
-**バッチ6 (lines 3000–3660)**
-- `parse_forced_key_frames()`: `n` (int) のコンマカウントオーバーフローの可能性があるが、`spec` は `o->forced_key_frames` = コマンドラインオプション由来で、メディアファイルからは制御不能。
-- `copy_meta()`, `set_dispositions()`, `of_open()`: メモリ安全問題なし。
+6. **バッチ6/7 (L2500-3660)**: `parse_forced_key_frames()` L3359 — `nb_ch > INT_MAX - size` チェックの境界条件検証:
+   - `nb_ch = 0` のとき: `size += UINT_MAX` (unsigned wraparound) → `size = size - 1` (数学的に正しい)。`av_realloc_f(pts, 0, ...)` → NULL → `goto fail`、または縮小後の pts は正しいサイズ。`av_assert0(index == size)` は常に成立。
+   - `nb_ch` が大きい場合: チェックが正しく機能しゴール。
+   - **いずれも heap corruption なし**。
 
----
+7. **`set_encoder_id()`**: `encoder_string_len = sizeof(LIBAVCODEC_IDENT) + strlen(cname) + 2` — 計算式が正確にバッファサイズ確保。安全。
 
-**総合判定**: このファイルはミュクサー初期化コード。外部からの攻撃者制御入力（クラフトされたメディアファイル）が到達するパスは主に `streamcopy_init()` の codecpar/side data コピーのみで、すべて正しく検証されている。整数オーバーフローが存在するパス（`parse_forced_key_frames` 等）はすべてコマンドラインオプション由来であり、クラフトされたメディアファイルではトリガー不可能。
+**本ファイルの本質的制約**: `ffmpeg_mux_init.c` は **出力マルチプレクサの初期化コード** であり、大部分がコマンドラインオプションのパース。クラフトされたメディアファイルからの直接データフローは、`streamcopy_init()` の側データコピーのみで、そこも安全。
 
 NO_VULN_FOUND
 

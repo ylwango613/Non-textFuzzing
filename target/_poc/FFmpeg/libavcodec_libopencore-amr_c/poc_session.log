@@ -1,0 +1,8 @@
+Both subagents have completed. Here is the final summary:
+
+| VULN | Name | Status | Reason |
+|------|------|--------|--------|
+| 001 | AMR-NB Decoder buf[0] OOB Read Before Size Check | **UNVERIFIED** | Vulnerable line is exercised, but the AMR parser and FFmpeg decode framework both prevent 0-byte packets from reaching the decoder callback. The defect is real code-quality/latent bug but not directly triggerable via ffmpeg CLI with a crafted file. |
+| 002 | AMR-WB Decoder buf[0] OOB Read Before Size Check | **UNVERIFIED** | `libopencore_amrwb` decoder is not compiled into this build (`CONFIG_LIBOPENCORE_AMRWB=0`); the vulnerable function is absent from the binary entirely. |
+
+**Summary**: Both vulnerabilities are real latent code-level defects (missing size guard before `buf[0]` access), but neither is triggerable through the available ASAN `ffmpeg` binary via a crafted media file — VULN 001 is blocked by defensive layers in the demuxer/framework, and VULN 002's code is simply compiled out. All PoC files have been written to `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/`.

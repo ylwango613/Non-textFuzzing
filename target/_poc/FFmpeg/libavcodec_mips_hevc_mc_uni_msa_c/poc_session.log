@@ -1,0 +1,11 @@
+All 5 subagents have completed. Here is the summary:
+
+| VULN | Function | Status | Reason |
+|------|----------|--------|--------|
+| 001 | `copy_width12_msa` | **SKIPPED** | MIPS MSA-only code; binary is x86-64, symbol absent |
+| 002 | `copy_width24_msa` | **SKIPPED** | MIPS MSA-only code; binary is x86-64, symbol absent |
+| 003 | `common_hz_8t_48w_msa` | **SKIPPED** | MIPS MSA-only code; binary is x86-64, symbol absent |
+| 004 | `hevc_hv_uni_4t_6w_msa` | **SKIPPED** | MIPS MSA-only code; binary is x86-64, symbol absent |
+| 005 | `common_hz_4t_24w_msa` | **SKIPPED** | MIPS MSA-only code; binary is x86-64, symbol absent |
+
+**Root cause for all skips**: All 5 vulnerabilities reside in `libavcodec/mips/hevc_mc_uni_msa.c`, which contains MIPS MSA (MIPS SIMD Architecture) optimized routines. These are compiled only when targeting MIPS hardware with MSA support. The test binary is an x86-64 ELF — none of the vulnerable symbols are present, so no crafted media file can reach these code paths on this host.

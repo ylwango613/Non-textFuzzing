@@ -1,0 +1,51 @@
+UNVERIFIED
+
+The PoC ran to completion with exit code 0. No ASAN crash, no heap/stack
+buffer overflow, no SEGV.
+
+The intended vulnerability code path (decode_mb_p(h, mb_type=-21) calling
+ff_cavs_inter(h, -21) which reads ff_cavs_partition_flags[-21]) was NOT
+triggered.
+
+Root cause of non-trigger
+--------------------------
+In cavsdec.c ~line 1127:
+
+    mb_type = get_ue_golomb(&h->gb) + P_SKIP + h->skip_mode_flag;
+    if (mb_type > P_8X8)          <-- this comparison
+        ret = decode_mb_i(h, mb_type - P_8X8 - 1);
+    else
+        decode_mb_p(h, mb_type);
+
+The vulnerability hypothesis assumes a SIGNED comparison:
+    (signed)-21 > P_8X8(5)  ==>  FALSE  =>  decode_mb_p(-21) called  =>  OOB
+
+In this compiled binary the comparison is treated as UNSIGNED:
+    (unsigned)-21 = 4294967275 > P_8X8(5)  ==>  TRUE  =>  decode_mb_i(-27) called
+
+Evidence from run output
+------------------------
+* "illegal intra chroma pred mode" is logged (AV_LOG_ERROR from decode_mb_i).
+  This error comes from decode_mb_i reading the all-zero P-frame MB payload:
+    - 4 luma pred blocks x 3 bits each = 12 bits consumed
+    - get_ue_golomb_31 on all-zero bits: buf=0
+    - ff_ue_golomb_vlc_code[0] = 32  (from golomb.c table)
+    - pred_mode_uv=32 > 6  =>  "illegal intra chroma pred mode"
+
+* "illegal inter cbp" is NOT logged. If decode_mb_p(-21) had been called,
+  decode_residual_inter would immediately log this error (cbp=-22 > 63U).
+  Its absence confirms decode_mb_p was never entered.
+
+* Exit code 0, "1 frames decoded; 0 decode errors". The 1 frame is output
+  from the I-frame decoded during avformat_find_stream_info probing, flushed
+  from DPB[0] on the subsequent EOF packet. The main decode thread receives
+  only the EOF packet (file fully consumed by find_stream_info).
+
+* No ASAN report of any kind.
+
+Conclusion
+----------
+The signed-comparison bypass vulnerability as described may exist in the
+source code, but the binary built for this target compiles the enum cavs_mb
+comparison as unsigned, preventing the intended trigger path. The PoC input
+is structurally correct; the non-trigger is a property of the compiled binary.

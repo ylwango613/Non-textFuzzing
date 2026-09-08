@@ -1,19 +1,14 @@
-I've now read the entire 216-line file and traced all memory operations thoroughly. Here is my analysis summary before the final verdict:
+After thorough analysis of the complete file with all arithmetic edge cases traced:
 
-**`eightsvx_decode_frame` (lines 90–156):**
-- `chan_size = avpkt->size / channels - hdr_size` is computed before the size guard, but the guard at line 106 returns `AVERROR_INVALIDDATA` before any memory operation, so `chan_size` is always ≥ 1 when used.
-- Both `memcpy` calls (lines 125, 127) copy exactly `chan_size` bytes into `av_malloc(chan_size)` buffers and read at most `avpkt->size - 1` from the packet — within bounds for all valid packet sizes.
-- Stereo `fib_acc[1]` access (`avpkt->data[2+chan_size+1]`) resolves to `avpkt->data[avpkt->size/2 + 1]`; since `avpkt->size ≥ 6` for stereo, index is always valid.
+**Summary of analysis:**
 
-**`delta_decode` (lines 73–87):**
-- Table indices use `d & 0xF` (0–15) and `d >> 4` (0–15) — both 16-element tables are never overindexed.
-- Writes exactly `2 * src_size` bytes; the caller allocates `frame->nb_samples = buf_size * 2` bytes per channel (U8P, 1 byte/sample) — exact fit, no overflow.
-
-**`fib_acc[2]` array:** `ch` is bounded to [0, channels-1] where channels ≤ 2 — no OOB.
-
-**Integer arithmetic:** `buf_size` is capped at `MAX_FRAME_SIZE = 2048`, so `nb_samples = 4096` — no overflow in `ff_get_buffer`.
-
-After exhaustive analysis of all memory operations, size calculations, array accesses, and data-flow from untrusted packet data through the decode path, no exploitable memory-safety vulnerability was found in this file.
+- `chan_size` computation (line 101): `avpkt->size / channels - hdr_size`. The guard at line 106 (`avpkt->size < (hdr_size+1)*channels = 3*channels`) ensures `chan_size >= 1` for both channels=1 (size≥3→chan_size≥1) and channels=2 (size≥6→chan_size=size/2−2≥1). No zero/negative allocation.
+- `memcpy` source bounds for channel 0 (line 125): ends at `hdr_size + chan_size = avpkt->size/channels ≤ avpkt->size`. ✓
+- `memcpy` source bounds for channel 1 (line 127): ends at `4 + 2*chan_size = avpkt->size` (even) or `avpkt->size−1` (odd). ✓
+- `fib_acc[1]` read (line 113): index `chan_size+3 = avpkt->size/2+1 < avpkt->size` for all valid avpkt->size≥6. ✓
+- `delta_decode` output: writes exactly `2*buf_size` bytes per channel; frame allocated for `nb_samples=buf_size*2` samples in U8P format (one byte per sample). Sizes match. ✓
+- All fixed arrays (`fib_acc[2]`, `data[2]`) accessed only within validated bounds (ch∈{0,1}). ✓
+- `MAX_FRAME_SIZE=2048` caps `buf_size`, so `nb_samples=buf_size*2≤4096` — no integer overflow risk.
 
 NO_VULN_FOUND
 

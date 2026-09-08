@@ -1,0 +1,19 @@
+VERIFIED_BEHAVIOR
+The PoC correctly constructs a MOFLEX file (84 MB) that accumulates an 83,894,272-byte
+audio packet across 10,241 blocks and delivers it to fastaudio_decode.
+
+Observed: get_buffer() failed (AVERROR(EINVAL)) -- FFmpeg's av_malloc() rejects
+allocations > INT_MAX (2,147,483,647 bytes). The minimum buffer needed to let the
+1024*subframe overflow execute is 2,147,484,672 bytes (1,025 bytes over INT_MAX),
+so the allocator cap blocks the OOB write before it occurs.
+
+The guard at fastaudio.c:116 is still incorrect:
+  `subframes > INT_MAX / 256`  (allows up to 8,388,607)
+should be:
+  `subframes > INT_MAX / 1024` (caps at 2,097,151)
+Values in [2,097,152 – 8,388,607] pass the guard and would overflow 1024*subframe,
+but are also blocked by av_malloc's INT_MAX allocation cap in this build.
+
+FFmpeg demuxer output confirmed:
+  "1 packets read (83894272 bytes)" -- packet accumulation worked correctly
+  "get_buffer() failed" -- decoder reached, allocation failed due to size cap

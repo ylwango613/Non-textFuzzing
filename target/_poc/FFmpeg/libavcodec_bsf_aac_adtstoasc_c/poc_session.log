@@ -1,0 +1,10 @@
+The subagent has completed. Here is the summary:
+
+| VULN | 编号 | 状态 | 说明 |
+|------|------|------|------|
+| pkt->size integer underflow via oversized PCE comment field | VULN-001 | **VERIFIED_BEHAVIOR** | 漏洞行为已确认：`comment_field_bytes=0xFF` 触发安全读取器超限计数，导致 `pkt->size = -1` 并以 success 返回。下游 `avio_write()` 有 `size <= 0` 防护未崩溃，但损坏包本身真实存在；换用无防护的下游消费者会触发 ASAN crash |
+
+**关键发现**：
+- 用纯 AVI 容器包裹恶意 ADTS 帧（`chan_config=0` + `comment_field_bytes=0xFF`），绕过了解码器探针阶段导致 `sample_rate=0` 的问题
+- 整数下溢路径完全符合报告描述：`get_bits_count(&gb)/8 = pkt->size+1` → `pkt->size -= (pkt->size+1)` → `pkt->size = -1`
+- PoC 文件位于 `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_bsf_aac_adtstoasc_c/`

@@ -1,0 +1,7 @@
+## Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | `decode_adpcm_ima_hvqm4` mono off-by-one heap OOB write | **ERROR** |
+
+**Reason**: The test binary (`build_test/ffmpeg`) was compiled with `CONFIG_ADPCM_IMA_HVQM4_DECODER=0`, meaning the `adpcm_ima_hvqm4` decoder is not registered in the codec registry. Additionally, `AV_CODEC_ID_ADPCM_IMA_HVQM4` has no entry in the AVI/WAVE format tag table, so there is no way to route a crafted file through this code path via the CLI. The vulnerability is confirmed real by source analysis (the off-by-one logic at lines 647–658 is sound), but the provided binary does not expose it to external triggering.

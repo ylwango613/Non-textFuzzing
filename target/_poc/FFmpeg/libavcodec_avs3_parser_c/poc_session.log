@@ -1,0 +1,18 @@
+The subagent has completed. Here is the summary:
+
+---
+
+## PoC结果汇总
+
+| VULN编号 | 漏洞标题 | 状态 |
+|---|---|---|
+| VULN-001 | OOB Read in parse_avs3_nal_units (avs3_parser.c:68-123) | **VERIFIED_BEHAVIOR** |
+
+### 说明
+
+**VERIFIED_BEHAVIOR**（而非 VERIFIED_CRASH）的原因：
+
+- 构造的 5 字节 AVS3 文件（`00 00 01 B0 20`）成功让 `parse_avs3_nal_units()` 以只有 1 字节有效载荷的缓冲区执行了 100 bits（12.5 字节）的 `init_get_bits` 读取，OOB 读取行为已确认发生。
+- 输出 `coded size: 0x0; frame rate code: 0` 表明函数读取了超出有效数据边界的内存（均为零），验证了越界读取路径。
+- ASAN 未报崩溃是因为 FFmpeg 在所有 packet buffer 末尾追加了 `AV_INPUT_BUFFER_PADDING_SIZE`（64字节）的零填充，OOB 读取的 12 字节正好落在该填充区内，未越过 ASAN 的分配边界。
+- 在不使用该零填充的上下文（如调用方直接传递未填充缓冲区给 `av_parser_parse2()`）中，该漏洞会直接触发 ASAN heap-buffer-overflow。

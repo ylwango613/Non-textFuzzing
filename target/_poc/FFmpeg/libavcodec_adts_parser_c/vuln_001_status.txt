@@ -1,0 +1,7 @@
+UNVERIFIED
+The HLS SAMPLE-AES trigger path is fully reached (key loaded, 7-byte AAC packet processed,
+avpriv_adts_header_parse called with size=7, ff_adts_header_parse_buf called with unpadded buf,
+AV_RB64(buf) reads 8 bytes from the 7-byte ADTS header). However, ASAN does not report an
+error because FFmpeg's av_new_packet() always allocates AV_INPUT_BUFFER_PADDING_SIZE (64) extra
+bytes after pkt->size, so the 1-byte over-read by the optimized bit reader lands in allocated
+(zeroed) padding memory rather than an ASAN red-zone.

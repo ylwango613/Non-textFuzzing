@@ -1,0 +1,11 @@
+## Summary
+
+**VULN 001** — NULL Dereference in `av1_parser_parse` via Dropped OBU Content: **UNVERIFIED**
+
+The subagent confirmed the code defect exists (`av1_parser.c:103` dereferences `obu` without a NULL check), but could not trigger it through `ffmpeg -i` alone. The root cause is that the AV1 parser's CBS context initializes `operating_point = -1` (default), which prevents `operating_point_idc` from ever being set to a non-zero value in `cbs_av1.c:901`. Since the EAGAIN/drop check at line 882 requires `priv->operating_point_idc != 0`, `unit->content` is never NULL-ed in the parser path reachable via the command-line binary.
+
+Triggering the crash would require calling `av_opt_set_int(parser_ctx->priv_data, "operating_point", 0, 0)` programmatically before parsing — which violates the hard rule against custom C harnesses.
+
+**Files written to** `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_av1_parser_c/`:
+- `vuln_001_gen.py`, `vuln_001_run.sh`, `vuln_001_notes.md`, `vuln_001_result.txt`
+- `vuln_001_status.txt`: `UNVERIFIED`

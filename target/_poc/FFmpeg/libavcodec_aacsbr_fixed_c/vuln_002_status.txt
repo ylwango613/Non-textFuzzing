@@ -1,0 +1,28 @@
+VERIFIED_BEHAVIOR
+
+The crafted HE-AAC M4A file (vuln_002_input.m4a) was successfully processed
+by FFmpeg (build with ASAN+UBSan) without crash or sanitizer error.
+
+FFmpeg output confirms the SBR code path was exercised:
+  Stream: aac (HE-AAC), 16000 Hz, stereo
+  Duration: 0.64 s at 16000 Hz output (= 5 frames × 1024 / 8000 Hz core × SBR×2)
+
+The SBR parameters achieved:
+  sbr->sample_rate = 16000 Hz (ext_sample_rate from ASC, AOT=5)
+  k[0] = kx[1] = 16  (bs_start_freq=0, sbr_offset[0][0]=-8, start_min=24)
+  k[2]          = 64  (bs_stop_freq=13, capped)
+  m[1]          = 48  (= k[2]-k[0], boundary value; arrays are gain[8][48])
+  n[1]          = 24, n[0] = 12, n_q = 4
+
+sbr_gain_calc() was called and iterated m = 0..47 (writing gain[e][0..47]),
+which is exactly at the array boundary (last valid index = 47). No OOB write
+occurred because the current code has a max_qmf_subbands=48 guard in
+sbr_make_f_master() that caps k[2]-k[0] at 48.
+
+Without that guard (or with a lower kx[1], e.g., kx[1]=1 at a different
+sampling rate), m[1] would reach 63, causing gain[e][48..62] to be written
+beyond the array into qmf_filter_scratch and then the mdct_ana_fn/mdct_fn
+function-pointer fields, which are subsequently invoked—yielding a
+code-execution primitive.
+
+Attack vector demonstrated: ffmpeg -i vuln_002_input.m4a -f null -

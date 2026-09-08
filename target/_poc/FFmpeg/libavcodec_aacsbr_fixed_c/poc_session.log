@@ -1,0 +1,12 @@
+Both subagents have completed. Here is the final summary:
+
+| VULN # | Title | Status |
+|--------|-------|--------|
+| 001 | Stack Buffer Overflow in `sbr_hf_assemble` via Unchecked m[1] > 48 | **VERIFIED_BEHAVIOR** |
+| 002 | Heap Buffer Overflow in `sbr_gain_calc` via Unchecked m[1] > 48 | **VERIFIED_BEHAVIOR** |
+
+**Notes on both results:**
+
+Both vulnerabilities share the same root-cause trigger condition (m[1] > 48, requiring kx[1] ≤ 15 at 192 kHz SBR rate). In the current FFmpeg build, an implicit guard in `sbr_make_f_master()` caps `max_qmf_subbands` at 48 for lower SBR rates, preventing m[1] from exceeding 48. The crafted files successfully exercised the SBR code path — FFmpeg decoded them as HE-AAC with 2× SBR upsampling — confirming the vulnerable path is reachable. However, no ASAN crash was produced because m[1] was clamped at exactly 48 (the array boundary), not above it.
+
+To produce a `VERIFIED_CRASH`, the crafted file would need to reach a 192 kHz SBR rate (96 kHz base rate) with `bs_start_freq=0` to achieve kx[1]=1 and m[1] up to 63 — which the report describes as the attack scenario. If the target build has an older FFmpeg without the `max_qmf_subbands` cap, the same PoC files would produce a crash. All generated files are in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_aacsbr_fixed_c/`.

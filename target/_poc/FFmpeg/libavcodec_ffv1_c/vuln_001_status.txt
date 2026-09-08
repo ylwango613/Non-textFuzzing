@@ -1,0 +1,71 @@
+SKIPPED
+
+Rationale:
+The vulnerability as described in the report cannot be triggered via a crafted file
+fed to `ffmpeg -i <file> -f null -` for two independent reasons:
+
+────────────────────────────────────────────────────────────────────────
+REASON 1: The reported OOB index (268,435,456) is mathematically impossible.
+────────────────────────────────────────────────────────────────────────
+The vulnerability description claims that when i=0x100000000 and mul_count=4096,
+  ndx = (i * mul_count) >> 32 = 268,435,456
+which would access mul[268,435,456] on a 4097-element stack array.
+
+The correct arithmetic is:
+  i        = 0x100000000 = 4,294,967,296
+  mul_count = 4,096
+  i * mul_count = 4,294,967,296 × 4,096 = 17,592,186,044,416 (0x100000000000)
+  >> 32     = 0x1000 = 4,096
+
+  ndx = 4,096
+
+mul[] is declared as `int mul[4096+1]` (4097 elements, indices 0..4096).
+mul[4096] was explicitly initialised to 1 at line 338 (`mul[mul_count] = 1`).
+The access is within bounds. av_assert2(ndx <= 4096U) also passes.
+
+For ndx to reach 268,435,456, mul_count would need to be 268,435,456 — but the
+decoder explicitly rejects mul_count > 4096U at lines 332-333 before the vulnerable
+section is ever reached.
+
+────────────────────────────────────────────────────────────────────────
+REASON 2: The boundary call with i=0x100000000 is impractical to trigger.
+────────────────────────────────────────────────────────────────────────
+decode_remap iterates i from 0 to end=0xFFFFFFFF (4,294,967,295 iterations) using
+run-length encoding. To reach i=0xFFFFFFFF (so that i++ yields 0x100000000 and
+decode_current_mul is called), the decoder must write a remap entry at i=0xFFFFFFFF,
+meaning the source image must contain at least one pixel with each of the
+4,294,967,296 possible IEEE 754 float bit-patterns.
+
+In practice this would require a frame of ≥4,294,967,296 pixels (e.g., 65536×65536).
+At 3 channels × 4 bytes per float, the raw input would be ~48 GB. Encoding such a
+frame and waiting for the decoder to iterate 2^32 remap entries is impractical as a
+command-line PoC within any reasonable time limit.
+
+────────────────────────────────────────────────────────────────────────
+PoC execution results (FFV1 v4, gbrpf32le, remap_mode=2, 4×4 frame):
+────────────────────────────────────────────────────────────────────────
+- Reference file (valid, encodes correctly):
+    Decoded 1 frame — no error, no ASAN hit.
+- Mutated inputs (FFV1 slice bytes replaced with 0xFF / alternating):
+    Decoder returns AVERROR_INVALIDDATA ("slice count 0 is invalid") — the
+    error-handling path in decode_frame() triggers before decode_remap() is
+    ever called.  No ASAN/SIGSEGV observed.
+
+────────────────────────────────────────────────────────────────────────
+Real bug (logic error):
+────────────────────────────────────────────────────────────────────────
+There IS a real off-by-one logic error: decode_current_mul is called with i=end+1
+(i.e., i outside the valid [0, end] domain) after writing the last remap entry.
+This is a spurious range-coder read for mul[mul_count] (always 1, always valid) that
+does nothing harmful in the current code. Future changes that reduce the mul[] array
+size or widen the mul_count limit could make this a real OOB.
+
+Files created:
+  vuln_001_gen.py          — PoC generator (uses ffmpeg subprocess for encoding)
+  vuln_001_run.sh          — PoC runner script
+  vuln_001_notes.md        — detailed technical analysis
+  vuln_001_ref.mkv         — valid FFV1 v4 float file (reference)
+  vuln_001_input.mkv       — mutated FFV1 file (0xFF fill)
+  vuln_001_input_alt.mkv   — mutated FFV1 file (alternating fill)
+  vuln_001_input_partial.mkv — mutated FFV1 file (first 20 bytes preserved)
+  vuln_001_result.txt      — decoder output for all inputs

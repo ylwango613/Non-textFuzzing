@@ -1,0 +1,94 @@
+=== VULN-001: AMV Encoder Integer Overflow PoC ===
+Binary: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+
+[*] Generating reference MKV (320x240)...
+[gen] Created /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_mjpegenc_c/vuln_001_input.mkv (153811 bytes, 320x240 YUY2)
+
+[*] Attempt 1: 46352x46352 (overflow threshold: linesize*height = 2,148,504,304 > INT_MAX)
+    Expected: REJECTED - 'Picture size ... is invalid' from av_image_check_size2()
+
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[Parsed_color_0 @ 0x511000000680] [IMGUTILS @ 0x7db88d711120] Picture size 46352x46352 is invalid
+[Parsed_color_0 @ 0x511000000680] Failed to configure output pad on Parsed_color_0
+[in#0 @ 0x513000000200] Error opening input: Invalid argument
+Error opening input file color=size=46352x46352:rate=1.
+Error opening input files: Invalid argument
+
+[*] Attempt 2: 65488x32800 (linesize[0]*height=65488*32800=2,147,973,200)
+    Expected: REJECTED by size check
+
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[Parsed_color_0 @ 0x511000000680] [IMGUTILS @ 0x717c3f911120] Picture size 65488x32800 is invalid
+[Parsed_color_0 @ 0x511000000680] Failed to configure output pad on Parsed_color_0
+[in#0 @ 0x513000000200] Error opening input: Invalid argument
+Error opening input file color=size=65488x32800:rate=1.
+Error opening input files: Invalid argument
+
+[*] Attempt 3: 8192x8192 with audio (maximum valid AMV-compatible resolution)
+    linesize[0]*(height-1) = 8192*8191 = 67,100,672 << INT_MAX
+    Expected: ENCODES SUCCESSFULLY with no overflow (confirms unreachability)
+
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, lavfi, from 'color=size=8192x8192:rate=30':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Video: wrapped_avframe, yuv420p, 8192x8192 [SAR 1:1 DAR 1:1], 30 fps, 30 tbr, 30 tbn
+Input #1, lavfi, from 'anullsrc=r=8000:cl=mono':
+  Duration: N/A, start: 0.000000, bitrate: 64 kb/s
+  Stream #1:0: Audio: pcm_u8, 8000 Hz, mono, u8, 64 kb/s
+Stream mapping:
+  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> amv (native))
+  Stream #1:0 -> #0:1 (pcm_u8 (native) -> adpcm_ima_amv (native))
+Press [q] to stop, [?] for help
+[swscaler @ 0x52f00000e400] deprecated pixel format used, make sure you did set range correctly
+Output #0, amv, to 'vuln_001_output3.amv':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: amv, yuvj420p(pc, progressive), 8192x8192 [SAR 1:1 DAR 1:1], q=2-31, 200 kb/s, 30 fps, 30 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 amv
+    Side data:
+      CPB properties: bitrate max/min/avg: 0/0/200000 buffer size: 0 vbv_delay: N/A
+  Stream #0:1: Audio: adpcm_ima_amv, 22050 Hz, mono, s16 (4 bit), 88 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 adpcm_ima_amv
+frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:01.00    [out#0/amv @ 0x511000003380] video:1024KiB audio:11KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 2869.211463%
+frame=    1 fps=0.6 q=5.2 Lsize=   30732KiB time=00:00:01.00 bitrate=251756.4kbits/s speed=0.607x elapsed=0:00:01.64    
+
+
+=== PoC run complete ===
+
+CONCLUSION:
+  The integer overflow in amv_encode_picture() (mjpegenc.c:637) requires
+  linesize[0] * (height-1) > INT_MAX, i.e., w*h > ~2.1B pixels.
+  FFmpeg's av_image_check_size2() (imgutils.c:301) rejects any frame with
+  stride*(h+128) >= INT_MAX, limiting frames to ~268M pixels.
+  The overflow threshold (2.1B) exceeds the size-check limit (268M) by 8x,
+  making the vulnerability UNREACHABLE via external inputs.
+EXIT=0

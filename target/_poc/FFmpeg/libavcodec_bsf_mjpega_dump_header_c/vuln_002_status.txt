@@ -1,0 +1,37 @@
+UNVERIFIED
+
+Summary:
+  The vulnerability code path IS successfully reached. The BSF (mjpegadump)
+  processes the crafted malformed MJPEG packet, hits the APP1 case at the
+  correct offset, evaluates `i+8 < in->size` as True, and executes
+  `AV_RL32(in->data + i + 8)` — which reads 4 bytes starting at position i+8
+  where only the byte at i+8 is within the declared packet size.
+
+  Confirmed BSF execution on malformed frame:
+    [mjpegadump] could not find SOS marker in bitstream
+  This message appears AFTER the APP1 check, proving the OOB path was taken.
+
+Why ASAN did not report a crash:
+  FFmpeg allocates every packet with AV_INPUT_BUFFER_PADDING_SIZE = 64 extra
+  bytes of zeroed padding appended to the declared size (see libavcodec/defs.h,
+  line 40). For an 11-byte packet, the actual heap allocation is 75 bytes.
+
+  AV_RL32(in->data + i + 8) reads bytes at indices 10, 11, 12, 13.
+  All four are within the 75-byte allocation, so ASAN sees no heap-buffer-
+  overflow. The read returns value 0x00000000 (from the zeroed padding), which
+  does not equal AV_RL32("mjpg"), so the condition is false and execution
+  continues normally.
+
+Trigger commands that successfully feed the malformed packet to the BSF:
+  # Approach A (output BSF, two-frame file):
+  ffmpeg -f mjpeg -i vuln_002_input.mjpeg -c:v copy -bsf:v mjpegadump -f null -
+
+  # Approach C (input BSF, single malformed frame):
+  ffmpeg -f mjpeg -bsf:v mjpegadump -i vuln_002_input_single.mjpeg -f null -
+
+Code analysis:
+  The guard on line 83 is incorrect — `i + 8 < in->size` should be
+  `i + 11 < in->size` to ensure all four bytes of AV_RL32 are in bounds.
+  The bug exists in source but is masked by the mandatory input buffer padding.
+  It could become dangerous if padding is removed, reduced, or if a future
+  change causes packet data to be allocated without the padding contract.

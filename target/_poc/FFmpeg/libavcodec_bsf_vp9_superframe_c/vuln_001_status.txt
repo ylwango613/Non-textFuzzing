@@ -1,0 +1,6 @@
+SKIPPED
+Reason: Triggering this vulnerability requires packet sizes summing to >UINT32_MAX (4GB).
+The code (vp9_superframe.c) limits cache to MAX_CACHE=8 slots (7 invisible + 1 visible).
+To overflow the 32-bit sum, each frame must average ~512MB, meaning the input file must be ~4GB.
+The memcpy at line 67 uses in[n]->size (actual data size), so no small-file trick can trigger it.
+This vulnerability is real but impractical to demonstrate without multi-GB input files.

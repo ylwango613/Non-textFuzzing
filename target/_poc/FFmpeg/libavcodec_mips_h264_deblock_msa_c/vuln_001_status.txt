@@ -1,0 +1,2 @@
+SKIPPED
+Architecture mismatch: binary is x86-64, vulnerability requires MIPS MSA.

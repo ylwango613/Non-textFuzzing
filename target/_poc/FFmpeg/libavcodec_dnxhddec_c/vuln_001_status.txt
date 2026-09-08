@@ -1,0 +1,9 @@
+VERIFIED_BEHAVIOR
+The off-by-one check at dnxhddec.c:344 is bypassed: mb_scan_index[0] == CODED_SIZE
+passes the strict '<' guard. init_get_bits8 is subsequently called with a pointer
+one past the end of coded data (buf + 768) and size_in_bits=0. The decoder then reads
+garbage data from beyond the buffer — confirmed by "ac tex damaged 0, 64" (64 AC
+coefficient decode iterations from out-of-bounds memory). ASAN does not report a
+heap-buffer-overflow because the reads advance only ~25 bytes into the 64-byte
+AV_INPUT_BUFFER_PADDING_SIZE that av_new_packet always appends; longer VLC codes
+or a production allocator (no ASAN padding) would expose the crash.

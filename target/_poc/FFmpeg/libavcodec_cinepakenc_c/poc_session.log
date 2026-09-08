@@ -1,0 +1,5 @@
+## Summary
+
+| VULN | 状态 | 说明 |
+|------|------|------|
+| VULN-001 | **UNVERIFIED** | 漏洞代码路径存在，但被 `av_image_check_size2()` 的运行时守卫拦截：任何能触发 `6·w·h` int32 溢出的维度对（w·h > 357M）必然满足 `stride·(h+128) ≥ INT_MAX`，导致 FFmpeg 在进入 `cinepak_encode_init` 之前就报 `"Picture size ... is invalid"` 并退出。漏洞在源码层面存在，但在此构建中被 libavutil 的尺寸校验屏蔽，无法从外部通过合法媒体文件触发。 |

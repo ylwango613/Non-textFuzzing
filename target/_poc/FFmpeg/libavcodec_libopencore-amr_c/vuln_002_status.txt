@@ -1,0 +1,56 @@
+VULN 002 STATUS: NOT TRIGGERED (Decoder Not Compiled)
+
+=== Summary ===
+Vulnerability: AMR-WB Decoder buf[0] OOB Read Before Size Check
+File: libavcodec/libopencore-amr.c, function amr_wb_decode_frame(), line 351
+CWE: CWE-125 / CWE-476
+
+=== ASAN Triggered: NO ===
+
+=== Root Cause of Non-Trigger ===
+The `libopencore_amrwb` decoder is NOT compiled into the test binary.
+  - build_test/config.h: #define CONFIG_LIBOPENCORE_AMRWB 0
+  - Build flags do not include --enable-libopencore-amrwb
+  - No external opencore-amrwb library is linked
+  - `ffmpeg -decoders` does not list libopencore_amrwb
+  - Forcing `-codec:a libopencore_amrwb` fails: "Unknown decoder"
+
+The native AMR-WB decoder (amrwbdec.c) is used instead, which has
+different code and does NOT have the same vulnerable code pattern.
+
+=== Test Cases Run ===
+8 crafted inputs tested, all exited without ASAN error:
+  1. vuln_002_input.awb  (magic-only, 9 bytes)      -> exit 0, no crash
+  2. vuln_002_ft15.awb   (magic + FT=15, 10 bytes)  -> exit 0, no crash
+  3. vuln_002_ft11.awb   (magic + FT=11, 10 bytes)  -> exit 69, decode error, no crash
+  4. vuln_002_truncated.awb (FT=0 truncated)        -> exit 69, decode error, no crash
+  5. vuln_002_input.awb -f amrwb (forced format)    -> exit 0, no crash
+  6. vuln_002_ft11.raw   (raw FT=11)                -> exit 69, decode error, no crash
+  7. vuln_002_empty.raw  (empty, -f amrwb)          -> exit 0, no crash
+  8. vuln_002_ft9_partial.awb (partial FT=9)        -> exit 69, decode error, no crash
+
+=== Code-Level Bug Confirmed ===
+The bug EXISTS in the source code at libavcodec/libopencore-amr.c:351:
+    mode = (buf[0] >> 3) & 0x000F;  // reads buf[0] BEFORE checking buf_size
+This is before the size check at line 354:
+    if (packet_size > buf_size) { ... }
+When avpkt->size==0 and avpkt->data==NULL, line 351 dereferences NULL.
+
+=== Recommendation ===
+To trigger this vulnerability, a build with libopencore-amrwb support is required:
+  ./configure --enable-libopencore-amrwb ...
+Then craft: #!AMR-WB\n (magic header only, no frames) to trigger the
+flush path where avpkt->data=NULL is passed to amr_wb_decode_frame().
+
+=== Files Created ===
+  vuln_002_gen.py         - Generates malformed AMR-WB input files
+  vuln_002_run.sh         - Shell script to run all test cases
+  vuln_002_input.awb      - Primary crafted input (magic only, 9 bytes)
+  vuln_002_ft15.awb       - FT=15 single-byte frame (10 bytes)
+  vuln_002_ft11.awb       - FT=11 frame triggering block_size=0 (10 bytes)
+  vuln_002_truncated.awb  - FT=0 header with no payload (10 bytes)
+  vuln_002_empty.raw      - Empty file for raw amrwb format (0 bytes)
+  vuln_002_ft11.raw       - Raw FT=11 byte for amrwb format (1 byte)
+  vuln_002_ft9_partial.awb - FT=9 with partial payload (11 bytes)
+  vuln_002_result.txt     - Full output from all test runs
+  vuln_002_notes.md       - Detailed analysis and documentation

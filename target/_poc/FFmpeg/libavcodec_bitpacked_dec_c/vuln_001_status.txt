@@ -1,0 +1,46 @@
+VERIFIED_BEHAVIOR
+
+## Summary
+
+The vulnerable function bitpacked_decode_uyvy422() is confirmed reachable and
+the missing size check is confirmed present. The function operates on truncated
+input without any bounds validation.
+
+## Evidence
+
+Invocation: -f bitpacked -pixel_format uyvy422 -video_size 64x64 -vcodec bitpacked -i vuln_001_tiny.bin -pix_fmt rgb24 -f rawvideo /dev/null
+
+- Decoder selected: bitpacked (native) [Stream #0:0: Video: bitpacked (UYVY / 0x59565955), uyvy422, 64x64]
+- Input: 16 bytes of actual data (vuln_001_tiny.bin)
+- Output: 12KiB of rgb24 data (= 64*64*3 = 12288 bytes) produced
+  This confirms swscale read all 64*64*2 = 8192 UYVY bytes, treating 8176
+  bytes beyond avpkt->size as valid pixel data
+- No ASAN heap-buffer-overflow because av_get_packet pre-allocates the full
+  packet_size (8192 bytes); the buffer bounds are not violated, but data
+  beyond avpkt->size (offset 16) is zeroed/uninitialized garbage
+
+## Why No ASAN Crash
+
+The rawvideo_read_packet in the bitpacked demuxer calls:
+  av_get_packet(ctx->pb, pkt, ctx->packet_size)  // ctx->packet_size = 8192
+av_grow_packet allocates an 8192+64=8256-byte buffer, then reads 16 bytes
+from the file, then av_shrink_packet sets pkt->size=16 WITHOUT freeing the
+underlying buffer. So pkt->buf->size = 8256, and av_image_fill_arrays sets
+frame->data[0] to a pointer within this 8256-byte allocation. Swscale reads
+8192 bytes — all within the 8256-byte allocation — no ASAN OOB.
+
+## True OOB Trigger Path (Library Level)
+
+The true heap-buffer-overflow occurs when bitpacked_decode_uyvy422 receives a
+packet with avpkt->buf->size < width*height*2, e.g., via the AVI container
+where the 00dc chunk is 16 bytes (buffer = 16+64 = 80 bytes), not the
+bitpacked demuxer which pre-allocates 8192 bytes. Command-line triggering of
+the AVI path is blocked because the AVI demuxer does not set pix_fmt for
+raw video streams, causing bitpacked_init_decoder to fail with AVERROR_INVALIDDATA
+(pix_fmt == AV_PIX_FMT_NONE).
+
+## Vulnerability Confirmation
+
+Source: libavcodec/bitpacked_dec.c, lines 40-60
+Missing check: avpkt->size is never compared to (avctx->width * avctx->height * 2)
+Impact: 8176 bytes of garbage/zero data consumed as valid UYVY422 pixels

@@ -1,0 +1,25 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     1[*] No ASAN log files produced
+[*] FFmpeg output (see vuln_001_result.txt for full log)
+ecode_pce: Input buffer exhausted before END element found
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:00.00, start: 0.000000, bitrate: 96000 kb/s
+  Stream #0:0: Audio: aac (LC) ([255][0][0][0] / 0x00FF), 48000 Hz, mono, fltp, 6 kb/s
+Stream mapping:
+  Stream #0:0 -> #0:0 (copy)
+[mp4 @ 0x517000005100] track 0: codec frame size is not set
+Output #0, mp4, to '/dev/null':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, mono, fltp, 6 kb/s
+Press [q] to stop, [?] for help
+[out#0/mp4 @ 0x511000000e00] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 6229.411765%
+size=       1KiB time=00:00:00.00 bitrate=N/A speed=   0x elapsed=0:00:00.00    
+EXIT=0

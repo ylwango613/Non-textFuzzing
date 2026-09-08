@@ -1,0 +1,28 @@
+VERIFIED_BEHAVIOR
+
+The OOB code path in mjpega_dump_header.c line 76 is confirmed to execute:
+
+Execution summary:
+- vuln_001_input.mjpeg (125 bytes) is a minimal malformed MJPEG where the last
+  two bytes are 0xFF 0xDA (SOS marker, no segment header, no scan data).
+- FFmpeg processes it with -f mjpeg -codec copy -bsf:v mjpegadump.
+- The mjpegadump BSF receives a packet of size=125 bytes.
+- The loop `for (i = 0; i < in->size - 1; i++)` reaches i=123 (in->size - 2).
+- At i=123, in->data[123]==0xFF and in->data[124]==0xDA (SOS), so the SOS case fires.
+- Line 76 executes: AV_RB16(in->data + 125) — reading 2 bytes past pkt->size.
+- FFmpeg exits cleanly with frame=1 (packet successfully processed by BSF).
+
+Why ASAN does NOT crash:
+- av_new_packet() allocates size + AV_INPUT_BUFFER_PADDING_SIZE (64) bytes.
+- av_shrink_packet() only sets pkt->size = 125; the underlying buffer is 1024 bytes
+  (RAW_PACKET_SIZE allocated by ff_raw_read_partial_packet) with >64 zero bytes past
+  position 125. The 2-byte read at in->data+125 lands within the allocation.
+- ASAN only detects overreads past the malloc boundary, not past pkt->size.
+
+Actual impact:
+- The 2 bytes at in->data + in->size are from the zero-padding (initialized by
+  av_new_packet / av_shrink_packet), so the computed "data offset" is i+46+0 = 169.
+- In a scenario where the allocation is exact-sized (custom allocator, future
+  allocation optimization, or refcount sharing), this becomes a true heap OOB.
+- The overread value is used directly in the output packet header, so heap residue
+  could leak allocator metadata or adjacent heap content (information disclosure).

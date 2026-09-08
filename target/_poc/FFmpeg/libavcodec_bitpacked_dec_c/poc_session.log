@@ -1,0 +1,11 @@
+## Summary
+
+**VULN 001** — Missing packet size check in `bitpacked_decode_uyvy422` → **VERIFIED_BEHAVIOR**
+
+The subagent confirmed:
+- `bitpacked_decode_uyvy422()` is reachable via `ffmpeg -f bitpacked -pixel_format uyvy422 -video_size 64x64 -vcodec bitpacked -i vuln_001_tiny.bin -pix_fmt rgb24 -f rawvideo /dev/null`
+- With only 16 bytes of input, swscale consumed 8192 bytes (64×64×2) — reading 8176 bytes beyond `avpkt->size` as valid pixel data
+- No ASAN crash occurred because the bitpacked demuxer's `av_get_packet` pre-allocates the full `packet_size` (8192 bytes) before reading, leaving the underlying buffer large enough to avoid an ASAN OOB trigger
+- The true heap-buffer-overflow would fire at library level when an AVI container delivers a `00dc` chunk that is genuinely undersized, but `bitpacked_init_decoder` rejects that path via command-line because the AVI demuxer doesn't set `pix_fmt` for raw video streams
+
+**Status: VERIFIED_BEHAVIOR** — the missing size check is confirmed; the ASAN crash is blocked by allocator pre-sizing in the demuxer layer, not by any validation in the vulnerable function itself.

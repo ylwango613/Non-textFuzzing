@@ -1,0 +1,5 @@
+UNVERIFIED
+Vulnerability confirmed in source (cfhdenc.c:373) but cannot be triggered via the ffmpeg binary.
+The av_image_check_size2 guard in avcodec.c mathematically prevents any w*h > INT_MAX dimensions
+from reaching cfhd_encode_init: stride*(h+128) >= 8*w*h > 8*INT_MAX >> INT_MAX always fails.
+Only exploitable via direct libavcodec API usage bypassing dimension validation.

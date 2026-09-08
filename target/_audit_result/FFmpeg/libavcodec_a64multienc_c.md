@@ -1,15 +1,18 @@
-The analysis is complete. Key findings:
+I have now fully analyzed `a64multienc.c` (424 lines), `a64colors.h`, `a64tables.h`, and `elbg.h`, and verified the key memory safety properties:
 
-**File scope**: `a64multienc.c` registers only encoders (`ff_a64multi_encoder`, `ff_a64multi5_encoder`) — there is no corresponding decoder registration anywhere in the codebase. No crafted media file can reach this code via the `ffmpeg -i <file>` decoding path.
+**Analysis summary:**
 
-**Memory safety walk-through**:
+1. **`mc_lifetime` (from `global_quality / FF_QP2LAMBDA`)**: Controls allocation sizes via `av_calloc(mc_lifetime, 32000*sizeof(int))`. `av_calloc` performs internal overflow detection and returns NULL — correctly handled with `AVERROR(ENOMEM)`. For any `mc_lifetime` large enough to make `alloc_size` int-overflow, the prior `av_calloc` of 128KB×mc_lifetime bytes would have already OOM-failed.
 
-- **Allocations** (lines 236–239): all use `av_calloc`/`av_mallocz`, which have internal overflow protection and return NULL on overflow; all failures are checked.
-- **`to_meta_with_crop`**: writes exactly `C64YRES/8 * C64XRES/8 * 8 * 4 = 32000` int slots per frame into a buffer sized `mc_lifetime * 32000`, gated by `mc_frame_counter < mc_lifetime`.
-- **`render_charset`**: advances `charset` by 8 per character for 256 chars → max write at `buf + 255*8 + 0x807 = buf + 4095`; buffer is `charset_size = 0x1000 = 4096`. Exact.
-- **`a64_compress_colram`**: max charmap index = `0xe7 + 0x300 = 999`; charmap window is 1000 entries. `colram` values are ELBG codebook indices bounded to [0, 255]; `colram` array is 256 bytes.
-- **Screen copy loop**: `y * b_width + x` is bounded by `screen_size - 1`; buffer advanced by exactly `screen_size` per frame.
-- **`alloc_size` int overflow** (line 336): `c->mc_lifetime * (screen_size + colram_size)` could overflow a 32-bit `int` if `global_quality` is near `INT_MAX`, but this is a user-supplied encoding parameter, not a value from any input media file.
+2. **`meta + 32000 * mc_frame_counter`**: The condition `mc_frame_counter < mc_lifetime` is checked before every write, and the buffer is `mc_lifetime * 32000` ints. Bounded.
+
+3. **`a64_compress_colram` charmap accesses**: `charmap[0..999]` (per frame, 1000 ints allocated), with ELBG-assigned values 0..255 used to index `colram[256]`. Bounded.
+
+4. **`render_charset` — `charset[y+0x800]`**: At charpos=255, the write reaches `buf[4095]`, within the allocated `charset_size=4096`. `best_cb[0..31]` × 256 chars = 8192 ints matches the `CHARSET_CHARS*32` allocation exactly.
+
+5. **`dither[pix]` → `interlaced_dither_patterns[]`**: `pix` is 0..255 (valid for `uint8_t dither[256]`), and `dither` values are 0..7 (from `b*(DITHERSTEPS-1)/distance`), valid for the 9-entry dither table.
+
+6. This is an **encoder**, not a decoder/demuxer — it processes raw pixel frames, not attacker-controlled compressed bitstreams.
 
 NO_VULN_FOUND
 

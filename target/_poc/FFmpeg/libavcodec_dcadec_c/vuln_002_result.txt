@@ -1,0 +1,238 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+=== asan_002.log.1822634 ===
+=================================================================
+==1822634==ERROR: AddressSanitizer: global-buffer-overflow on address 0x56415196b4dc at pc 0x56414b855ab1 bp 0x7ffdebfba050 sp 0x7ffdebfba040
+READ of size 1 at 0x56415196b4dc thread T0
+    #0 0x56414b855ab0 in ff_dca_set_channel_layout (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf15fab0) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #1 0x56414ec1fb7e in ff_dca_core_filter_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x12529b7e) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #2 0x56414b85a879 in dcadec_decode_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf164879) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #3 0x56414b8a50b1 in decode_simple_internal (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1af0b1) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #4 0x56414b8a7a23 in decode_simple_receive_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b1a23) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #5 0x56414b8a84ba in ff_decode_receive_frame_internal (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b24ba) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #6 0x56414b8a8744 in decode_receive_frame_internal (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b2744) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #7 0x56414b8a9adf in avcodec_send_packet (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b3adf) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #8 0x56414a43cb0b in try_decode_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xdd46b0b) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #9 0x56414a44f0ea in avformat_find_stream_info (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xdd590ea) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #10 0x56414899c30c in ifile_open (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc2a630c) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #11 0x564148a4fb48 in open_files (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc359b48) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #12 0x564148a502a3 in ffmpeg_parse_options (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc35a2a3) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #13 0x564148aed707 in main (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc3f7707) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #14 0x7b2eb9a2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #15 0x7b2eb9a2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #16 0x56414894bd04 in _start (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc255d04) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+
+0x56415196b4dc is located 0 bytes after global variable 'dca2wav_norm' defined in 'src/libavcodec/dcadec.c:38:22' (0x56415196b4c0) of size 28
+0x56415196b4dc is located 36 bytes before global variable 'dca2wav_wide' defined in 'src/libavcodec/dcadec.c:43:22' (0x56415196b500) of size 28
+SUMMARY: AddressSanitizer: global-buffer-overflow (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf15fab0) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef) in ff_dca_set_channel_layout
+Shadow bytes around the buggy address:
+  0x56415196b200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x56415196b280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x56415196b300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x56415196b380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x56415196b400: 00 00 00 00 f9 f9 f9 f9 00 00 00 00 00 00 00 00
+=>0x56415196b480: 00 00 00 00 00 00 00 00 00 00 00[04]f9 f9 f9 f9
+  0x56415196b500: 00 00 00 04 f9 f9 f9 f9 00 00 00 f9 f9 f9 f9 f9
+  0x56415196b580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x56415196b600: 05 f9 f9 f9 f9 f9 f9 f9 00 00 00 06 f9 f9 f9 f9
+  0x56415196b680: 00 00 00 05 f9 f9 f9 f9 00 00 00 00 00 00 00 00
+  0x56415196b700: 00 01 f9 f9 f9 f9 f9 f9 00 00 05 f9 f9 f9 f9 f9
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1822634==ABORTING
+=== asan_002.log.1832508 ===
+=================================================================
+==1832508==ERROR: AddressSanitizer: global-buffer-overflow on address 0x5d4e97ccc4dc at pc 0x5d4e91bb6ab1 bp 0x7fff672c1b00 sp 0x7fff672c1af0
+READ of size 1 at 0x5d4e97ccc4dc thread T0
+    #0 0x5d4e91bb6ab0 in ff_dca_set_channel_layout (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf15fab0) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #1 0x5d4e94f80b7e in ff_dca_core_filter_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x12529b7e) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #2 0x5d4e91bbb879 in dcadec_decode_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf164879) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #3 0x5d4e91c060b1 in decode_simple_internal (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1af0b1) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #4 0x5d4e91c08a23 in decode_simple_receive_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b1a23) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #5 0x5d4e91c094ba in ff_decode_receive_frame_internal (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b24ba) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #6 0x5d4e91c09744 in decode_receive_frame_internal (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b2744) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #7 0x5d4e91c0aadf in avcodec_send_packet (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b3adf) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #8 0x5d4e9079db0b in try_decode_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xdd46b0b) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #9 0x5d4e907b00ea in avformat_find_stream_info (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xdd590ea) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #10 0x5d4e8ecfd30c in ifile_open (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc2a630c) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #11 0x5d4e8edb0b48 in open_files (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc359b48) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #12 0x5d4e8edb12a3 in ffmpeg_parse_options (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc35a2a3) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #13 0x5d4e8ee4e707 in main (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc3f7707) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #14 0x7cf72b02a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #15 0x7cf72b02a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #16 0x5d4e8ecacd04 in _start (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc255d04) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+
+0x5d4e97ccc4dc is located 0 bytes after global variable 'dca2wav_norm' defined in 'src/libavcodec/dcadec.c:38:22' (0x5d4e97ccc4c0) of size 28
+0x5d4e97ccc4dc is located 36 bytes before global variable 'dca2wav_wide' defined in 'src/libavcodec/dcadec.c:43:22' (0x5d4e97ccc500) of size 28
+SUMMARY: AddressSanitizer: global-buffer-overflow (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf15fab0) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef) in ff_dca_set_channel_layout
+Shadow bytes around the buggy address:
+  0x5d4e97ccc200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5d4e97ccc280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5d4e97ccc300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5d4e97ccc380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5d4e97ccc400: 00 00 00 00 f9 f9 f9 f9 00 00 00 00 00 00 00 00
+=>0x5d4e97ccc480: 00 00 00 00 00 00 00 00 00 00 00[04]f9 f9 f9 f9
+  0x5d4e97ccc500: 00 00 00 04 f9 f9 f9 f9 00 00 00 f9 f9 f9 f9 f9
+  0x5d4e97ccc580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5d4e97ccc600: 05 f9 f9 f9 f9 f9 f9 f9 00 00 00 06 f9 f9 f9 f9
+  0x5d4e97ccc680: 00 00 00 05 f9 f9 f9 f9 00 00 00 00 00 00 00 00
+  0x5d4e97ccc700: 00 01 f9 f9 f9 f9 f9 f9 00 00 05 f9 f9 f9 f9 f9
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1832508==ABORTING
+=== asan_002.log.1833175 ===
+=================================================================
+==1833175==ERROR: AddressSanitizer: global-buffer-overflow on address 0x5f6107b804dc at pc 0x5f6101a6aab1 bp 0x7ffe716ae110 sp 0x7ffe716ae100
+READ of size 1 at 0x5f6107b804dc thread T0
+    #0 0x5f6101a6aab0 in ff_dca_set_channel_layout (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf15fab0) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #1 0x5f6104e34b7e in ff_dca_core_filter_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x12529b7e) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #2 0x5f6101a6f879 in dcadec_decode_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf164879) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #3 0x5f6101aba0b1 in decode_simple_internal (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1af0b1) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #4 0x5f6101abca23 in decode_simple_receive_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b1a23) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #5 0x5f6101abd4ba in ff_decode_receive_frame_internal (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b24ba) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #6 0x5f6101abd744 in decode_receive_frame_internal (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b2744) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #7 0x5f6101abeadf in avcodec_send_packet (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b3adf) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #8 0x5f6100651b0b in try_decode_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xdd46b0b) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #9 0x5f61006640ea in avformat_find_stream_info (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xdd590ea) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #10 0x5f60febb130c in ifile_open (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc2a630c) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #11 0x5f60fec64b48 in open_files (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc359b48) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #12 0x5f60fec652a3 in ffmpeg_parse_options (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc35a2a3) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #13 0x5f60fed02707 in main (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc3f7707) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #14 0x79c6a742a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #15 0x79c6a742a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #16 0x5f60feb60d04 in _start (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc255d04) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+
+0x5f6107b804dc is located 0 bytes after global variable 'dca2wav_norm' defined in 'src/libavcodec/dcadec.c:38:22' (0x5f6107b804c0) of size 28
+0x5f6107b804dc is located 36 bytes before global variable 'dca2wav_wide' defined in 'src/libavcodec/dcadec.c:43:22' (0x5f6107b80500) of size 28
+SUMMARY: AddressSanitizer: global-buffer-overflow (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf15fab0) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef) in ff_dca_set_channel_layout
+Shadow bytes around the buggy address:
+  0x5f6107b80200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5f6107b80280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5f6107b80300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5f6107b80380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5f6107b80400: 00 00 00 00 f9 f9 f9 f9 00 00 00 00 00 00 00 00
+=>0x5f6107b80480: 00 00 00 00 00 00 00 00 00 00 00[04]f9 f9 f9 f9
+  0x5f6107b80500: 00 00 00 04 f9 f9 f9 f9 00 00 00 f9 f9 f9 f9 f9
+  0x5f6107b80580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5f6107b80600: 05 f9 f9 f9 f9 f9 f9 f9 00 00 00 06 f9 f9 f9 f9
+  0x5f6107b80680: 00 00 00 05 f9 f9 f9 f9 00 00 00 00 00 00 00 00
+  0x5f6107b80700: 00 01 f9 f9 f9 f9 f9 f9 00 00 05 f9 f9 f9 f9 f9
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1833175==ABORTING
+=== asan_002.log.1834464 ===
+=================================================================
+==1834464==ERROR: AddressSanitizer: global-buffer-overflow on address 0x5ffbd9b734dc at pc 0x5ffbd3a5dab1 bp 0x7ffc82d3d500 sp 0x7ffc82d3d4f0
+READ of size 1 at 0x5ffbd9b734dc thread T0
+    #0 0x5ffbd3a5dab0 in ff_dca_set_channel_layout (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf15fab0) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #1 0x5ffbd6e27b7e in ff_dca_core_filter_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x12529b7e) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #2 0x5ffbd3a62879 in dcadec_decode_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf164879) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #3 0x5ffbd3aad0b1 in decode_simple_internal (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1af0b1) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #4 0x5ffbd3aafa23 in decode_simple_receive_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b1a23) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #5 0x5ffbd3ab04ba in ff_decode_receive_frame_internal (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b24ba) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #6 0x5ffbd3ab0744 in decode_receive_frame_internal (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b2744) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #7 0x5ffbd3ab1adf in avcodec_send_packet (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b3adf) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #8 0x5ffbd2644b0b in try_decode_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xdd46b0b) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #9 0x5ffbd26570ea in avformat_find_stream_info (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xdd590ea) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #10 0x5ffbd0ba430c in ifile_open (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc2a630c) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #11 0x5ffbd0c57b48 in open_files (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc359b48) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #12 0x5ffbd0c582a3 in ffmpeg_parse_options (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc35a2a3) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #13 0x5ffbd0cf5707 in main (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc3f7707) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #14 0x7657bc82a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #15 0x7657bc82a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #16 0x5ffbd0b53d04 in _start (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc255d04) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+
+0x5ffbd9b734dc is located 0 bytes after global variable 'dca2wav_norm' defined in 'src/libavcodec/dcadec.c:38:22' (0x5ffbd9b734c0) of size 28
+0x5ffbd9b734dc is located 36 bytes before global variable 'dca2wav_wide' defined in 'src/libavcodec/dcadec.c:43:22' (0x5ffbd9b73500) of size 28
+SUMMARY: AddressSanitizer: global-buffer-overflow (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf15fab0) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef) in ff_dca_set_channel_layout
+Shadow bytes around the buggy address:
+  0x5ffbd9b73200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5ffbd9b73280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5ffbd9b73300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5ffbd9b73380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5ffbd9b73400: 00 00 00 00 f9 f9 f9 f9 00 00 00 00 00 00 00 00
+=>0x5ffbd9b73480: 00 00 00 00 00 00 00 00 00 00 00[04]f9 f9 f9 f9
+  0x5ffbd9b73500: 00 00 00 04 f9 f9 f9 f9 00 00 00 f9 f9 f9 f9 f9
+  0x5ffbd9b73580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5ffbd9b73600: 05 f9 f9 f9 f9 f9 f9 f9 00 00 00 06 f9 f9 f9 f9
+  0x5ffbd9b73680: 00 00 00 05 f9 f9 f9 f9 00 00 00 00 00 00 00 00
+  0x5ffbd9b73700: 00 01 f9 f9 f9 f9 f9 f9 00 00 05 f9 f9 f9 f9 f9
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1834464==ABORTING

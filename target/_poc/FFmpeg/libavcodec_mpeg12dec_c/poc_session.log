@@ -1,0 +1,7 @@
+Subagent completed. Here is the summary:
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | ipu_decode_frame Heap OOB Write via Non-Aligned Height | **VERIFIED_BEHAVIOR** |
+
+**Details**: The PoC successfully triggers the IPU decoder with non-aligned heights (1, 15, 17). FFmpeg decodes the crafted frame without crashing because `avcodec_align_dimensions2()` pads frame allocations to 32-row alignment — meaning `FFALIGN(h,16)` rows of writes always fall within `FFALIGN(h,32)` physical allocation. The logical OOB write exists in the code, but ASAN cannot detect it with the default frame allocator. A real ASAN crash would require a custom `get_buffer2` that allocates exactly `height × linesize` bytes (no padding), or hardware decode paths (VAAPI/VDPAU) with exact-size frame pools.

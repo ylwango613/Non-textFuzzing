@@ -1,0 +1,63 @@
+VERIFIED_BEHAVIOR
+
+## Summary
+
+All three crafted IPU files (height=1, 17, 15) were decoded successfully by
+ipu_decode_frame without any ASAN-reported heap-buffer-overflow.
+
+## What the PoC demonstrates
+
+The vulnerability code path IS reached and executed:
+
+1. ipu_read_header() reads height=17 from the crafted file header (bytes 10-11)
+   with no alignment validation.
+
+2. ff_get_buffer() allocates a frame. The macroblock loop:
+     for (int y = 0; y < avctx->height; y += 16)   // height=17
+   runs for y=0 AND y=16 (since 16 < 17).
+
+3. For y=16, ipu_decode_frame calls:
+     idct_put(frame->data[0] + (y+8) * linesize + x)  // row 24
+   which writes 8 rows of pixel data starting at luma row 24.
+
+4. A correctly aligned height (e.g., height=16) would only have y=0 in the loop,
+   so row 24 would never be touched.
+
+5. The frame is decoded without error (frame=1 in ffmpeg output), proving that
+   the OOB write path is exercised silently.
+
+## Why ASAN does NOT trigger
+
+avcodec_align_dimensions2() in libavcodec/utils.c (line 244-245) rounds the
+frame height up to h_align=32 (for YUV420P on any codec):
+
+    w_align = 16;
+    h_align = 16 * 2;   // = 32
+
+For height=17: FFALIGN(17, 32) = 32 rows are physically allocated.
+For height=1:  FFALIGN(1, 32)  = 32 rows are physically allocated.
+
+The luma pool allocation is: linesize * 32 + 16 + STRIDE_ALIGN - 1 = linesize*32+79.
+With linesize=128 (STRIDE_ALIGN=64, w aligned to 128): 128*32+79 = 4175 bytes.
+
+The farthest OOB write (for height=17, y=16) is at row 24:
+  offset = 24 * 128 = 3072 bytes < 4175 bytes (pool size)
+So ASAN marks the address as accessible. No heap-buffer-overflow is reported.
+
+Mathematically proven: for ANY non-aligned height h, the last OOB write row
+(FFALIGN(h,16)-1 = 31 for h in [17,32]) is always less than FFALIGN(h,32)=32.
+The standard FFmpeg allocator's h_align=32 padding exactly absorbs all writes.
+
+## Exploit conditions for VERIFIED_CRASH
+
+A true heap-buffer-overflow would require:
+  - A custom get_buffer2 callback that allocates exactly height*linesize bytes
+    (no FFALIGN rounding), OR
+  - Hardware-accelerated decode paths (e.g., VAAPI, VDPAU) with exact allocations
+  - Media servers using custom frame buffer pools without alignment headroom
+
+## Files generated
+
+  vuln_001_input.ipu      - 25-byte IPU file, 16x1  (height=1, 1 MB row)
+  vuln_001_input_h17.ipu  - 29-byte IPU file, 16x17 (height=17, 2 MB rows)
+  vuln_001_input_h15.ipu  - 25-byte IPU file, 16x15 (height=15, 1 MB row)

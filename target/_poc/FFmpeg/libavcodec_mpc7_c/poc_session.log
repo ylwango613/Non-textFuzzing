@@ -1,0 +1,9 @@
+## 汇总
+
+| VULN | 标题 | 状态 |
+|------|------|------|
+| 001 | mpc7 lastframelen Heap OOB Read via Unchecked nb_samples | **UNVERIFIED** |
+
+**原因**：subagent 分析后确认，`lastframelen=2047` 已正确编码进 extradata，但触发漏洞的关键条件 `buf[1] != 0`（即 `last_frame != 0`）无法通过标准 MPC 解封装路径满足。
+
+具体原因：`libavformat/mpc.c` 的 `mpc_read_packet()` 中，`pkt->data[1]`（codec 看到的 `buf[1]`）计算为 `(c->curframe > c->fcount) && c->fcount`。而解封装器在 `curframe >= fcount`（fcount 非零）时会提前返回 `AVERROR_EOF`，导致 `curframe` 最多等于 `fcount`，严格大于条件永远不成立；fcount=0 时 `&&c->fcount` 项也为 0。因此 `buf[1]` 在正常解封装路径中结构性地始终为 0，`mpc7.c:281` 的 `if(last_frame) frame->nb_samples = c->lastframelen` 分支**无法通过 `ffmpeg -i crafted.mpc -f null -` 到达**，漏洞无法经由合法媒体文件触发。

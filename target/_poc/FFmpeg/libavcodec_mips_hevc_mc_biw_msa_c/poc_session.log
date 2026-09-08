@@ -1,0 +1,13 @@
+All 7 agents completed. Here is the summary:
+
+| VULN | Function | Status |
+|------|----------|--------|
+| 001 | `hevc_biwgt_copy_48w_msa` — hardcodes 64 rows | **SKIPPED** |
+| 002 | `hevc_hz_biwgt_8t_48w_msa` — hardcodes 64 rows | **SKIPPED** |
+| 003 | `hevc_biwgt_copy_24w_msa` — hardcodes 32 rows | **SKIPPED** |
+| 004 | `hevc_hz_biwgt_8t_24w_msa` — hardcodes 32 rows | **SKIPPED** |
+| 005 | `hevc_hz_biwgt_8t_12w_msa` — hardcodes 16 rows | **SKIPPED** |
+| 006 | `hevc_vt_biwgt_8t_12w_msa` — hardcodes 16 rows | **SKIPPED** |
+| 007 | `hevc_hv_biwgt_8t_12w_msa` — hardcodes 16 rows | **SKIPPED** |
+
+**Skip reason (all 7):** Every vulnerability is in MIPS MSA (MIPS SIMD Architecture) optimized code in `libavcodec/mips/hevc_mc_biw_msa.c`. These functions are registered exclusively via `ff_hevc_dsp_init_mips()`, which is only invoked on actual MIPS hardware with MSA support. The target binary (`build_test/ffmpeg`) is an x86-64 ELF — on x86-64, the x86 SIMD dispatch table (SSE/AVX) is populated instead, and the MIPS code paths are architecturally unreachable regardless of what crafted media file is provided.

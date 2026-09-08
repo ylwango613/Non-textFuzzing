@@ -1,0 +1,11 @@
+**汇总**
+
+| VULN | 编号 | 状态 |
+|------|------|------|
+| Heap OOB Write in d3d12va_encode_hevc_init_picture_params | 001 | **SKIPPED** |
+
+**原因**：`hevc_d3d12va` 编码器依赖 DirectX 12 Video Acceleration (D3D12VA) API，这是 Windows 专有 API。当前环境为 Linux（6.8.0-55-generic），ffmpeg 二进制中未编译任何 d3d12va 编码器，漏洞代码路径在此系统上完全不可达，无法通过任何畸形媒体文件或命令行参数触发。
+
+输出文件：
+- `vuln_001_status.txt` → `SKIPPED`
+- `vuln_001_notes.md` → 详细跳过原因

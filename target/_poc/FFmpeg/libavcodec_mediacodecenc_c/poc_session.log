@@ -1,0 +1,8 @@
+Both subagents have completed. Here is the summary:
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | Null Pointer Dereference in `mediacodec_send` — Unchecked getInputBuffer Return Value | **SKIPPED** |
+| 002 | Out-of-Bounds Read in `mediacodec_receive` — Missing out_info.offset + out_info.size Bounds Check | **SKIPPED** |
+
+**Reason for both SKIPs:** Both vulnerabilities are in `libavcodec/mediacodecenc.c`, which implements Android MediaCodec encoding via JNI/NDK APIs. The Linux FFmpeg build has no MediaCodec encoders (`h264_mediacodec` etc. are absent), and the vulnerable code paths depend on Android runtime internals (`AMediaCodec_getInputBuffer`, `AMediaCodec_dequeueOutputBuffer`) that do not exist on Linux. Neither vulnerability can be triggered by passing a crafted media file to the Linux ffmpeg binary.

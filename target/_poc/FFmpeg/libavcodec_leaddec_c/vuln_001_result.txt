@@ -1,0 +1,49 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:00.03, start: 0.000000, bitrate: 73 kb/s
+  Stream #0:0: Video: lead (LEAD / 0x4441454C), yuv444p, 16x9, 30 fps, 30 tbr, 30 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (lead (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: wrapped_avframe, yuv444p(progressive), 16x9, q=2-31, 200 kb/s, 30 fps, 30 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+[out#0/null @ 0x511000000e00] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:00.03 bitrate=N/A speed=3.44x elapsed=0:00:00.00    
+EXIT=0
+
+--- Analysis ---
+Frame decoded successfully (frame=1). No ASAN crash occurred.
+
+Root cause of no ASAN trigger:
+  get_video_buffer() in libavutil/frame.c line 110:
+    padded_height = FFALIGN(frame->height, 32)
+  For height=9: padded_height = FFALIGN(9, 32) = 32
+
+  Each plane is allocated with 32 rows, not 9.
+  j=1 writes (rows 8-15) fall within rows 0-31 of each plane's allocation.
+  The writes are logically out-of-bounds (past valid image rows 0-8),
+  but physically within the malloc'd buffer. ASAN does not trigger.
+
+  Mathematical proof: For any H, the last write row = 8*ceil(H/8)-1,
+  which is always <= FFALIGN(H,32)-1. So the 32-row padding ALWAYS
+  absorbs the OOB writes. ASAN cannot fire via this path with the
+  default FFmpeg frame allocator.
+
+Observed anomalous behavior:
+  The decoder DOES execute the j=1 iterations and writes IDCT output
+  to rows 9-15 of each plane's padding area. This constitutes logical
+  OOB that would crash with a custom tight-allocation harness (e.g.,
+  av_image_alloc with align=1, giving exactly height=9 rows per plane).

@@ -1,0 +1,7 @@
+## Summary
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| VULN-001: Integer overflow in `pic_area_in_ctbs` (HEVC SPS) | **UNVERIFIED** | The overflow is not triggerable in this build: `av_image_check_size` limits max area to ~268M pixels, and `log2_ctb_size ≥ 4` is enforced, so `pic_area_in_ctbs` can only reach ~1M — far below the INT_MAX overflow threshold of ~2.1B |
+
+The PoC correctly exercises the full HEVC parse path (`VPS → SPS → PPS`) with maximum-stress dimensions (16000×16000), and ffmpeg decoded them without any ASAN errors. The described vulnerability requires `ctb_width * ctb_height > INT_MAX`, which would need luma dimensions exceeding what `av_image_check_size` permits in this FFmpeg build.

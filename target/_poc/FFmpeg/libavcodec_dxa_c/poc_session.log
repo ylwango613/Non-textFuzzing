@@ -1,0 +1,11 @@
+Subagent completed. Here is the summary:
+
+---
+
+## Results
+
+| # | Vulnerability | Status |
+|---|---|---|
+| 001 | Integer Overflow in decode_init → Heap OOB Read | **UNVERIFIED** |
+
+**Explanation for VULN 001:** The exploit path is blocked by a defensive check in `av_image_check_size2()` (called from `ff_set_dimensions()` during `avcodec_open2()`). Any dimension combination large enough to make `w * h * 2` overflow `int32` (i.e., `w*h ≥ 2³¹`) will also trigger the stride overflow check — `stride*(h+128) ≥ INT_MAX` → `AVERROR(EINVAL)` — causing codec open to fail before `decode_init()` is ever reached. The two conditions (overflow and bypass) are mathematically mutually exclusive, so ASAN produces no error.

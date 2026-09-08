@@ -1,0 +1,7 @@
+## Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | AMV Encoder Integer Overflow in Frame Flip Pointer Arithmetic | **UNVERIFIED** |
+
+**Explanation**: The vulnerability exists in the code at `mjpegenc.c:637`, where `linesize[0] * (height-1)` can overflow `int32`. However, triggering it externally is blocked by `av_image_check_size2()` in libavutil, which enforces `stride*(h+128) < INT_MAX` — capping valid frame dimensions at ~268M pixels, well below the ~2.1B pixels needed to cause the signed integer overflow. FFmpeg rejects inputs like 46352×46352 with "Picture size is invalid" before the vulnerable code is ever reached.

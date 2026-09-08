@@ -1,0 +1,9 @@
+## 汇总结果
+
+| 编号 | 漏洞标题 | 状态 |
+|------|---------|------|
+| VULN 001 | Heap OOB Write via Unchecked n_master in sbr_make_f_master | **UNVERIFIED** |
+
+**原因说明**：PoC 成功触达 `sbr_make_f_master()`（FFmpeg 日志中出现 "Invalid vDk0[1]: 0" 确认），但 OOB `memcpy` 被 `make_bands()` 内部的合法性守卫提前拦截。
+
+根本矛盾：触发 n_master > 49 要求 k0 < 2（即 k0=1），而 `make_bands()` 要求所有频带宽度 > 0，这需要 k0 ≥ 14。两个条件在标准 ADTS 输入参数范围内互斥，无法同时满足。理论上 `check_n_master()` 缺少上界检查属实，但在正常的 ADTS 解码路径中该漏洞不可达。

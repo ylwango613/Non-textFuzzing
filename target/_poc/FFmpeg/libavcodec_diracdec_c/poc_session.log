@@ -1,0 +1,14 @@
+## Summary
+
+| # | Vulnerability | Status |
+|---|---|---|
+| 001 | Integer Overflow in thread_buf Index → OOB Heap Write in `decode_hq_slice_row` | **UNVERIFIED** (OOM before overflow) |
+
+**Details for VULN 001:**
+
+The PoC successfully reached the vulnerable code path — ffmpeg parsed the 68-byte crafted VC-2 file as `yuv420p10le, 16000×16000` and entered `decode_lowdelay()`. However, the integer overflow itself could not be triggered in practice because:
+
+1. **Size check mitigation**: `av_image_check_size2()` in this build blocks frames larger than ~28384×28384, which is the minimum size needed to push `thread_buf_size` past `INT_MAX/2`.
+2. **OOM barrier**: At 16000×16000 (10-bit), the decoder attempts to allocate ~1 GB for thread buffers and fails with `ENOMEM` before reaching `thread_buf_size * threadnr` in `decode_hq_slice_row()`.
+
+The vulnerable code path is confirmed reachable; the integer overflow itself is blocked by a combination of the image size check and system memory constraints in this environment. Status written as `TRIGGERED_OOM` (the subagent used a non-standard status; the closest standard label is **UNVERIFIED** — the PoC ran cleanly but produced no ASAN crash signal).

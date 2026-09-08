@@ -1,0 +1,163 @@
+========================================================
+VULN 001 – AMR-NB Decoder buf[0] OOB Read Before Size Check
+========================================================
+Date: Tue Sep  8 05:32:12 AM +08 2026
+FFmpeg: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+
+[*] Generating malformed AMR-NB input files...
+[+] Written /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input.amr (506 bytes)  FT=9 x500
+[+] Written /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_trunc.amr (7 bytes)  FT=0 truncated
+[+] Written /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_ft15.amr (506 bytes)  FT=15 x500
+[+] Written /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_mixed.amr (17 bytes)  FT=9 x10 + FT=0 truncated
+[+] Written /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_empty.amr (6 bytes)  magic only
+[+] Written /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_valid_ft0.amr (1306 bytes)  FT=0 valid x100
+[+] Written /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_mixed_ft.amr (3406 bytes)  Mixed FT x50
+
+[*] All input files generated.
+
+------------------------------------------------------------
+[TEST] FT=9 x500 (1-byte frames, passes size guard)
+       File : /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input.amr (506 bytes)
+       CMD  : /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input.amr -f null - -v warning
+       EXIT : 0
+       Output (first 10 lines):
+[amrnb @ 0x519000000a80] Corrupt bitstream
+[in#0/amr @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+[amrnb @ 0x519000002880] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000002880] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000002880] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000002880] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+
+------------------------------------------------------------
+[TEST] FT=0 truncated (mode only, no payload)
+       File : /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_trunc.amr (7 bytes)
+       CMD  : /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_trunc.amr -f null - -v warning
+       EXIT : 0
+       Output (first 10 lines):
+[amrnb @ 0x519000000a80] Corrupt bitstream
+[amrnb @ 0x519000003280] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Decode error rate 1 exceeds maximum 0.666667
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Task finished with error: Error number -1145393733 occurred
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Terminating thread with error: Error number -1145393733 occurred
+[af#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+[out#0/null @ 0x511000000cc0] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+
+------------------------------------------------------------
+[TEST] FT=15 x500 (1-byte frames)
+       File : /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_ft15.amr (506 bytes)
+       CMD  : /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_ft15.amr -f null - -v warning
+       EXIT : 0
+       Output (first 10 lines):
+[amrnb @ 0x519000000a80] Corrupt bitstream
+[in#0/amr @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+[amrnb @ 0x519000002880] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000002880] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000002880] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000002880] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+
+------------------------------------------------------------
+[TEST] Mixed FT=9 x10 + FT=0 truncated
+       File : /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_mixed.amr (17 bytes)
+       CMD  : /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_mixed.amr -f null - -v warning
+       EXIT : 0
+       Output (first 10 lines):
+[amrnb @ 0x519000000a80] Corrupt bitstream
+[in#0/amr @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+[amrnb @ 0x519000003280] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000003280] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000003280] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000003280] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+
+------------------------------------------------------------
+[TEST] Valid FT=0 x100 (correct 13-byte frames)
+       File : /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_valid_ft0.amr (1306 bytes)
+       CMD  : /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_valid_ft0.amr -f null - -v warning
+       EXIT : 0
+       Output (first 10 lines):
+[in#0/amr @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+
+------------------------------------------------------------
+[TEST] Mixed all FT types (FT=0,1,7,8,9,14,15)
+       File : /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_mixed_ft.amr (3406 bytes)
+       CMD  : /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_mixed_ft.amr -f null - -v warning
+       EXIT : 0
+       Output (first 10 lines):
+[in#0/amr @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+[amrnb @ 0x519000002880] dtx mode is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Not yet implemented in FFmpeg, patches welcome
+[amrnb @ 0x519000002880] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000002880] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000002880] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000002880] dtx mode is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+
+------------------------------------------------------------
+[TEST] Force -f amrnb on truncated FT=0
+       File : /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_trunc.amr (7 bytes)
+       CMD  : /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f amrnb -i /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_trunc.amr -f null - -v warning
+       EXIT : 0
+       Output (first 10 lines):
+[amrnb @ 0x519000000a80] Corrupt bitstream
+[amrnb @ 0x519000003280] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Decode error rate 1 exceeds maximum 0.666667
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Task finished with error: Error number -1145393733 occurred
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Terminating thread with error: Error number -1145393733 occurred
+[af#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+[out#0/null @ 0x511000000cc0] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+
+------------------------------------------------------------
+[TEST] Force -f amrnb on FT=9 x500
+       File : /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input.amr (506 bytes)
+       CMD  : /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f amrnb -i /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input.amr -f null - -v warning
+       EXIT : 0
+       Output (first 10 lines):
+[in#0/amrnb @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+[amrnb @ 0x519000002880] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000002880] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000002880] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000002880] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[amrnb @ 0x519000002880] Corrupt bitstream
+
+------------------------------------------------------------
+[TEST] Magic header only (flush path)
+       File : /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_empty.amr (6 bytes)
+       CMD  : /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libopencore-amr_c/vuln_001_input_empty.amr -f null - -v warning
+       EXIT : 0
+       Output (first 10 lines):
+[af#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+[out#0/null @ 0x511000000b80] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+
+------------------------------------------------------------
+[TEST] Pipe single FT=9 byte (0x4C) via stdin
+       EXIT : 0
+       Output (first 5 lines):
+[amrnb @ 0x519000000a80] Corrupt bitstream
+[amrnb @ 0x519000003280] Corrupt bitstream
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Decode error rate 1 exceeds maximum 0.666667
+[aist#0:0/amr_nb @ 0x514000000240] [dec:amrnb @ 0x513000000900] Task finished with error: Error number -1145393733 occurred
+
+========================================================
+All tests complete.
+========================================================
+SCRIPT_EXIT=0

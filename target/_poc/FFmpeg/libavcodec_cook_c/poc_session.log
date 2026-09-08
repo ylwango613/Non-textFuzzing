@@ -1,0 +1,7 @@
+## Summary
+
+| VULN # | Title | Status |
+|--------|-------|--------|
+| 001 | OOB Heap Read in `joint_decode` via `js_subband_start` | **VERIFIED_BEHAVIOR** |
+
+**Details for VULN 001**: The PoC successfully constructed a crafted RealMedia `.rm` file with COOK joint-stereo audio (`cookversion=0x1000003`, `js_subband_start=50`, `subbands=3`). FFmpeg accepted and decoded the file, confirming `joint_decode()` was reached. ASAN did not fire a crash because the OOB read (indices 1060–1999 in `decode_buffer_0[1060]`) lands within the same `COOKContext` heap allocation — intra-struct overreads are not caught by ASAN's allocation-boundary instrumentation. The vulnerability is real C undefined behavior (reads into adjacent struct fields `cplscales`, `subpacket[]`, etc.), but a heap crash would require a custom allocator layout to isolate the array.

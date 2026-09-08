@@ -1,0 +1,5 @@
+Subagent complete. Summary:
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| 001 | **SKIPPED** | `ff_dxva2_mpeg2_fill_slice` is only reachable via `-hwaccel dxva2` / `-hwaccel d3d11va`, which are Windows-only DirectX APIs. This Linux build has no hardware accelerators compiled in (`ffmpeg -hwaccels` returns empty), making the vulnerable code path unreachable. |

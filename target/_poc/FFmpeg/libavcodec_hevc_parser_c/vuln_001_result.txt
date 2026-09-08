@@ -1,0 +1,64 @@
+=== VULN-001 PoC Runner ===
+Date: Tue Sep  8 04:06:52 AM +08 2026
+FFmpeg: ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+
+[*] Generating crafted HEVC bitstream...
+Target dimensions: 16000x16000
+CTB size: 16x16 (log2_ctb_size=4)
+ctb_width=1000, ctb_height=1000
+pic_area_in_ctbs = 1,000,000
+INT_MAX           = 2,147,483,647
+Overflow possible: False
+
+VPS RBSP: 18 bytes
+SPS RBSP: 25 bytes
+PPS RBSP: 4 bytes
+Generated: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_hevc_parser_c/vuln_001_input.265 (71 bytes)
+
+NOTE: The signed int32 overflow in pic_area_in_ctbs is NOT triggerable
+      in this FFmpeg build. av_image_check_size limits the maximum
+      area to ~268M pixels, and log2_ctb_size >= 4 is enforced,
+      so pic_area_in_ctbs <= ~1,050,000 << INT_MAX = 2,147,483,647.
+
+[*] Input file: 71 bytes
+[*] Running ffmpeg with ASAN...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[hevc @ 0x519000000a80] missing picture in access unit with size 71
+[in#0/hevc @ 0x517000000080] Could not find codec parameters for stream 0 (Video: hevc, none): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, hevc, from 'vuln_001_input.265':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: hevc, none, 25 fps, 1200k tbr, 1200k tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (hevc (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[vf#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 16000x16000, q=2-31, 200 kb/s, 25 fps, 1200k tbn
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+[out#0/null @ 0x5110000020c0] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x5110000020c0] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+frame=    0 fps=0.0 q=0.0 Lsize=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.01    
+
+[*] Collecting ASAN output...
+
+[RESULT] Abnormal behavior (no crash)
+
+=== ANALYSIS ===
+The VPS, SPS, and PPS were all parsed successfully (16000x16000 confirmed in output).
+setup_pps() allocated and computed pic_area_in_ctbs=1,000,000 with no overflow.
+No ASAN heap-buffer-overflow detected.
+VERDICT: UNVERIFIED -- signed int32 overflow not possible with current constraints.
+  av_image_check_size: max area ~268M px; min CTB 16x16; max pic_area ~1M << INT_MAX

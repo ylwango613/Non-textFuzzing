@@ -1,0 +1,15 @@
+All PoC artifacts are complete:
+
+| File | Status |
+|------|--------|
+| `vuln_001_gen.py` | Generates minimal MXF with split DNXUC 'pack' marker (7+1 bytes) |
+| `vuln_001_run.sh` | Invokes ASAN ffmpeg binary with `-c copy -f null -` |
+| `vuln_001_result.txt` | Run output: stream recognized, frame=1, EXIT=0, no ASAN crash |
+| `vuln_001_notes.md` | Full explanation of trigger path and why ASAN doesn't fire |
+| `vuln_001_status.txt` | **UNVERIFIED** |
+
+---
+
+**VULN-001: UNVERIFIED**
+
+The OOB read in `ff_combine_frame` (57-byte `memcpy` from a 1-byte source) is architecturally triggered — the parser fires at `i=0` with `pc->index=7`, computing `next=-7` exactly as described. The MXF demuxer's `av_get_packet()` call adds `AV_INPUT_BUFFER_PADDING_SIZE = 64` bytes of heap padding to every packet, expanding the 1-byte allocation to 65 bytes. The 57-byte `memcpy` (indices 0..56) falls within this padded allocation, so ASAN observes no violation. The vulnerability is real but not detectable via the ffmpeg CLI path; it would trigger in any caller that passes a tightly-sized buffer directly to `av_parser_parse2`.

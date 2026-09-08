@@ -1,0 +1,5 @@
+**Summary**
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| VULN-001 (FFV1 Heap OOB via Crafted Quant-Table Context Index) | **UNVERIFIED** | False positive. The mathematical invariant in FFV1's quant table encoding (`context_count = product(ret_i)`, scale passed as cumulative product) guarantees `context < context_count` for any quant table configuration. With ret=1 per table (all-zero values), `context` is always 0; with higher ret values, the cumulative-scale design bounds `max_context ≤ context_count − 1`. The `av_assert2` at ffv1dec_template.c:77 would never fire. Both crafted AVI files decoded cleanly with no ASAN reports. |

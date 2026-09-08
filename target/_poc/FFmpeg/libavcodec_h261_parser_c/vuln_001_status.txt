@@ -1,0 +1,29 @@
+UNVERIFIED
+
+The code path exercised:
+  h261_find_frame_end returns -1 (confirmed by crafted input).
+  ff_combine_frame is called with next=-1 (confirmed).
+  The overread store loop accesses pc->buffer[pc->last_index + (-1)].
+
+Why the claimed OOB at pc->buffer[-1] is unreachable:
+  For pc->buffer[-1] to be accessed, pc->last_index must equal 0.
+  pc->last_index = pc->index (after overread copy) = 0 requires:
+    - pc->index=0: only possible after a prior frame delivery (next>=0 with append block).
+    - pc->overread=0: satisfied after frame delivery.
+  But frame delivery resets pc->frame_start_found=0. And:
+  - h261_find_frame_end can return -1 ONLY when frame_start_found=1 at call entry.
+  - With frame_start_found=0, returning -1 requires consecutive i=0 and i=1 matches,
+    which requires state_0 bits[8:15] != 0 AND state_1 bits[16:23] = state_0 bits[8:15] = 0.
+    This is a mathematical contradiction for all j in {0,1,2,3,4,5,6,7}.
+
+Actual behavior with crafted 2048-byte input
+([0x00,0x00,0x01,0x00,zeros...] + [0x01,0x00,zeros...]):
+  - ffmpeg exits with code 0.
+  - 2 frames decoded (no error).
+  - No ASAN heap-buffer-overflow.
+  - The overread store accesses pc->buffer[1023] (valid), not pc->buffer[-1].
+
+Key error in original audit report:
+  The report assumes j=8 gives a match (e.g., state=0x00010000, j=8), but the C loop
+  is "for (j=0; j<8; j++)" -- j only takes values 0..7. j=8 is never tested.
+  This made the trigger chain appear valid when it is not.

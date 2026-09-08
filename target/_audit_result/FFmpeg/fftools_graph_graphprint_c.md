@@ -1,29 +1,13 @@
-Both issues are confirmed. Let me write the final audit report.
+Having read all 1079 lines across three passes and traced the key patterns:
 
-## VULN: NULL Pointer Dereference in print_filter via Unlinked Filter Pad
-- **漏洞类别**: memory-safety
-- **函数**: print_filter()
-- **行号**: 411-413, 443-446
-- **CWE**: CWE-476 (NULL Pointer Dereference)
-- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
-- **严重程度**: Medium
-- **攻击向量**: crafted filtergraph / crafted media file triggering partial graph initialization
-- **外部触发路径**: `ffmpeg -i <file> -vf <complex_filtergraph> -print_graphs 1 -f null -` → `print_filtergraphs()` → `print_filtergraphs_priv()` → `print_filtergraph_single()` → `print_filter()` → NULL dereference on `link->type` at line 413 / 446
-- **描述**: In `print_filter()`, both the inputs loop (line 411–413) and the outputs loop (line 443–446) retrieve a raw `AVFilterLink *` pointer from `filter->inputs[i]` / `filter->outputs[i]` and immediately dereference it (`link->type`, `link->dstpad`, `link->src->name`, `link->dst->name`) without any NULL check. The `AVFilterLink **inputs` and `**outputs` fields in `AVFilterContext` (libavfilter/avfilter.h line 281–285) are arrays of pointers; individual entries can be NULL for pads that have not yet been connected. If `print_filter` is invoked on a filtergraph that is partially initialized—or one that FFmpeg's error-recovery left with an unlinked pad—every subsequent dereference (`link->type`, `link->dstpad`, `link->srcpad`, `link->src`, `link->dst`) constitutes a NULL pointer dereference, crashing the process.
-- **触发条件**: Supply a complex filter graph string (`-vf` / `-filter_complex`) whose construction fails mid-way or uses a filter with optional pads that are left unlinked, and enable graph printing (`-print_graphs 1` or `-print_graphs_format json`). When `print_filter` iterates over `filter->nb_inputs` / `filter->nb_outputs` and encounters a NULL slot, it dereferences the NULL pointer.
-- **安全影响**: Controlled crash (SIGSEGV) of the ffmpeg process; Denial of Service. On glibc/musl systems the NULL dereference is not exploitable for RCE under default ASLR, but can reliably terminate the process, making it a DoS vector for any service that auto-processes user-supplied media files with graph printing enabled.
+**Batch 1 (lines 1–400):** The file is a filtergraph display utility. `upcase_string` (lines 160–167) uses proper `dst_size-1` guard. `print_link` uses a 64-byte `layout_string` with `av_channel_layout_describe` whose third argument is the buffer size — safe. All `av_bprintf`/`av_bprint_init` calls use `AV_BPRINT_SIZE_UNLIMITED` — no fixed-buffer overflows.
 
-## VULN: Missing NULL Guard in print_streams Output-Stream Loop Causes NULL Pointer Dereference
-- **漏洞类别**: memory-safety
-- **函数**: print_streams()
-- **行号**: 780-782
-- **CWE**: CWE-476 (NULL Pointer Dereference)
-- **CVSS v3.1**: 5.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H)
-- **严重程度**: Medium
-- **攻击向量**: crafted media file / output configuration triggering incomplete OutputStream initialization
-- **外部触发路径**: `ffmpeg -i <file> -o <output> -print_graphs 1` → `print_filtergraphs()` → `print_filtergraphs_priv()` → `print_streams()` → NULL dereference on `ost->st->codecpar->codec_id` at line 782
-- **描述**: In `print_streams()`, the ENCODERS block at line 716 contains the explicit guard `if (!ost || !ost->st || !ost->st->codecpar || !ost->enc) continue;` before touching any member of `ost`. The OUTPUTSTREAMS block at lines 780–782 is missing this guard entirely: it retrieves `OutputStream *ost = of->streams[i]` and immediately chains `ost->st->codecpar->codec_id` into `avcodec_descriptor_get()` without checking whether `ost`, `ost->st`, or `ost->st->codecpar` is NULL. This inconsistency means any edge-case where an `OutputFile` has a NULL stream slot (e.g., interrupted initialization, stream-group paths, or future code changes) causes a NULL pointer dereference at the codec_id load, crashing the process.
-- **触发条件**: Run ffmpeg with graph printing enabled (`-print_graphs 1`) against a crafted input or output configuration that results in `of->streams[i]` being NULL, or in which `ost->st` / `ost->st->codecpar` is NULL (e.g., a muxer initialization failure that leaves a partially constructed `OutputStream`). The guard present in the ENCODERS section at line 716 makes the asymmetry between the two loops apparent and confirms the OUTPUTSTREAMS section was not hardened equivalently.
-- **安全影响**: Controlled crash (SIGSEGV) of the ffmpeg process; Denial of Service. Because the missing guard only affects the graph-printing diagnostic path, exploitation requires that path to be enabled, limiting exposure to deployments using `-print_graphs` or equivalent options.
+**Batch 2 (lines 400–800):** `snprintf(buf, sizeof(buf), ...)` calls at lines 423 and 452 are bounded — safe. The only memory allocations are `av_asprintf` over bounded integer format strings. Notable inconsistency: the first input-stream loop (line 625) defensively checks `if (!ist || !ist->par)` but the second (line 678) only checks `if (!ist->decoder)` without first verifying `ist != NULL`, then dereferences `ist->par` unconditionally at line 682. At line 782, `ost->st->codecpar` is dereferenced without null guards (the encoder loop at line 716 has the full `if (!ost || !ost->st || !ost->st->codecpar || !ost->enc)` check, revealing an inconsistency). Both are null-pointer dereferences resulting in crashes.
+
+**Batch 3 (lines 800–1079):** `av_mallocz(sizeof(GraphPrintContext))` — fixed size, no overflow. `av_bprint_append_data` on unlimited buffers — safe. No `memcpy`/`memmove` with user-controlled sizes anywhere in the file.
+
+**Conclusion:** This file is a display/output formatter operating on already-parsed internal FFmpeg data structures, not on raw container bytes. There are no `av_malloc` calls with attacker-controlled sizes, no `memcpy` with container-sourced lengths, no integer overflows feeding allocation sizes, and no use-after-free. The null-pointer dereferences at lines 678/682 and 782 are internal-state consistency bugs that can cause crashes (DoS) but not heap corruption — and they are not directly triggerable by the content of a crafted media file.
+
+NO_VULN_FOUND
 
 <!-- AUDIT_PROMPT_VERSION: 1 -->

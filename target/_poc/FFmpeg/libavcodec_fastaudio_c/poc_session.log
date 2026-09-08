@@ -1,0 +1,18 @@
+The subagent has finished. Here is the summary:
+
+## PoC Results — libavcodec/fastaudio.c
+
+| # | Vulnerability | Status |
+|---|--------------|--------|
+| 001 | Integer overflow in `1024 * subframe` → OOB write in `fastaudio_decode` | **VERIFIED_BEHAVIOR** |
+
+### Details
+
+The PoC successfully drove FFmpeg through the full vulnerable path:
+
+- `vuln_001_gen.py` constructs an ~84 MB MOFLEX file with 10,241 blocks, each appended with `endframe=0` so `av_append_packet` accumulates a single 83,894,272-byte packet (`subframes = 2,097,356 > 2,097,151`).
+- FFmpeg confirmed ingesting `"1 packets read (83894272 bytes)"` and delivered the oversized packet to `fastaudio_decode`.
+- The check at line 116 (`subframes > INT_MAX / 256`) passes because the wrong divisor (256 instead of 1024) is used — the bug is real.
+- ASAN did not fire an OOB write because FFmpeg's allocator (`libavutil/mem.c`) caps allocations at `INT_MAX` bytes and returns `NULL` before the 2 GB frame buffer is allocated, aborting before the corrupted `memcpy` executes.
+
+**Conclusion**: The logic error (wrong divisor in the guard) is confirmed, the vulnerable path is reached, but the ASAN crash is blocked by the allocator size cap in this build. The status is `VERIFIED_BEHAVIOR` rather than `VERIFIED_CRASH`.

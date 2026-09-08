@@ -1,0 +1,7 @@
+## 汇总
+
+| 编号 | 漏洞 | 状态 |
+|------|------|------|
+| VULN 001 | mlp_parser Heap OOB Read via Unvalidated num_substreams in Parity Loop | **VERIFIED_BEHAVIOR** |
+
+**说明**：PoC 成功触发了漏洞路径——Frame 1 设置 `num_substreams=15`，Frame 2 仅 4 字节，parity 循环执行了 16 次迭代并输出 `"Parity check failed."` 及 `"15 substreams (more than the maximum supported)"`，确认越界读取路径被激活。未触发 ASAN 崩溃的原因是 FFmpeg 的 `AV_INPUT_BUFFER_PADDING_SIZE=64` 字节零填充恰好覆盖了最大读取范围（4 + 15×4 = 64 字节），因此在生产环境或无 padding 的分配器（fuzzing harness、内存映射 I/O）下同一读取会触发 heap-buffer-overflow。

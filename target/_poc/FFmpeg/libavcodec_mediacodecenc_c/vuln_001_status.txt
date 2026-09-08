@@ -1,0 +1,5 @@
+SKIPPED
+vuln: Null Pointer Dereference in mediacodec_send — Unchecked getInputBuffer Return Value
+file: libavcodec/mediacodecenc.c
+lines: 826-827
+reason: Android MediaCodec / JNI environment required; h264_mediacodec encoder not available on Linux

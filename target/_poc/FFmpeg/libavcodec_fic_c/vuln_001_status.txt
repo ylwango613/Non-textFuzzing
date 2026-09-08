@@ -1,0 +1,18 @@
+UNVERIFIED
+
+Reason:
+The crafted AVI/FIC file (WIDTH=320, HEIGHT=100, NSLICES=1) was successfully
+decoded by the ASAN-instrumented ffmpeg binary (EXIT=0) with no heap-buffer-overflow
+report.
+
+Root cause of non-detection:
+avcodec_align_dimensions2() applies h_align=32 for AV_PIX_FMT_YUV420P, so
+the frame pool allocates FFALIGN(100, 32) = 128 rows (49231 bytes for the Y
+plane). The decoder writes FFALIGN(100, 16) = 112 rows (43008 bytes). Since
+43008 < 49231, no byte is written past the ASAN allocation boundary.
+
+The logical vulnerability (FFALIGN rounding in fic_decode_frame line 389) is
+real but does not produce a detectable out-of-bounds write under FFmpeg's
+default avcodec_default_get_buffer2 allocator due to the 32-row pool alignment.
+A custom allocator that provides exactly height*linesize bytes would expose the
+overflow.

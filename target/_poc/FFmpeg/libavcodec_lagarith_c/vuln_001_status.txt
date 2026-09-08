@@ -1,0 +1,11 @@
+VERIFIED_BEHAVIOR
+The Lagarith decoder (lag_decode_frame) was invoked with a 1-byte packet (buf_size=1)
+and SUCCESSFULLY decoded one frame without error. Lines 574-577 of lagarith.c read
+buf[0], AV_RL32(buf+1), and AV_RL32(buf+5) unconditionally before any buf_size check.
+With buf_size=1 these reads are logically out-of-bounds (offsets 1-8 exceed the
+1-byte buffer). No ASAN crash occurred because FFmpeg allocates AV_INPUT_BUFFER_PADDING_SIZE
+(64) extra zero bytes after every packet buffer, placing the OOB reads within the
+padded-but-accessible region. The anomalous behavior (a 1-byte packet producing a valid
+decoded frame) confirms the missing bounds check is exercised; ASAN interception requires
+a configuration that bypasses the standard packet padding (e.g., a fuzzer-allocated buffer
+without the 64-byte suffix).

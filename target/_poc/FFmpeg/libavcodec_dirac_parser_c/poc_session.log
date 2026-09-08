@@ -1,0 +1,9 @@
+The subagent has completed. Here is the summary:
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| 001 — Integer Overflow in `dirac_unit_size` → Heap OOB Read | **SKIPPED** | Triggering the overflow requires ≥ 2 GB of actual parser-consumed bytes (the safety check at line 190 gates accumulation on bytes physically present in the buffer). No header-only shortcut exists. A 2 GB crafted file is impractical as a PoC artifact under the stated rules. |
+
+Files written to `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dirac_parser_c/`:
+- `vuln_001_status.txt` — `SKIPPED`
+- `vuln_001_notes.md` — detailed explanation of the infeasibility

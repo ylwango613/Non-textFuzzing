@@ -1,0 +1,7 @@
+## 汇总
+
+| VULN 编号 | 标题 | 状态 |
+|-----------|------|------|
+| VULN 001 | P-frame mb_type signed comparison bypass → OOB read in ff_cavs_partition_flags | **UNVERIFIED** |
+
+**说明**：PoC 成功运行（exit code 0，无 ASAN 崩溃）。漏洞报告描述的触发路径依赖有符号比较 `(signed)-21 > P_8X8(5)` 为 FALSE，但在实际编译产物中，该比较被编译器优化为无符号比较，`(unsigned)-21 = 4294967275 > 5` 为 TRUE，导致进入 `decode_mb_i` 而非 `decode_mb_p(-21)`，从而绕过了漏洞路径。即：源码层面的逻辑隐患在该二进制中因编译器处理方式不同而未能复现。

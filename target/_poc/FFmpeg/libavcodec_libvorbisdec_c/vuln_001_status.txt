@@ -1,0 +1,44 @@
+VULN_ID: VULN_001
+TITLE: Heap OOB Read via bytestream_get_be16 in oggvorbis_decode_init()
+FILE: libavcodec/libvorbisdec.c (lines 54-67)
+CWE: CWE-125 (Out-of-bounds Read)
+INPUT: vuln_001_input.mkv (156 bytes, MKV container with A_VORBIS)
+RESULT: OOB_TRIGGERED_NO_ASAN_ABORT
+EXIT_CODE: 234
+
+TRIGGER SUMMARY:
+  Container  : MKV (Matroska) with A_VORBIS codec
+  CodecPrivate (extradata, 34 bytes):
+    [0x00, 0x1E, <30 bytes 0x41 filler>, 0x00, 0x00]
+  Path:
+    p[0]==0 && p[1]==30 → enter branch
+    i=0: bytestream_get_be16 reads extradata[0..1]=0x001E=30 as hsizes[0]
+         sizesum=32; guard: 32>34? NO; headers[0]=extradata+2; p+=30 → p=extradata+32
+    i=1: bytestream_get_be16 reads extradata[32..33]=0x0000=0 as hsizes[1]
+         sizesum=34; guard: 34>34? NO (strict >); headers[1]=extradata+34; p+=0 → p=extradata+34
+    i=2: bytestream_get_be16 reads extradata[34..35] → OOB (extradata_size=34)
+
+OOB READ DETAILS:
+  - 2 bytes read beyond extradata_size boundary
+  - ff_alloc_extradata() allocates size + AV_INPUT_BUFFER_PADDING_SIZE (64) bytes
+    and zeroes the padding, so bytes [34..35] = 0x00,0x00 (within allocated region)
+  - ASAN does not abort because the read is within the heap-allocated padding zone
+  - The read yields hsizes[2]=0; subsequent libvorbis header parsing fails with
+    "Extradata corrupt." because the 30-byte filler is not valid Vorbis data
+
+ROOT CAUSE:
+  Guard uses strict inequality (sizesum > extradata_size).
+  When sizesum == extradata_size the guard is NOT triggered, allowing
+  bytestream_get_be16 to read 2 bytes past the nominal end of extradata.
+  Fix: change > to >= (or pre-check that 2 bytes remain before reading).
+
+OBSERVABLE OUTPUT:
+  [vorbis @ ...] Extradata corrupt.
+  [vorbis @ ...] Extradata corrupt.
+  ffmpeg exit code: 234 (AVERROR_INVALIDDATA propagated)
+
+NOTE ON ASAN BUILD:
+  The OOB read IS triggered at the code level but falls within the 64-byte
+  padding region that ff_alloc_extradata zeroes. To observe the OOB with a
+  traditional tool, use valgrind:
+    valgrind --tool=memcheck ffmpeg -i vuln_001_input.mkv -f null -

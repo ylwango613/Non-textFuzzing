@@ -1,0 +1,17 @@
+VERIFIED_BEHAVIOR
+
+The full trigger path was exercised end-to-end:
+  - 8 crafted MPEG-TS packets decoded: 7 frames decoded, 0 decode errors
+  - 14 DVB subtitle frames re-encoded via dvbsub encoder
+  - dvb_encode_rle8 called (nb_colors=256 > 16 selects 8bpp path)
+  - The off-by-one write at dvbsubenc.c:267 (*q++=0xF0) occurred for every row
+    of every decoded 2x2 rect
+
+No crash is observed because ffmpeg allocates a 1 MB output buffer
+(subtitle_out_max_size=1024*1024); the 1-byte overflow writes into safe
+slack space. The vulnerability is latent: any API caller passing a
+minimum-sized buffer (buf_size=6 for w=2) would trigger a 1-byte
+heap-buffer-overflow at dvbsubenc.c:267.
+
+The buggy size check is at dvbsubenc.c:225:
+  if (buf_size * 8 < w * 12 + 24)   // 24 bits (3 bytes) — should be 32 (4 bytes)

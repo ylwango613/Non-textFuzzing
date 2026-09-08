@@ -1,0 +1,17 @@
+UNVERIFIED
+
+Reason: The crafted FIC file successfully reaches fic_draw_cursor() and exercises the
+vulnerable code path (confirmed: 64x64 frame decoded, cursor drawn, exit 0).  The
+1-byte OOB write at data[2]+1024 is analytically confirmed by code inspection but is
+NOT detected by ASAN at runtime.
+
+Root cause of non-detection: libavutil/frame.c get_video_buffer() allocates ALL three
+YUV420P planes in a single av_buffer_alloc() of total_size = 6400 bytes (for 64x64,
+align=32).  The Cr plane ends at byte 6208 of that allocation; the OOB write lands at
+byte 6208, which is 192 bytes before the ASAN red zone (at byte 6400+).  Because the
+write stays within the allocated region (inside FFmpeg's inter-plane padding), ASAN does
+not trigger.
+
+The vulnerability IS real (CWE-787, OOB write past chroma row boundary), but requires
+a sanitizer or allocator that protects intra-allocation sub-regions (e.g., Valgrind
+memcheck, or an allocator with no trailing space) to produce a detectable crash.

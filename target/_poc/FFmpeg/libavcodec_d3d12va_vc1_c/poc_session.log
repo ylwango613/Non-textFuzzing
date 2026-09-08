@@ -1,0 +1,9 @@
+**汇总：**
+
+| VULN | 状态 | 原因 |
+|------|------|------|
+| VULN 001 — Integer overflow in bitstream_size (d3d12va_vc1.c) | **SKIPPED** | D3D12VA 是 Windows 专有 API，Linux 构建无此硬件加速支持；即使有硬件，触发需单帧 >4GB 切片数据，实际不可行 |
+
+输出文件已写入 `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_d3d12va_vc1_c/`：
+- `vuln_001_status.txt` → `SKIPPED`
+- `vuln_001_notes.md` → 跳过原因说明

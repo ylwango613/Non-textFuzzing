@@ -1,0 +1,19 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[aac @ 0x519000000a80] Invalid vDk0[1]: 0
+[aac @ 0x519000000a80] SBR reset failed. Switching SBR to pure upsampling mode.
+[in#0/aac @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+Input #0, aac, from 'vuln_001_input.aac':
+  Duration: 00:00:00.03, bitrate: 16 kb/s
+  Stream #0:0: Audio: aac (HE-AACv2), 192000 Hz, stereo, fltp, 16 kb/s
+[aist#0:0/aac @ 0x514000000640] [dec:aac @ 0x513000000900] Error while opening decoder: Invalid data found when processing input
+Error opening output file -.
+Error opening output files: Invalid data found when processing input

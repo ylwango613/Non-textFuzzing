@@ -1,0 +1,104 @@
+=== Attempt 1: raw avs3 demuxer with debug logging (shows OOB read effects) ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Splitting the commandline.
+Reading option '-loglevel' ... matched as option 'loglevel' (set logging level) with argument 'debug'.
+Reading option '-f' ... matched as option 'f' (force container format (auto-detected otherwise)) with argument 'avs3'.
+Reading option '-i' ... matched as input url with argument 'vuln_001_input.avs3'.
+Reading option '-f' ... matched as option 'f' (force container format (auto-detected otherwise)) with argument 'null'.
+Reading option '-' ... matched as output url.
+Finished splitting the commandline.
+Parsing a group of options: global .
+Applying option loglevel (set logging level) with argument debug.
+Successfully parsed a group of options.
+Parsing a group of options: input url vuln_001_input.avs3.
+Applying option f (force container format (auto-detected otherwise)) with argument avs3.
+Successfully parsed a group of options.
+Opening an input file: vuln_001_input.avs3.
+[in#0 @ 0x517000000080] Opening 'vuln_001_input.avs3' for reading
+[file @ 0x511000000400] Setting default whitelist 'file,crypto,data'
+[in#0/avs3 @ 0x517000000080] Before avformat_find_stream_info() pos: 0 bytes read:0 seeks:0 nb_streams:1
+[NULL @ 0x519000000a80] AVS3 parse seq HDR: profile 32; coded size: 0x0; frame rate code: 0
+[in#0/avs3 @ 0x517000000080] Could not find codec parameters for stream 0 (Video: avs3, 1 reference frame, none): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[in#0/avs3 @ 0x517000000080] After avformat_find_stream_info() pos: 5 bytes read:5 seeks:0 frames:1
+Input #0, avs3, from 'vuln_001_input.avs3':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0, 1, 1/1200000: Video: avs3, 1 reference frame, none, 25 fps, 1200k tbr, 1200k tbn
+Successfully opened the file.
+Parsing a group of options: output url -.
+Applying option f (force container format (auto-detected otherwise)) with argument null.
+Successfully parsed a group of options.
+Opening an output file: -.
+[out#0/null @ 0x511000000b80] No explicit maps, mapping streams automatically...
+[vost#0:0/wrapped_avframe @ 0x517000000780] Created video stream from input stream 0:0
+[vist#0:0/avs3 @ 0x514000000240] Decoding requested, but no decoder found for: avs3
+Error opening output file -.
+Error opening output files: Invalid argument
+[AVIOContext @ 0x5130000003c0] Statistics: 5 bytes read, 0 seeks
+
+Exiting with exit code -22
+
+=== Attempt 2: auto-detect format ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Splitting the commandline.
+Reading option '-loglevel' ... matched as option 'loglevel' (set logging level) with argument 'debug'.
+Reading option '-i' ... matched as input url with argument 'vuln_001_input.avs3'.
+Reading option '-f' ... matched as option 'f' (force container format (auto-detected otherwise)) with argument 'null'.
+Reading option '-' ... matched as output url.
+Finished splitting the commandline.
+Parsing a group of options: global .
+Applying option loglevel (set logging level) with argument debug.
+Successfully parsed a group of options.
+Parsing a group of options: input url vuln_001_input.avs3.
+Successfully parsed a group of options.
+Opening an input file: vuln_001_input.avs3.
+[in#0 @ 0x517000000080] Opening 'vuln_001_input.avs3' for reading
+[file @ 0x511000000400] Setting default whitelist 'file,crypto,data'
+[in#0 @ 0x517000000080] Format avs3 detected only with low score of 1, misdetection possible!
+[in#0/avs3 @ 0x517000000080] Before avformat_find_stream_info() pos: 0 bytes read:5 seeks:0 nb_streams:1
+[NULL @ 0x519000000a80] AVS3 parse seq HDR: profile 32; coded size: 0x0; frame rate code: 0
+[in#0/avs3 @ 0x517000000080] Could not find codec parameters for stream 0 (Video: avs3, 1 reference frame, none): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[in#0/avs3 @ 0x517000000080] After avformat_find_stream_info() pos: 5 bytes read:5 seeks:0 frames:1
+Input #0, avs3, from 'vuln_001_input.avs3':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0, 1, 1/1200000: Video: avs3, 1 reference frame, none, 25 fps, 1200k tbr, 1200k tbn
+Successfully opened the file.
+Parsing a group of options: output url -.
+Applying option f (force container format (auto-detected otherwise)) with argument null.
+Successfully parsed a group of options.
+Opening an output file: -.
+[out#0/null @ 0x511000000b80] No explicit maps, mapping streams automatically...
+[vost#0:0/wrapped_avframe @ 0x517000000780] Created video stream from input stream 0:0
+[vist#0:0/avs3 @ 0x514000000240] Decoding requested, but no decoder found for: avs3
+Error opening output file -.
+Error opening output files: Invalid argument
+[AVIOContext @ 0x5130000003c0] Statistics: 5 bytes read, 0 seeks
+
+Exiting with exit code -22
+
+=== Summary ===
+OOB read evidence: 'frame rate code: 0' (forbidden) and 'coded size: 0x0'
+Parser read 100 bits (13 bytes) from a buffer with only 1 byte of valid payload.
+Remaining 92 bits read from zero-padded memory beyond buf[4], producing invalid stream params.
+No ASAN crash: reads land in the standard AV_INPUT_BUFFER_PADDING_SIZE (64-byte) region.
+=== Done ===
+EXIT=0

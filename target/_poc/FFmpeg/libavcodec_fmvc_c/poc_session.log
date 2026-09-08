@@ -1,0 +1,11 @@
+## 汇总结果
+
+| 编号 | 漏洞标题 | 状态 |
+|------|----------|------|
+| VULN 001 | FMVC decoder heap OOB write via integer overflow in buffer_size | **UNVERIFIED** |
+
+**原因说明**：PoC 已生成并运行（AVI 文件包含 biWidth=32768、biHeight=32769、biBitCount=32，P-frame 数据按 FMVC 格式构造），但未触发 ASAN 报错。
+
+子代理发现框架层有防御性检查（`libavcodec/avcodec.c` 约241-246行）：在 `avcodec_open2` 调用 `decode_init()` 之前，FFmpeg 会校验 `stride*(h+128ULL) >= INT_MAX`，该条件对 32768×32769 的帧尺寸成立，导致 width/height 被重置为 0，`decode_frame()` 从未被调用，OOB 写无法到达。
+
+漏洞代码逻辑（整数溢出 + 裸指针 XOR 写）确实存在，但被框架层防御拦截，通过标准 ffmpeg 命令行无法绕过，**只有通过自定义 harness 直接调用 `decode_init()` 才能触发**——而这违反了本项目的硬性规则，故最终状态为 `UNVERIFIED`。

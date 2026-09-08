@@ -1,0 +1,12 @@
+Both subagents have completed. Here is the final summary:
+
+| VULN | Description | Status |
+|------|-------------|--------|
+| VULN 001 | Heap OOB Read via SOS Marker at Packet End (line 76) | `VERIFIED_BEHAVIOR` |
+| VULN 002 | Heap OOB Read via Insufficient Bounds for AV_RL32 in APP1 Branch (line 83) | `UNVERIFIED` |
+
+**Notes:**
+
+- **VULN 001**: The OOB read code path at line 76 is confirmed to execute (`AV_RB16(in->data + in->size)`). ASAN does not crash because `av_new_packet` always appends 64 bytes of zero padding — the 2-byte overread lands in zeroed padding memory. The leaked value (zeros or heap residue) is written into the output packet's MJPEG-A "data offset" field — a real information disclosure in allocation paths without guaranteed padding.
+
+- **VULN 002**: The APP1 branch and its incorrect bounds check on line 83 are confirmed to execute (`AV_RL32` reading 3 bytes past the declared packet size). Same root cause for no ASAN crash: 64-byte `AV_INPUT_BUFFER_PADDING_SIZE` absorbs the 3-byte overread. Status is `UNVERIFIED` because no ASAN signal was produced; the code defect is real but the padding eliminates crash potential in the standard allocator path.

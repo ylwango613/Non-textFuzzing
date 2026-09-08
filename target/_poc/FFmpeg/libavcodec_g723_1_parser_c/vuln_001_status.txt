@@ -1,0 +1,15 @@
+VERIFIED_BEHAVIOR
+
+Sanitizer output observed:
+  src/libavcodec/g723_1_parser.c:41:14: runtime error: signed integer overflow: 24 * 178956971 cannot be represented in type 'int'
+
+Binary: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg (ASAN+UBSAN build)
+Input:  vuln_001_input.mkv (167 bytes, Matroska container)
+Command: ffmpeg -codec_whitelist 'none' -i vuln_001_input.mkv -f null -
+
+The signed integer overflow in g723_1_parse() is reproduced. The UBSAN
+instrumentation reports the overflow at the exact vulnerable line. In a
+release build (without UBSAN), the result of 24 * 178956971 = 4294967304
+wraps to 8 (int32), and type-1 frames would produce -715827876 (negative),
+causing ff_combine_frame() to receive a negative 'next' value leading to
+an out-of-bounds read on the internal ParseContext buffer (CWE-125).

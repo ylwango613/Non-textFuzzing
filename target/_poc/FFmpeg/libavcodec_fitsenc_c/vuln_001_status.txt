@@ -1,0 +1,2 @@
+UNVERIFIED
+Code-level int32 overflow confirmed at fitsenc.c:80, but unreachable via standard ffmpeg pipeline due to av_image_check_size guard (mathematically ensures 8*w*h < INT_MAX)

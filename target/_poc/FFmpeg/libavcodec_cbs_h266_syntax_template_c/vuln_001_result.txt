@@ -1,0 +1,77 @@
+=== VULN 001 PoC Runner ===
+Target: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+Input:  /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_cbs_h266_syntax_template_c/vuln_001.266
+
+[*] Generating crafted VVC bitstream...
+[+] Generated: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_cbs_h266_syntax_template_c/vuln_001.266
+[+] Total file size: 1055 bytes
+[+] VPS RBSP size: 874 bytes
+[+] NAL (with EP): 1051 bytes
+
+[*] Trigger conditions attempted:
+    vps_max_layers_minus1       = 1 (2 layers)
+    vps_all_independent_layers_flag = 0 -> each_layer_is_an_ols = 0
+    vps_ols_mode_idc            = 2
+    vps_num_output_layer_sets_minus2 = 255 -> total_num_olss = 257
+    vps_num_ptls_minus1         = 255 (max u(8))
+
+[!] Note: u(8) encodes max 255, not 256.
+    VVC_MAX_PTLS=256 (arrays size 256, indices 0..255).
+    Loop i=0..255 accesses valid indices only. No OOB expected.
+
+[*] Running ffmpeg on crafted VVC file...
+[*] Command: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_cbs_h266_syntax_template_c/vuln_001.266 -f null -
+
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0 @ 0x517000000080] Format vvc detected only with low score of 1, misdetection possible!
+[vvc @ 0x519000000a80] Picture header not available.
+[vvc @ 0x519000000a80] Failed to read unit 0 (type 0): Invalid data found when processing input.
+[vvc @ 0x519000000a80] Failed to parse picture unit.
+[in#0/vvc @ 0x517000000080] Could not find codec parameters for stream 0 (Video: vvc, none): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, vvc, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_cbs_h266_syntax_template_c/vuln_001.266':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: vvc, none, 25 fps, 1200k tbr, 1200k tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (vvc (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[vf#0:0 @ 0x51a000001280] Cannot determine format of input 0:0 after EOF
+[vf#0:0 @ 0x51a000001280] Task finished with error: Invalid data found when processing input
+[vf#0:0 @ 0x51a000001280] Terminating thread with error: Invalid data found when processing input
+[vost#0:0/wrapped_avframe @ 0x517000000780] [enc:wrapped_avframe @ 0x5110000039c0] Could not open encoder before EOF
+[vost#0:0/wrapped_avframe @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/null @ 0x5110000034c0] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+Conversion failed!
+
+=== ffmpeg exit code: 183 ===
+
+[*] Trying with explicit raw VVC demuxer...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0 @ 0x513000000200] Unknown input format: 'h266'
+Error opening input file /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_cbs_h266_syntax_template_c/vuln_001.266.
+Error opening input files: Invalid argument
+
+=== ffmpeg (h266 demuxer) exit code: 234 ===
+
+=== Non-zero exit (possible error or ASAN abort) ===
+EXIT=0

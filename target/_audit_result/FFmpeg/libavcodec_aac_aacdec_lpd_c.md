@@ -1,13 +1,14 @@
-Complete analysis summary:
+Both call sites use `core_frame_len / 8` or `core_frame_len / 16` as `fac_len`. With standard frame sizes (1024), `len_8 = 128` → `128/8 = 16 > 8` → returns `AVERROR_PATCHWELCOME` before any loop. The only loop-running path is when `len/8 <= 8`, keeping `i` in `[0,7]` — within the `kv[8][8]` bounds.
 
-**`parse_qn()`**: `qn[2]` stack array, always called with `no_qn=1` — safe.
+**Summary of findings across all code paths:**
 
-**`parse_codebook_idx()`**: `nk` bounded by `>25` check before use; `n` is always 3 or 4 (mathematical consequence of the formula); `4*n` ≤ 16 — no integer overflow; inner `kv[i]` loop writes 8 elements to a declared `uint32_t[8]` subarray — no overflow.
-
-**`ff_aac_parse_fac_data()`**: guard `len/8 > 8` is correct; `kv[8][8]` has exactly 8 first-dimension slots; max outer loop iterations = 8 (indices 0–7) — no OOB.
-
-**`ff_aac_ldp_parse_channel_stream()`**: `core_frame_len` is hardcoded to 768 or 1024 (derived from a 3-bit index at line 590); all `fac_len` values flow through the `>8` guard.
-
-Both external call sites (`aacdec_lpd.c:132`, `aacdec_usac.c:1854`) follow identical patterns and are both guarded by the same in-function check.
+- `kv[8][8]`: guarded by `len/8 > 8` check; `i` is always ≤ 7.
+- `qn[2]` stack array in `parse_codebook_idx`: `no_qn` is always `1` at the only call site (`ff_aac_parse_fac_data` line 104), so only `qn[0]` is written.
+- `skip_bits(gb, 4*n)`: `n ≤ 4` (when `nk==0`) or `n ≤ 3` (when `nk ≤ 25`); no integer overflow.
+- `get_bits(gb, nk)`: `nk ≤ 25`; well within 32-bit limit.
+- No heap allocations in this file.
+- No `memcpy` calls or pointer arithmetic over user-controlled lengths.
 
 NO_VULN_FOUND
+
+<!-- AUDIT_PROMPT_VERSION: 1 -->

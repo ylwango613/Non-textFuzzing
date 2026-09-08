@@ -1,13 +1,18 @@
-All memory-allocating call-sites in the file are accounted for:
+Having read all 2110 lines of `ffmpeg_opt.c` in five batches, and cross-referenced `GROW_ARRAY`/`grow_array` (line 1522–1537 of `cmdutils.c`), `opt_recording_timestamp`, and `opt_streamid`, I'll now summarise findings per section:
 
-- All `snprintf`/`av_strlcpy`/`av_strlcatf` calls pass their respective buffer sizes — no overflow possible.
-- `fgets(line, sizeof(line), f)` in `opt_preset()` reads from a local preset file (trusted filesystem, not a crafted media file) and is bounded by `sizeof(line) = 1000`.
-- `frame_rates[norm]` accesses (lines 936/964/986/1008) are guarded by the `norm == UNKNOWN → return AVERROR(EINVAL)` check at lines 922–928; only indices 0, 1, 2 are ever used and the array has exactly 3 entries.
-- `gmtime((time_t*)&recording_timestamp)` is a command-line option (`-timestamp`), not triggered by a crafted media file; and `gmtime` reads within `&recording_timestamp`'s own storage.
-- `correct_input_start_times()` and `apply_sync_offsets()` read stream timestamps from parsed input files but perform only arithmetic — no memory allocation keyed on those values.
-- All heap allocations (`av_strdup`, `av_asprintf`, `GROW_ARRAY`) are driven by command-line arguments (lengths bounded by the OS/shell) or by fixed-format strings, not by any field read from a crafted media file.
+**Lines 1–500** — option matching helpers, `correct_input_start_times`, `apply_sync_offsets`. Only int64_t arithmetic on media-file timestamps; no allocation or buffer operations reachable from a crafted input file.
 
-`ffmpeg_opt.c` is a command-line option parser. The attack surface for crafted media files flows through `ifile_open()` → libavformat demuxers → libavcodec decoders (other files). No function in this file allocates memory based on sizes, counts, or data read from an untrusted media container.
+**Lines 500–1000** — `opt_map`, `opt_attach`, `opt_streamid`, `opt_recording_timestamp`.
+- `opt_streamid` (line 862): uses `av_strlcpy` (size-bounded) then `strchr` into the truncated buffer — safe.
+- `opt_recording_timestamp` (line 773): `time = *gmtime((time_t*)&recording_timestamp)` — `gmtime()` can return NULL for out-of-range timestamps, yielding a NULL dereference. **However**, this requires the operator to supply `-timestamp <crafted_arg>` on the command line; it is not reachable from a crafted media file.
+
+**Lines 1000–1500** — `opt_vstats` (40-byte stack buffer, format max ~17 chars — safe), `opt_preset` (fgets + av_strlcpy both size-bounded — safe), `ffmpeg_parse_options` — clean dispatch logic.
+
+**Lines 1500–2110** — `opt_progress`, `opt_timelimit` (int64 with 0..INT_MAX bounds check — safe), and the static option definition table (no runtime memory operations).
+
+**GROW_ARRAY / grow_array** (cmdutils.c:1522): includes `new_size >= INT_MAX / elem_size` overflow guard before `av_realloc_array` — protected.
+
+**Conclusion**: `ffmpeg_opt.c` is an option-parsing module. All potential memory-safety issues found (principally the `gmtime()` NULL deref at line 773) require a crafted command-line argument, not a crafted media file. No externally triggerable (media-file-driven) memory-safety vulnerabilities exist in this file.
 
 NO_VULN_FOUND
 

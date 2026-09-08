@@ -1,0 +1,9 @@
+## Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | OOB Read via Negative mb_xy in H.264 Field-Picture B-Slice Direct Motion | **UNVERIFIED** |
+
+**Details**: The PoC was constructed (PAFF H.264 bitstream with IDR TOP FIELD + BOTTOM FIELD B-slice using `B_Direct_16x16`). FFmpeg successfully parsed and decoded the file, reaching `pred_temp_direct_motion()` as expected. However, no crash or ASAN error occurred.
+
+The subagent's investigation found a likely reason: FFmpeg's `h264_field_start()` initializes BOTTOM FIELD slices at `mb_y = 1` (not 0), so after the `col_fieldoff = -1` adjustment the effective `mb_xy` lands at 0 (valid), not a negative index. The static analysis in the audit report appears not to have accounted for this runtime initialization that prevents `mb_xy` from going negative in practice.

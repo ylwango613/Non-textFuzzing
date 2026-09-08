@@ -1,21 +1,18 @@
-Based on complete analysis of `aacdec_ac.c` and its call chain, here is my final assessment:
+Based on my complete analysis of `aacdec_ac.c` and its full call chain:
 
-**Batch 1 (lines 1–206):** The file implements five functions for USAC arithmetic coding. Key arrays accessed:
+**Analysis summary:**
 
-- `state->last[512+1]` (513 elements) — written in `ff_aac_ac_map_process` up to index `N/2-1`, read in `ff_aac_ac_get_context` at `i+1`, updated by `ff_aac_ac_update_context` at `idx`.
-- Local `last[512]` in `ff_aac_ac_map_process` — memcpy copies 512 bytes from `state->last`; loop reads `last[k]` where `k = i * ratio`.
-- CDF tables in `ff_aac_ac_decode` — pointer arithmetic within switch cases for `cdf_len` ∈ {2, 4, 17, 27}.
+1. **`state->last[513]` array bounds** — All loops (`ff_aac_ac_map_process`, `ff_aac_ac_get_context`, `ff_aac_ac_update_context`, `ff_aac_ac_finish`) access at most index 512. For N = 1024 (max valid value, set from a 3-bit config field to 768 or 1024), N/2 = 512 ≤ 512. Validated.
 
-**Verification of bounds:**
+2. **Local stack buffer `last[512]`** — Read at index k = `(int)(i * ratio)` where ratio = `state->last_len / N`. For all valid last_len ∈ {96, 128, 768, 1024} and N values, max k stays < 512. Validated with all pairwise combinations.
 
-- `N` is always 96, 128, 768, or 1024 (`core_frame_len ∈ {768, 1024}`); `N/2 ≤ 512 < 513`.
-- `lg = ics->swb_offset[ics->max_sfb]` with `max_sfb ≤ num_swb` enforced in `setup_sce` (line 1053); `swb_offset[num_swb] = frame_size ≤ 1024`; so `len/2 ≤ 512`.
-- In `ff_aac_ac_get_context`: `state->last[i+1]` where `i ≤ len/2-1 ≤ 511` → max index 512. Valid.
-- `last[k]` in the resize loop: max `k = (N/2-1) * (last_len/N)`. For worst case `last_len=1024`, `N=96`: `k_max = 47 * 10.67 ≈ 501 < 512`. No OOB.
-- `ff_aac_ac_decode` CDF pointer arithmetic: maximum `p-cdf+1` is 16 (cdf_len=17), 3 (cdf_len=4), 26 (cdf_len=27). All accesses `cdf[sym]` and `cdf[sym-1]` stay within the respective table sizes.
-- `pki = ff_aac_ac_get_pk(...)` returns values from static lookup tables `ff_aac_ac_lookup_m[742]` (uint8_t). These tables are hardcoded codec data — not attacker-controlled input — so `pki` values are by design valid indices into `ff_aac_ac_msb_cdfs[64]`.
-- `coef[2*i+0]` / `coef[2*i+1]` writes: max index `2*(len/2-1)+1 = len-1 ≤ 1023` within the 1024-float `sce->coeffs` buffer. Safe.
-- `ff_aac_ac_finish` writes at most to `state->last[512]` (valid).
+3. **`ff_aac_ac_decode` pointer bounds** — For cdf_len=17 (msb), max p_offset = 15 → sym max = 16 → cdf[16] valid. For cdf_len=4 (lsb), max p_offset = 2 → sym max = 3 → cdf[3] valid. Neither caller can trigger case 2/27.
+
+4. **Lookup table `pki` bounds** — `ff_aac_ac_lookup_m[]` is a hardcoded table whose values max at 0x3F = 63, within `ff_aac_ac_msb_cdfs[64]`. Not user-controlled.
+
+5. **`lg = ics->swb_offset[ics->max_sfb]`** — `max_sfb` is validated against `num_swb` (line 1053–1059 in `aacdec_usac.c`) before `decode_spectrum_ac` is called. `swb_offset` is from static codec tables, max 1024.
+
+6. **Signed integer overflow in `rng * cdf[sym-1]`** — UB in C but no buffer-access consequence; pointer advancement is structurally bounded by the switch-case logic.
 
 NO_VULN_FOUND
 

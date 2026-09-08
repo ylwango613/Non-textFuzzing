@@ -1,0 +1,22 @@
+VERIFIED_BEHAVIOR
+
+The off-by-4 bounds check flaw is confirmed behaviorally.
+
+Key observations from vuln_001_result.txt:
+1. "Invalid slice size 100" is printed for SLICE 1 (not slice 0).
+   - Slice 1 is rejected because slice_off[1] >= slice_off[2] (100 >= 100).
+   - This is the secondary, CORRECT rejection.
+
+2. Slice 0 is NOT rejected, even though slice_off[1] = data_size = 100.
+   - The flawed check: 100 > 100 => FALSE => passes (BUG).
+   - The correct check would be: 100 > (data_size - 4) = 96 => TRUE => should reject.
+   - init_get_bits(&gb, src+27, 73*8) is called with buffer_end 4 bytes past avpkt->size.
+
+3. "frame=1" in output: the decoder successfully returned a (partially-decoded) frame,
+   confirming slice 0 was processed through the vulnerable code path.
+
+No ASAN hard crash:
+   FFmpeg av_new_packet() appends AV_INPUT_BUFFER_PADDING_SIZE (64) bytes of zeroed
+   padding after avpkt->size. The 4-byte OOB access lands within this padding region,
+   so the access does not cross the ASAN-poisoned boundary. A hard crash requires an
+   allocator without padding or a heap layout placing a different object within 4 bytes.

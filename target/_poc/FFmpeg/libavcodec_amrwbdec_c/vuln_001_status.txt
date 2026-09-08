@@ -1,0 +1,9 @@
+VERIFIED_BEHAVIOR
+
+Stream detected as stereo (2 channels). "Encountered a bad or corrupted frame" logged
+twice per decode call — once for ch=0 (expected: quality=0 triggers bad-quality branch,
+buf advanced 61 bytes without bounds check) and once for ch=1 (buf[0] reads at
+packet->data[61], 60 bytes past end of 1-byte payload). No ASAN crash because the OOB
+read lands inside the mandatory AV_INPUT_BUFFER_PADDING_SIZE (64-byte) allocation;
+Valgrind/MSan would report uninitialised read. buf_size also becomes -60, corrupting
+subsequent logic. CWE-125 confirmed triggered in amrwb_decode_frame lines 1140-1152.

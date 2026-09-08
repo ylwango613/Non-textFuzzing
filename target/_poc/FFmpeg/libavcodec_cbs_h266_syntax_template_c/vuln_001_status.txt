@@ -1,0 +1,17 @@
+UNVERIFIED
+
+Reason: The claimed OOB write at array index 256 cannot be triggered.
+
+The field vps_num_ptls_minus1 is read with u(8) (fixed 8-bit width), so its
+maximum encoded value is 255. The arrays vps_pt_present_flag, vps_ptl_max_tid,
+and vps_profile_tier_level all have size VVC_MAX_PTLS=256 (valid indices 0-255).
+A loop iterating i=0..255 (when vps_num_ptls_minus1=255) stays within bounds.
+
+The vulnerability report incorrectly states that 256 can be encoded as an 8-bit
+value (0x100 requires 9 bits). Therefore the claimed OOB condition at index 256
+is structurally impossible to trigger via a crafted bitstream.
+
+PoC run result: ffmpeg processed the crafted .266 file, detected VVC format,
+attempted VPS/stream parsing, and exited with error code 183 (normal ffmpeg
+error exit for "Conversion failed"). No ASAN heap-buffer-overflow was detected.
+No crash occurred.

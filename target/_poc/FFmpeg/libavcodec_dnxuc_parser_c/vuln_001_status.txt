@@ -1,0 +1,15 @@
+UNVERIFIED
+
+Reason: The PoC correctly constructs a minimal MXF file with a DNXUC stream using
+UnknownWrapped essence (triggering AVSTREAM_PARSE_TIMESTAMPS), splits the 'pack' marker
+across two AVPackets (7+1 bytes), and confirms the parser is invoked (frame=1, EXIT=0,
+"wrapping of stream 0 is unknown"). However, no ASAN crash was produced.
+
+Root cause of non-crash: av_get_packet() allocates packets with AV_INPUT_BUFFER_PADDING_SIZE
+(64) bytes of extra padding. The 1-byte KLV payload is backed by a 65-byte allocation.
+ff_combine_frame's memcpy of 57 bytes (indices 0..56) stays within the allocation bounds,
+so ASAN does not flag it as out-of-bounds.
+
+The vulnerability code path (next = -7, memcpy of 57 bytes from a nominally 1-byte source)
+IS reached, but the OOB condition is masked by mandatory heap padding in this call chain.
+A direct av_parser_parse2 caller without padding would trigger the bug.

@@ -1,0 +1,50 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, mpegts, from 'vuln_001_input.ts':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Program 1 
+  Stream #0:0[0x200](eng): Subtitle: dvb_subtitle (dvbsub) ([6][0][0][0] / 0x0006)
+Stream mapping:
+  Stream #0:0 -> #0:0 (dvb_subtitle (dvbsub) -> dvb_subtitle (dvbsub))
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0(eng): Subtitle: dvb_subtitle
+    Metadata:
+      encoder         : Lavc63.11.100 dvbsub
+[out#0/null @ 0x511000001080] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000001080] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+EXIT=0
+
+--- ANALYSIS ---
+Status: VERIFIED_BEHAVIOR
+
+The vulnerable code path IS reached and the buggy case 0x22 IS executed.
+Evidence: debug log shows "[dvbsub] Missing display_end_segment, emulating" which
+is only printed when all three segments (page/region/object) were fully processed,
+confirming that dvbsub_parse_pixel_data_block entered case 0x22 and read 16 bytes
+past buf_end.
+
+Why ASAN does not fire:
+  - AV_INPUT_BUFFER_PADDING_SIZE = 64 bytes of zeroed memory follows every FFmpeg
+    AVPacket allocation (set by memset in new_pes_packet / av_new_packet).
+  - The pool allocates max_packet_size + 64 bytes; the OOB read (16 bytes) starts
+    within the valid data and extends into this padding area — still within the
+    physical allocation boundary.
+  - ASAN only poisons memory past the allocation end; since the 16-byte OOB lands
+    in the 64-byte padding, no ASAN shadow-memory violation is triggered.
+
+The vulnerability is real and exploitable when libavcodec is called without the
+mandatory AV_INPUT_BUFFER_PADDING_SIZE padding (e.g., in custom integrations or
+when packets are constructed without ff_alloc_extradata / av_new_packet). In those
+contexts this OOB read would access unmapped or foreign-object memory.

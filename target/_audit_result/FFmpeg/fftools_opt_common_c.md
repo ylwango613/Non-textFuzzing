@@ -1,14 +1,14 @@
-All four batches of the file are now fully analyzed. Summary of findings per batch:
+全1516行を3バッチで読み込み、`av_malloc`/`memcpy`/`strtol` 系の呼び出しをすべてGrepで確認しました。
 
-**Batch 1 (1–400):** License/version info printing, compile-time string constants (`FFMPEG_CONFIGURATION`), and `get_codecs_sorted()` which uses `av_calloc` (overflow-safe). No untrusted input enters memory operations.
+**分析まとめ:**
 
-**Batch 2 (400–800):** `show_help()` duplicates its command-line `arg` via `av_strdup`. `descr[64]` in `show_filters()` has an explicit bounds check at line 836 (`descr_cur >= descr + sizeof(descr) - 4`). No media-file data flows.
-
-**Batch 3 (800–1200):** `log_callback_report()` uses `char line[1024]` passed to `av_log_format_line(..., sizeof(line), ...)` — size-bounded by design. `init_report()` parses FFREPORT env variable; `report_file_level = strtol(val, ...)` is a `long → int` truncation but only controls log-level filtering, not memory layout.
-
-**Batch 4 (1200–1516):** `opt_max_alloc()` uses `max = strtol(arg, &tail, 10)` with a `long → size_t` conversion (negative input → SIZE_MAX), but this is a **command-line flag** (`-max_alloc`), not triggered by a crafted media file. `opt_loglevel()` and device-listing functions operate entirely on CLI/library-internal data.
-
-Throughout the file every function is driven by command-line arguments, environment variables, or static FFmpeg library metadata. No field read from a media container (chunk size, sample count, extradata, index count, etc.) flows into any allocation, copy, or indexed access in this file.
+- このファイル (`fftools/opt_common.c`) はCLIオプション処理と機能一覧表示に特化している
+- メモリアロケーションは`av_calloc(nb_codecs, sizeof(*codecs))`（line 658）のみで、`av_calloc`が内部でオーバーフローチェック済み
+- `strtol` は3箇所（line 1191, 1254, 1337）あるが、いずれもCLI引数または環境変数（`FFREPORT`）を処理し、メディアファイル由来のデータではない
+- `av_bprint_init` with `AV_BPRINT_SIZE_AUTOMATIC` は自動リサイズするため安全
+- `log_callback_report()` の `line[1024]` バッファは `av_log_format_line(..., sizeof(line), ...)` で上限が保証される
+- ファイル内に `memcpy`/`strcpy`/`sprintf` の直接呼び出しは一切存在しない（Grepで確認済み）
+- すべての外部入力はCLI引数（`-cpuflags`, `-loglevel`, `-max_alloc`）や環境変数であり、攻撃者が細工したメディアファイルから直接到達するパスは存在しない
 
 NO_VULN_FOUND
 

@@ -1,0 +1,5 @@
+**Summary:**
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| 001 — Integer overflow in DXVA2 AV1 bitstream size accumulation | **SKIPPED** | Requires Windows-only DXVA2/D3D11VA hardware acceleration (unavailable on Linux) and >4 GB of OBU data accumulation to trigger — cannot be triggered by passing a crafted media file to ffmpeg on this system |

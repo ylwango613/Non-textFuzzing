@@ -1,0 +1,2 @@
+SKIPPED
+Reason: d3d12va is a Windows-only DirectX 12 Video Acceleration API. This system runs Linux (6.8.0-55-generic x86_64). The hevc_d3d12va encoder is not compiled into or available in the ffmpeg binary at /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg. The vulnerability cannot be triggered on this platform.

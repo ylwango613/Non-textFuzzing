@@ -1,0 +1,5 @@
+**Summary**
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| 001 | SKIPPED | `d3d12va` is Windows-only (Direct3D 12); this system is Linux with no d3d12va hwaccel support. Additionally, triggering the integer overflow requires >4 GB of NAL slice data in a single frame, making a file-based PoC impractical regardless of platform. |

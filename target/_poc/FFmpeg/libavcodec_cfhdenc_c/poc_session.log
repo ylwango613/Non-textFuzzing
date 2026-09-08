@@ -1,0 +1,20 @@
+Both subagents have completed. Here is the final summary:
+
+---
+
+## PoC Results — libavcodec/cfhdenc.c
+
+| VULN | 描述 | 状态 |
+|------|------|------|
+| **001** | Integer Overflow in `dwt_buf` Allocation (cfhd_encode_init, lines 278-301) | **UNVERIFIED** |
+| **002** | Integer Overflow in `s->alpha` Allocation (cfhd_encode_init, lines 370-375) | **UNVERIFIED** |
+
+### 共同原因
+
+两个漏洞均因同一道防护而无法通过 ffmpeg CLI 触发：
+
+**`av_image_check_size2()`** 在 `avcodec_open2()` 调用 `cfhd_encode_init()` 之前执行维度校验：若 `stride*(h+128) >= INT_MAX`，则将维度重置为 0×0，`cfhd_encode_init()` 随即因 `height < 32` 检查而提前退出。
+
+要触发整数溢出，需要 `w*h > INT_MAX`（即 `w*h > 2^31`），但 imgutils 拒绝所有满足 `(w+512)*(h+128) >= 2^30` 的维度。这两个条件数学上矛盾（后者约束比前者严格 128 倍），因此不存在满足溢出条件又能通过维度校验的 `(w, h)` 组合。
+
+**结论**：这两个漏洞仅在直接调用 `libavcodec` API 且绕过 `av_image_check_size2()` 时可利用，通过 ffmpeg 二进制命令行无法触发。所有 PoC 文件已生成于 `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_cfhdenc_c/`。

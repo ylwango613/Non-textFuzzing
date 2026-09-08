@@ -1,0 +1,15 @@
+The subagent has finished. Here is the final summary:
+
+---
+
+## PoC Results Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| VULN-001 | Integer Overflow in Single-Rect Buffer Size Check Leads to Heap OOB Write (`dvdsub_encode()`, lines 344-353) | **UNVERIFIED** |
+
+### Details
+
+The PoC correctly reaches the vulnerable code path in `dvdsubenc.c` (confirmed by "dvd_subtitle too big" / "Buffer too small" messages), but the integer overflow bypass cannot be triggered through a crafted media file in this FFmpeg build. The reason: `av_image_check_size2()` enforces `(8*w + 1024)*(h + 128) < INT_MAX`, which caps `w*h` to ~264M — far below the 2.1 billion needed for a signed 32-bit overflow at line 344. Both the PGS decoder (`ff_set_dimensions`) and `avcodec_open2` enforce this guard before the dimensions ever reach `dvdsub_encode`.
+
+All generated files are in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dvdsubenc_c/`.

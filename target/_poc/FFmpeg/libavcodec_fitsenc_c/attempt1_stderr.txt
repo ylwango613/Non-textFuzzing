@@ -1,0 +1,3 @@
+[in#0 @ 0x513000000200] Error opening input: Invalid data found when processing input
+Error opening input file vuln_001_input.fits.
+Error opening input files: Invalid data found when processing input

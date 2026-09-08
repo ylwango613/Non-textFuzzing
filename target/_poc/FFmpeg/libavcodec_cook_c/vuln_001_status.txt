@@ -1,0 +1,46 @@
+VERIFIED_BEHAVIOR
+
+## Summary
+
+The PoC executed successfully. The vulnerable code path was confirmed to reach
+joint_decode() with js_subband_start=50, and the OOB loop at cook.c lines 851-855
+ran 4 times across 4 decoded COOK subpackets.
+
+## Evidence
+
+Debug output from ffmpeg shows:
+  [cook @ ...] subpacket[0] size 512 js 1 0 block_align 512
+  [cook @ ...] subpacket[0] 4096 2274
+  (repeated 4 times)
+
+"js 1" confirms joint_decode() was called. The decoder processed the crafted
+file from start to finish with js_subband_start=50 set in the extradata.
+
+## Why ASAN did not fire
+
+The OOB array accesses (indices 1060..1999 into decode_buffer_0[1060]) fall
+WITHIN the COOKContext heap allocation. The struct layout after decode_buffer_0 is:
+  const float *cplscales[5]          (40 bytes)
+  int num_subpackets                 (8 bytes with padding)
+  COOKSubpacket subpacket[5]         (~42000+ bytes)
+
+Max OOB index 1999 * 4 bytes = 7996 bytes past decode_buffer_0 base, which is
+still within the subpacket[] array region. ASAN only reports accesses that cross
+heap-allocation boundaries, not intra-struct out-of-bounds.
+
+## Vulnerability Confirmation
+
+The vulnerability IS real (C language UB, CWE-125):
+- js_subband_start=50 passes the <51 check at line 1124
+- Loop at lines 851-855 reads decode_buffer_0[1060..1999] instead of [0..1059]
+- These reads pull data from cplscales[] and subpacket[] struct fields
+- An attacker can observe the corrupted decoded output to infer data from
+  adjacent struct fields (information disclosure)
+
+## Files
+
+  vuln_001_gen.py      - Crafted .rm file generator
+  vuln_001_input.rm    - Generated 2336-byte crafted RealMedia file
+  vuln_001_run.sh      - Runner script
+  vuln_001_result.txt  - ffmpeg output (exit 0, 4KiB decoded audio)
+  vuln_001_notes.md    - Detailed vulnerability explanation

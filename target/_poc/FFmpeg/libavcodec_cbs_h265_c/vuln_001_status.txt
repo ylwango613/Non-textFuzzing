@@ -1,0 +1,4 @@
+VERIFIED_CRASH
+UBSan: src/libavcodec/cbs_h265_syntax_template.c:2005:17: runtime error: index 600 out of bounds for type 'uint16_t [600]'
+CBS path: trace_headers BSF → FUNC(sei_pic_timing)() → num_nalus_in_du_minus1[600] OOB write
+Command: ffmpeg -f hevc -i vuln_001_input.hevc -c:v copy -bsf:v trace_headers -f null -

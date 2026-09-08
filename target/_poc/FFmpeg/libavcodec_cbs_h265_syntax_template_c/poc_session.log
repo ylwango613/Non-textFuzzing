@@ -1,0 +1,12 @@
+## 汇总结果
+
+| VULN 编号 | 漏洞描述 | 状态 |
+|-----------|----------|------|
+| VULN-001 | Off-by-One OOB Heap Write in `sei_pic_timing` via `num_decoding_units_minus1` | **VERIFIED_CRASH** |
+
+**验证证据**：UBSan 在真实 ffmpeg 执行路径中确认了越界写：
+```
+src/libavcodec/cbs_h265_syntax_template.c:2005:17:
+  runtime error: index 600 out of bounds for type 'uint16_t [600]'
+```
+`trace_headers` BSF 输出中可见 `num_nalus_in_du_minus1[600]` 被写入（数组仅有下标 0–599），确认了 off-by-one OOB 堆写入。

@@ -1,0 +1,7 @@
+The subagent has completed. Here is the summary:
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| 001 — Off-by-One OOB Read in `cbs_jpeg_split_fragment` | **UNVERIFIED** | Two reasons: (1) standard `ffmpeg -i *.jpg` invokes the mjpeg decoder directly, not the CBS subsystem (`ff_cbs_read` / `cbs_jpeg_split_fragment`), so the vulnerable code path is not reachable via the command line; (2) even if the CBS path were triggered, FFmpeg's `AV_INPUT_BUFFER_PADDING_SIZE=64` zero-padding means the OOB byte lands in allocated padding, which ASAN does not flag. |
+
+All PoC files are in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_cbs_jpeg_syntax_template_c/`.

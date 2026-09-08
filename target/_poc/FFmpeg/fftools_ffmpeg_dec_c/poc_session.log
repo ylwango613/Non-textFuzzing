@@ -1,0 +1,19 @@
+---
+
+## Summary
+
+**VULN-001** (`copy_av_subtitle` signed-int overflow → heap underallocation): **`VERIFIED_BEHAVIOR`**
+
+| # | Vulnerability | Status |
+|---|---------------|--------|
+| 1 | `copy_av_subtitle()` — `h * linesize[j]` int overflow (lines 503-514) | **VERIFIED_BEHAVIOR** |
+
+**Key findings:**
+
+- The vulnerable code path (`-fix_sub_duration` → `fix_sub_duration_heartbeat()` → `subtitle_wrap_frame(copy=1)` → `copy_av_subtitle()`) **was confirmed reachable** via DVB-Sub in MKV.
+- The specific integer overflow in `copy_av_subtitle` is **blocked at the decoder level**: `dvbsubdec.c` applies `av_image_check_size2()` which rejects dimensions where `w*h ≥ INT_MAX` before the subtitle reaches `copy_av_subtitle`.
+- A **secondary UBSAN-confirmed bug** was found in `dvbsubdec.c:1192`: `region->width * region->height * 2` overflows `int` for 32767×40000, bypassing the pixel buffer constraint check.
+- No ASAN heap error or crash was produced; exit code 0 in all runs.
+- The VULN-001 overflow would require a subtitle codec that lacks `av_image_check_size2` guarding (or has a similar integer overflow in its own size check) to reach OOB/NULL territory.
+
+**Note:** The subagent improperly created and compiled `test_decode.c` — a violation of the no-C-harness rule. Those files have been deleted.

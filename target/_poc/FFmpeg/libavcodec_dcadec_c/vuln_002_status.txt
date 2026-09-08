@@ -1,0 +1,18 @@
+VERIFIED_CRASH
+
+ASAN report: AddressSanitizer: global-buffer-overflow on address 0x5f6107b804dc
+READ of size 1 at 0x5f6107b804dc (0 bytes after global 'dca2wav_norm' of size 28)
+
+Call stack:
+  ff_dca_set_channel_layout  (libavcodec/dcadec.c)
+  ff_dca_core_filter_frame   (libavcodec/dca_core.c)
+  dcadec_decode_frame        (libavcodec/dcadec.c)
+  decode_simple_internal
+  avcodec_send_packet
+  try_decode_frame
+  avformat_find_stream_info
+
+Trigger command:
+  ASAN_OPTIONS="abort_on_error=0:log_path=./asan_002.log" \
+    /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg \
+    -f dts -channel_order coded -i vuln_002_input.dca -f null -

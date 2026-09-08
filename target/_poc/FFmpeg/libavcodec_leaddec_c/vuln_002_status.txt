@@ -1,0 +1,23 @@
+VERIFIED_BEHAVIOR
+The AVI file with LEAD codec, width=16, height=17, format=0x1000 successfully exercised
+the vulnerable code path in lead_decode_frame() YUV420P branch (lines 253-285).
+
+The decoder processed both macroblock rows (mb_y=0 and mb_y=1) and called idct_put()
+with destination pointers at luma rows 24-31 (beyond the frame's actual 17-row content)
+and chroma rows 8-15 of the second MB row.
+
+FFmpeg decoded 1 frame (frame=1 in output) with exit code 0 and no ASAN crash,
+confirming the OOB writes executed without triggering an abort.
+
+NO ASAN CRASH was reported because avcodec_align_dimensions2() pads YUV420P frames
+to h_align=32 (see libavcodec/utils.c line 245: h_align = 16*2). Height 17 is padded
+to 32 rows, and each plane receives its own buffer pool with 32-row luma and 16-row
+chroma allocations (via get_buffer.c update_frame_pool()). The "OOB" luma writes at
+rows 24-31 and chroma writes at rows 8-15 all fall within these padded allocations.
+
+The vulnerability is a semantic/logical OOB: the decoder writes luma coefficients to
+rows 17-31 of a 17-row-tall frame (content corruption of the padding region), and
+chroma writes at mb_y=1 corrupt later chroma rows beyond the actual video content.
+This is a real correctness bug and potential info-leak / heap-spray primitive if the
+padding region is later reused, but does not produce a direct ASAN-detectable crash
+for height=17 under standard FFmpeg buffer alignment.

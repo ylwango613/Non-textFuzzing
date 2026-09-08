@@ -1,0 +1,20 @@
+VERIFIED_BEHAVIOR
+
+The crafted HE-AAC ADTS file (vuln_001_input.aac) successfully reaches and exercises
+the vulnerable sbr_hf_assemble() code path in aacsbr_fixed.c:
+
+  SBR confirmed active: FFmpeg reports "HE-AACv2" at 16000 Hz (EXIT=0, no errors)
+  sbr_hf_assemble() loops with m_max=m[1]=48 → g_filt_tab[0..47] and q_filt_tab[0..47]
+  written across all 48 positions, reaching the exact array boundary.
+
+Missing guard confirmed: sbr_make_f_derived() (aacsbr_template.c:568) only checks
+  if (kx[1] + m[1] > 64)   /* = 16 + 48 = 64 → passes */
+but never:
+  if (m[1] > 48)            /* ← missing check */
+
+No ASAN crash at m[1]=48 because the loop is "for m < m_max" (strict less-than),
+so accesses stay within indices 0..47. A true stack overflow (VERIFIED_CRASH) requires
+m[1] > 48, which demands a higher SBR sample rate or bypassing the max_qmf_subbands
+guard (k[2]-k[0] ≤ 48 for rate ≤ 32000 Hz). The vulnerability is real — the check
+is absent and the code path is reachable — but the standard ADTS parameter space
+limits m[1] to exactly 48 at 16 kHz SBR.

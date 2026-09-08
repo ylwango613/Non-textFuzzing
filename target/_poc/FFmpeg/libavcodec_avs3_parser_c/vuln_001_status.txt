@@ -1,0 +1,21 @@
+VERIFIED_BEHAVIOR
+
+The OOB read in parse_avs3_nal_units() is confirmed. The debug log line:
+
+  [NULL @ 0x519000000a80] AVS3 parse seq HDR: profile 32; coded size: 0x0; frame rate code: 0
+
+proves the parser read 100 bits (13 bytes) starting at buf+4 when only 1 byte of real payload
+(0x20, at buf+4) exists. The extra 92 bits were read from zero-padded memory beyond the
+actual file content, producing:
+  - profile = 32 (0x20) — correct, from the 1 real payload byte
+  - coded size = 0x0 (width=0, height=0) — wrong, from OOB reads into zero padding
+  - frame rate code = 0 (FORBIDDEN in AVS3 spec) — wrong, from OOB reads into zero padding
+
+No ASAN heap-buffer-overflow crash occurred because FFmpeg's packet allocation always appends
+AV_INPUT_BUFFER_PADDING_SIZE (64) bytes of zeroed memory after the packet data, so the
+out-of-bounds reads (only 12 bytes beyond the 1 payload byte) land within this padding region
+and do not cross an allocation boundary that ASAN would detect.
+
+Root cause confirmed: avs3_parser.c:68 checks buf_size < 5 (passes with 5 bytes), then
+avs3_parser.c:77 calls init_get_bits(&gb, buf + 4, 100) allocating a 100-bit context
+(13 bytes) over a buffer with only 1 byte of valid payload — a logical OOB of 12 bytes.

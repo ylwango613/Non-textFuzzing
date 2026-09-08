@@ -1,0 +1,12 @@
+Both subagents have completed. Here is the final summary:
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| **001** — Heap OOB Read via `bytestream_get_be16` (lines 54-67) | **UNVERIFIED** | The OOB read at `extradata[34..35]` falls within FFmpeg's mandatory 64-byte `AV_INPUT_BUFFER_PADDING_SIZE` padding that `ff_alloc_extradata` always appends — the allocation is 98 bytes (34 + 64), so ASAN sees the read as in-bounds and does not fire. The logical bug exists (strict `>` should be `>=`), but ASAN cannot catch it with the crafted file alone. |
+| **002** — Heap OOB Read in Xiph Lacing while-condition (lines 72-82) | **UNVERIFIED** | The target binary at `build_test/ffmpeg` was compiled **without** `CONFIG_LIBVORBIS` (confirmed in `config.h`). `libvorbisdec.c` is not linked; FFmpeg falls back to its internal `vorbis` decoder which rejects the 2-byte extradata cleanly at its own bounds check. |
+
+**Key findings:**
+- VULN 001's OOB is masked by FFmpeg's padding allocator — defeating ASAN without a heap layout that places another allocation immediately after `extradata`.
+- VULN 002 requires a build with `--enable-libvorbis`; the pre-built binary does not include that code path.
+
+All PoC artifacts are written to `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_libvorbisdec_c/`.

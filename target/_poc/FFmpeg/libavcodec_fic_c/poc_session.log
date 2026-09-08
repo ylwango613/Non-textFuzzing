@@ -1,0 +1,12 @@
+Both subagents have completed. Here is the final summary:
+
+| VULN | Title | Status | Reason |
+|------|-------|--------|--------|
+| 001 | Heap OOB Write — last slice height rounded past frame buffer | **UNVERIFIED** | FFmpeg's default allocator aligns height to 32 rows (not 16), so FFALIGN(height,16) always fits within the actual allocation; no ASAN trigger under the default buffer2 callback |
+| 002 | 1-Byte Heap OOB Write in fic_draw_cursor chroma plane | **UNVERIFIED** | The 1-byte write lands in FFmpeg's legitimate inter-plane padding (192 bytes of overhead between Cr plane data and the ASAN red zone), invisible to ASAN |
+
+**Takeaway**: Both code-level bugs are real and confirmed present in the source, but neither triggers under FFmpeg's default allocator with ASAN:
+- **VULN 001** is neutralised by `avcodec_align_dimensions2()` which over-allocates buffer rows (h_align=32 > FFALIGN step of 16).
+- **VULN 002** is neutralised by FFmpeg's multi-plane packing which leaves ~192 bytes of legitimate padding after the Cr data — enough to absorb the 1-byte overshoot.
+
+Both would be exploitable with a custom `get_buffer2` callback (e.g. a fuzzer harness) that allocates exactly `height × linesize` bytes, or on a platform where the allocator places the red zone immediately after the plane data. The PoC files are in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_fic_c/`.

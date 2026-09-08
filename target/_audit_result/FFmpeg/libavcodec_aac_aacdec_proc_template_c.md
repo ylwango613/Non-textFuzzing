@@ -1,12 +1,18 @@
-Having fully read the 448-line file and traced every key path through related headers (`aacdec.h`, `aactab.c`, `aacdec.c`, `aacdec_float_coupling.h`), I verified:
+After thorough analysis of `aacdec_proc_template.c` and all related context (headers, called functions, table definitions, validation logic), here is my complete review:
 
-1. **`coup->gain[c][idx]`** (decode_cce): `num_gain ≤ 16` (c = 0..15 < dim-0 = 16); `num_window_groups * max_sfb ≤ 8×15 = 120`, body uses idx 0..119 < dim-1 = 120. Exactly at boundary but within bounds.
-2. **memset size `(c − offsets[max_sfb])`**: `c = 1024/num_windows` (always 128 or 1024); swb_offset tables end at ≤ window size; expression always ≥ 0.
-3. **`coef[]` writes**: stride is `g×128 + offsets[i]`, coeffs has 1024 elements; maximum address reached is coeffs+1023. In bounds.
-4. **`ff_cbrt_tab[n]`**: `b ≤ 12`, `n ≤ 8191`; `LUT_SIZE = 8192`, valid indices 0–8191.
-5. **`band_type[idx]`**: array has 128 elements; max idx = 119 < 128.
-6. **`ics->num_windows`**: always set to 1 or 8 — no divide-by-zero in `1024/num_windows`.
-7. **Pulse data**: `pos[i]` validated `< swb_offset[num_swb]` before use; `num_pulse ≤ 4`, `pos[4]` array large enough.
-8. **do-while loop overruns**: all swb_offset tables use multiples-of-4 band sizes; `off_len` is always ≥ 4; no fractional iteration possible.
+**`decode_spectrum_and_dequant` (lines 57–350):**
+- `max_sfb` is validated ≤ `num_swb` in `decode_ics_info` before any use; `offsets[max_sfb]` is safe.
+- `pulse->pos[i]` is validated `< swb_offset[num_swb]` in `decode_pulses`; `coef_base[pulse->pos[i]]` (1024-element array) is in-bounds.
+- The while-loop `while (offsets[idx+1] <= pulse->pos[i])` can push `idx` above `max_sfb`, but `band_type[128]` and `sf[128]` are heap-zero-initialized, so reads are in-bounds and the guard `sf[idx]` short-circuits the write.
+- `ff_vlc_spectral[11]` is indexed by `cbt_m1` ∈ 0–10 (RESERVED_BT=12 explicitly rejected in `decode_band_types`).
+- ESC path: `b ≤ 8` → `b+4 ≤ 12` → `n ≤ (1<<12)+4095 = 8191 < LUT_SIZE=8192`. `ff_cbrt_tab` is in-bounds.
+- `do { } while (len -= 4)` overshoot: `swb_offset` tables are hardcoded with 4-aligned bands; attacker cannot control `off_len`.
+
+**`decode_cce` (lines 357–434):**
+- `num_coupled` ∈ 0–7; loop c ∈ 0–7; `coup->type[8]`, `id_select[8]`, `ch_select[8]` are in-bounds.
+- `num_gain` ≤ 16; `coup->gain[16][120]` first dimension safe.
+- Inner gain loop: `idx` reaches at most `num_window_groups * max_sfb − 1` ≤ 8×15−1=119 < 120. Second dimension safe.
 
 NO_VULN_FOUND
+
+<!-- AUDIT_PROMPT_VERSION: 1 -->

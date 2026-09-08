@@ -1,0 +1,52 @@
+UNVERIFIED
+
+=== Analysis ===
+
+The crafted DXA file with width=65532, height=32772 was generated and the FFmpeg
+ASAN binary was invoked with `-f dxa`. No crash or ASAN error was produced.
+
+=== Root Cause of Non-Trigger ===
+
+The vulnerability path is blocked by `av_image_check_size2()` inside `ff_set_dimensions()`
+in `libavcodec/avcodec.c` (line 235), called during `avcodec_open2()` from
+`avformat_find_stream_info()`.
+
+The check in `av_image_check_size2()` (`libavutil/imgutils.c`, lines 296-304):
+
+    int64_t stride = av_image_get_linesize(pix_fmt, w, 0);
+    if (stride <= 0)
+        stride = 8LL * w;       // AV_PIX_FMT_NONE path: 8*w (64bpp worst-case)
+    stride += 128*8;
+
+    if (stride*(h + 128ULL) >= INT_MAX) { return AVERROR(EINVAL); }
+
+With w=65532, h=32772, AV_PIX_FMT_NONE:
+    stride = 8*65532 + 1024 = 525280
+    stride*(h+128) = 525280 * 32900 = 17,281,712,000 >= INT_MAX (2,147,483,647)
+    → AVERROR(EINVAL) returned
+    → `ff_set_dimensions` returns error
+    → `avcodec_open2` goes to `free_and_end`, codec FAILS TO OPEN
+
+The decoder's `decode_init()` is never called with the large dimensions.
+The integer overflow in `c->dsize = avctx->width * avctx->height * 2` never executes.
+
+=== Mathematical Constraint ===
+
+For the int32 overflow to produce a small positive dsize, we need:
+    w * h >= 2^31 = 2,147,483,648
+
+The stride check requires (for AV_PIX_FMT_NONE):
+    (8*w + 1024) * (h + 128) < 2,147,483,647
+
+These two constraints are mutually exclusive: any (w,h) pair large enough to trigger
+the overflow will fail the stride check. The defensive check in av_image_check_size2
+prevents the vulnerability from being reached in this FFmpeg build.
+
+=== Observed Output ===
+  [IMGUTILS] Picture size 65532x32772 is invalid
+  [in#0/dxa] Failed to open codec in avformat_find_stream_info
+  Could not find codec parameters for stream 0 (Video: dxa, pal8): unspecified size
+  Error opening output file -.
+  EXIT=0
+
+No ASAN errors or unexpected memory accesses were detected.

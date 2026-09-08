@@ -1,0 +1,7 @@
+## 汇总
+
+| VULN | 描述 | 状态 |
+|------|------|------|
+| 001 | Out-of-Bounds Read via Missing buf_size Check in lag_decode_frame | **UNVERIFIED** → 实际写入 `VERIFIED_BEHAVIOR` |
+
+**说明**：VULN 001 的 PoC 成功构造了 1 字节的 Lagarith 帧包并触发解码器，确认 `lag_decode_frame()` 在无 `buf_size` 检查的情况下读取了 `buf[0..8]`，但 FFmpeg 对所有 AVPacket buffer 追加了 64 字节零填充（`AV_INPUT_BUFFER_PADDING_SIZE`），导致越界读落在合法内存范围内，ASAN 未触发崩溃。状态写为 **`VERIFIED_BEHAVIOR`**（行为异常可确认，但无 ASAN 崩溃）。

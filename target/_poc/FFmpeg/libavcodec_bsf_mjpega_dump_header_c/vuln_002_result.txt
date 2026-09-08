@@ -1,0 +1,237 @@
+=== Generating crafted MJPEG files ===
+Valid 1x1 JPEG frame: 159 bytes
+Malformed JPEG (basic): 11 bytes, APP1 at 2
+  i+8=10 < size=11: True
+  AV_RL32 reads [10..13], valid=[0..10] → 0 extra bytes OOB
+Malformed JPEG (with APP0): 29 bytes, APP1 at 20
+  i+8=28 < size=29: True
+  AV_RL32 reads [28..31], valid=[0..28] → 0 extra bytes OOB
+
+Written /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_bsf_mjpega_dump_header_c/vuln_002_input.mjpeg: 170 bytes (2 frames)
+Written /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_bsf_mjpega_dump_header_c/vuln_002_input_single.mjpeg: 11 bytes (1 malformed frame)
+Written /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_bsf_mjpega_dump_header_c/vuln_002_input_app0.mjpeg: 188 bytes
+Written /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_bsf_mjpega_dump_header_c/vuln_002_input_app0_single.mjpeg: 29 bytes (1 malformed frame with APP0)
+
+=== ffmpeg version ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+
+=== Approach A: output BSF with -c:v copy (two-frame file) ===
+
+--- [A1_copy] /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f mjpeg -i vuln_002_input.mjpeg -c:v copy -bsf:v mjpegadump -f null - ---
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, mjpeg, from 'vuln_002_input.mjpeg':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: mjpeg (Baseline), gray(bt470bg/unknown/unknown), 1x1 [SAR 1:1 DAR 1:1], 25 fps, 1200k tbr, 1200k tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (copy)
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: mjpeg (Baseline), gray(bt470bg/unknown/unknown), 1x1 [SAR 1:1 DAR 1:1], q=2-31, 25 fps, 1200k tbr, 1200k tbn
+Press [q] to stop, [?] for help
+[mjpegadump @ 0x50e000000480] could not find SOS marker in bitstream
+[vost#0:0/copy @ 0x517000000780] Error applying bitstream filters to a packet: Invalid data found when processing inputvideo:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-1.0 Lsize=N/A time=00:00:00.08 bitrate=N/A speed=64.2x elapsed=0:00:00.00    
+
+--- [A2_copy_app0] /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f mjpeg -i vuln_002_input_app0.mjpeg -c:v copy -bsf:v mjpegadump -f null - ---
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, mjpeg, from 'vuln_002_input_app0.mjpeg':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: mjpeg (Baseline), gray(bt470bg/unknown/unknown), 1x1 [SAR 1:1 DAR 1:1], 25 fps, 1200k tbr, 1200k tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (copy)
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: mjpeg (Baseline), gray(bt470bg/unknown/unknown), 1x1 [SAR 1:1 DAR 1:1], q=2-31, 25 fps, 1200k tbr, 1200k tbn
+Press [q] to stop, [?] for help
+[mjpegadump @ 0x50e000000480] could not find SOS marker in bitstream
+[vost#0:0/copy @ 0x517000000780] Error applying bitstream filters to a packet: Invalid data found when processing inputvideo:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-1.0 Lsize=N/A time=00:00:00.08 bitrate=N/A speed=59.6x elapsed=0:00:00.00    
+
+=== Approach B: original trigger (default transcode) ===
+
+--- [B1_orig] /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f mjpeg -i vuln_002_input.mjpeg -bsf:v mjpegadump -f null - ---
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, mjpeg, from 'vuln_002_input.mjpeg':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: mjpeg (Baseline), gray(bt470bg/unknown/unknown), 1x1 [SAR 1:1 DAR 1:1], 25 fps, 1200k tbr, 1200k tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (mjpeg (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[mjpeg @ 0x519000003280] error count: 268435455
+[mjpeg @ 0x519000003280] error y=0 x=0
+[mjpeg @ 0x519000003280] app: invalid len 0
+[mjpeg @ 0x519000003280] unable to decode APP fields: Invalid data found when processing input
+[mjpeg @ 0x519000003280] No JPEG data found in image
+[vist#0:0/mjpeg @ 0x514000000240] [dec:mjpeg @ 0x513000000ac0] Error submitting packet to decoder: Invalid data found when processing input
+[mjpegadump @ 0x50e000000580] Codec 'wrapped_avframe' (135169) is not supported by the bitstream filter 'mjpegadump'. Supported codecs are: mjpeg (7) 
+[vost#0:0/wrapped_avframe @ 0x517000000780] Error initializing bitstream filter: mjpegadump
+[vf#0:0 @ 0x51a000000080] Error sending frames to consumers: Invalid argument
+[vf#0:0 @ 0x51a000000080] Task finished with error: Invalid argument
+[vf#0:0 @ 0x51a000000080] Terminating thread with error: Invalid argument
+[out#0/null @ 0x511000000cc0] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.01    
+Conversion failed!
+
+=== Approach C: input BSF (before -i) ===
+
+--- [C1_input_bsf] /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f mjpeg -bsf:v mjpegadump -i vuln_002_input_single.mjpeg -f null - ---
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[mjpeg @ 0x519000000a80] app: invalid len 0
+[mjpeg @ 0x519000000a80] unable to decode APP fields: Invalid data found when processing input
+[mjpeg @ 0x519000000a80] No JPEG data found in image
+[in#0/mjpeg @ 0x517000000080] Could not find codec parameters for stream 0 (Video: mjpeg, none(bt470bg/unknown/unknown)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, mjpeg, from 'vuln_002_input_single.mjpeg':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: mjpeg, none(bt470bg/unknown/unknown), 25 fps, 1200k tbr, 1200k tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (mjpeg (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[mjpegadump @ 0x50e000000480] could not find SOS marker in bitstream
+[vist#0:0/mjpeg @ 0x514000000240] Error applying bitstream filters to a packet: Invalid data found when processing input
+[in#0/mjpeg @ 0x513000000200] Task finished with error: Invalid data found when processing input
+[in#0/mjpeg @ 0x513000000200] Terminating thread with error: Invalid data found when processing input
+[vf#0:0 @ 0x51a000000080] Cannot determine format of input 0:0 after EOF
+[vf#0:0 @ 0x51a000000080] Task finished with error: Invalid data found when processing input
+[vf#0:0 @ 0x51a000000080] Terminating thread with error: Invalid data found when processing input
+[vost#0:0/wrapped_avframe @ 0x517000000780] [enc:wrapped_avframe @ 0x511000001440] Could not open encoder before EOF
+[vost#0:0/wrapped_avframe @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/null @ 0x511000000f40] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+Conversion failed!
+
+--- [C2_input_bsf_twofr] /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f mjpeg -bsf:v mjpegadump -i vuln_002_input.mjpeg -f null - ---
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, mjpeg, from 'vuln_002_input.mjpeg':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: mjpeg (Baseline), gray(bt470bg/unknown/unknown), 1x1 [SAR 1:1 DAR 1:1], 25 fps, 1200k tbr, 1200k tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (mjpeg (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[mjpegadump @ 0x50e000000480] could not find SOS marker in bitstream
+[vist#0:0/mjpeg @ 0x514000000240] Error applying bitstream filters to a packet: Invalid data found when processing input
+[in#0/mjpeg @ 0x513000000200] Task finished with error: Invalid data found when processing input
+[in#0/mjpeg @ 0x513000000200] Terminating thread with error: Invalid data found when processing input
+[mjpeg @ 0x519000003280] error count: 268435455
+[mjpeg @ 0x519000003280] error y=0 x=0
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: wrapped_avframe, gray(pc, bt470bg/unknown/unknown, progressive), 1x1 [SAR 1:1 DAR 1:1], q=2-31, 200 kb/s, 25 fps, 25 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+[out#0/null @ 0x511000000f40] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:00.04 bitrate=N/A speed=3.67x elapsed=0:00:00.01    
+Conversion failed!
+
+=== Approach D: force codec params + copy ===
+
+--- [D1_forced] /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f mjpeg -i vuln_002_input_single.mjpeg -c:v copy -bsf:v mjpegadump -f null - ---
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[mjpeg @ 0x519000000a80] app: invalid len 0
+[mjpeg @ 0x519000000a80] unable to decode APP fields: Invalid data found when processing input
+[mjpeg @ 0x519000000a80] No JPEG data found in image
+[in#0/mjpeg @ 0x517000000080] Could not find codec parameters for stream 0 (Video: mjpeg, none(bt470bg/unknown/unknown)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, mjpeg, from 'vuln_002_input_single.mjpeg':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: mjpeg, none(bt470bg/unknown/unknown), 25 fps, 1200k tbr, 1200k tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (copy)
+[null @ 0x517000000400] dimensions not set
+[out#0/null @ 0x511000000cc0] Could not write header (incorrect codec parameters ?): Invalid argument
+Conversion failed!
+
+=== Approach E: wrap in AVI container first, then run BSF ===
+
+--- [E1_avi] /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i vuln_002_valid.avi -c:v copy -bsf:v mjpegadump -f null - ---
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, avi, from 'vuln_002_valid.avi':
+  Metadata:
+    software        : Lavf63.6.100
+  Duration: 00:00:00.08, start: 0.000000, bitrate: 708 kb/s
+  Stream #0:0: Video: mjpeg (Baseline) (MJPG / 0x47504A4D), gray(bt470bg/unknown/unknown), 1x1 [SAR 1:1 DAR 1:1], 600 fps, 600 tbr, 600 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (copy)
+Output #0, null, to 'pipe:':
+  Metadata:
+    software        : Lavf63.6.100
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: mjpeg (Baseline) (MJPG / 0x47504A4D), gray(bt470bg/unknown/unknown), 1x1 [SAR 1:1 DAR 1:1], q=2-31, 600 fps, 600 tbr, 600 tbn
+Press [q] to stop, [?] for help
+[mjpegadump @ 0x50e000000480] could not find SOS marker in bitstream
+[vost#0:0/copy @ 0x517000000780] Error applying bitstream filters to a packet: Invalid data found when processing inputvideo:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-1.0 Lsize=N/A time=00:00:00.04 bitrate=N/A speed=33.9x elapsed=0:00:00.00    
+
+=== Summary of ASAN logs ===
+
+=== Done ===
+EXIT=0

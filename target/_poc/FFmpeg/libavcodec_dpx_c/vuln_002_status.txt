@@ -1,0 +1,23 @@
+UNVERIFIED
+
+The PoC did not trigger the intended vulnerability. Two independent guards
+block the exploit path before the stride integer overflow can occur:
+
+1. av_image_check_size2 (via ff_set_dimensions at line 348) rejects the
+   combination width=268435327, height=2 with the message:
+     "Picture size 268435327x2 is invalid"
+   This returns AVERROR_INVALIDDATA before the stride computation switch-case
+   at line 493 is ever reached.
+
+2. Even if a smaller height (e.g. height=1) were used to satisfy size limits,
+   the check at line 369:
+     if (avctx->bits_per_raw_sample > 31) return AVERROR_INVALIDDATA;
+   would intercept bits=32 before stride = 4 * width * 4 is computed.
+
+3. For bits=32, descriptor=51 (RGBA, elements=4), the unpack_frame() path
+   does NOT call av_image_copy_plane() with dpx->stride — it uses a
+   pixel-by-pixel loop (lines 215-237) that bypasses dpx->stride entirely.
+   The av_image_copy_plane() call using dpx->stride (lines 211-213) is only
+   reached when elements == 1 (single-component descriptors).
+
+No ASAN output was produced. FFmpeg exited cleanly with error status.

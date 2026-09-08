@@ -1,12 +1,14 @@
-After thorough analysis of `aac_ac3_parser.c` and all related functions (`ff_combine_frame`, `ac3_sync`, `aac_sync`, `ff_ac3_find_syncword`, `avpriv_ac3_parse_header`), here is a summary of what was examined:
+After thorough analysis of `aac_ac3_parser.c` (173 lines), its direct callees (`ac3_parser.c`, `parser.c`), and all related headers, here are my findings:
 
-- **`s->remaining_size` arithmetic** (lines 67–75): Can yield negative `i` after `i -= s->header_size - 1`, but `s->remaining_size = len + i` stays positive because `len` (AC3 ≥ 7, regular AC3 ≥ 128) and minimum `i` offset are bounded. No underflow to negative.
-- **Sync loop OOB** (line 57–58): `buf[i]` loop starts at `s->remaining_size`; since `remaining_size ≥ 0` and `i < buf_size`, no negative index.
-- **`av_crc` bounds** (line 122): `hdr.frame_size ≤ buf_size` is validated at line 112 before the call; `hdr.frame_size ≥ 7` guaranteed by parser, so `hdr.frame_size - 2 ≥ 5`, no underflow.
-- **`ff_combine_frame` buffer management**: Uses `av_fast_realloc` with `AV_INPUT_BUFFER_PADDING_SIZE` (64 bytes) tail padding; all `memcpy` lengths are checked.
-- **`bit_rate` use** (line 167): All early-return paths before `bit_rate = hdr.bit_rate` assignments (lines 105, 113, 123) `return i` before reaching the division at line 167; no uninitialized read.
-- **Division by zero** (line 167): `s->frame_number` is incremented to 1 before first use; safe.
-- **`ff_ac3_find_syncword` 1-byte OOB** (ac3_parser.c:66): The `buf[i+1]` access when `i = buf_size-1` reads one byte past the end, but FFmpeg's documented contract guarantees 64-byte padding on all packet buffers.
-- **While-loop termination** (lines 109–124): `hdr.frame_size ≥ 7` ensures `buf_size` decreases each iteration.
+**Boundary checks reviewed:**
+- `buf[i]` accesses are all guarded by `i < buf_size` (line 57 loop)
+- `hdr.frame_size <= buf_size` is checked before CRC call (line 112)
+- `ff_ac3_find_syncword`'s potential `buf[i+1]` read at even `buf_size` — reads into the mandatory `AV_INPUT_BUFFER_PADDING_SIZE` zero padding that `ff_combine_frame` allocates; not exploitable
+- `s->remaining_size` arithmetic: minimum AC3/EAC3 frame_size = `AC3_HEADER_SIZE = 7`; subtracting at most `header_size - 1 = 6` keeps it non-negative
+- `ff_combine_frame`'s `next + AV_INPUT_BUFFER_PADDING_SIZE` memcpy size is guarded by `if (next > -AV_INPUT_BUFFER_PADDING_SIZE)`
+- `avpriv_ac3_parse_header(&phrd, ...)` with stack-allocated `phrd = &hdr` (non-NULL) skips the malloc path; no memory leak or UAF
+- `s->frame_number` is pre-incremented before division; no divide-by-zero
 
 NO_VULN_FOUND
+
+<!-- AUDIT_PROMPT_VERSION: 1 -->

@@ -1,14 +1,13 @@
-After a complete read and trace of all execution paths in `tf_json.c` (213 lines), plus the supporting headers `avtextformat.h` and `tf_internal.h`, here is the analysis:
+全コードと関連ヘッダーを確認しました。分析結果をまとめます。
 
-**Functions analyzed:**
-- `json_init` — trivial setup, no memory operations
-- `json_escape_str` — AVBPrint-based string escaping with `AV_BPRINT_SIZE_UNLIMITED` (auto-growing, no fixed buffers); loop terminates at `\0`, no embedded-null issue
-- `json_print_section_header` — `wctx->level` validated by `tf_get_section` before any `nb_item[level-1]` access; `JSON_INDENT` uses `indent_level * 4` which is capped at ~48 (12 levels × 4)
-- `json_print_section_footer` — same bounds logic
-- `json_print_item_str` — `json_escape_str` can return NULL (if `key`/`value` is NULL), but: (a) keys are compile-time constants, (b) values from media metadata go through AVDictionary which guarantees non-NULL, (c) on glibc `printf("%s", NULL)` emits "(null)" without crashing — not a reliable exploit path
-- `json_print_str` / `json_print_int` — `wctx->nb_item[wctx->level]` access protected by `tf_get_section` bounds check; `SECTION_MAX_NB_LEVELS = 12` keeps array index in range
+**分析結果：**
 
-**No memory-safety–relevant paths to external data were found.** Section names are compile-time constants; the formatter is downstream of the demuxer/decoder and only receives already-parsed metadata strings that go through the safe AVBPrint-based escaping layer.
+- `tf_json.c`（213行）は純粋な出力フォーマッターであり、外部メディアファイルのバイトストリームを直接パースしない
+- すべての文字列バッファは `AVBPrint`（`AV_BPRINT_SIZE_UNLIMITED`）で動的管理され、固定サイズスタック/ヒープバッファへの書き込みは皆無
+- `av_malloc`/`av_realloc`/`memcpy`/`strcpy`/`sprintf` の呼び出しが一切存在しない
+- `indent_level` は `SECTION_MAX_NB_LEVELS=12` で上限が設けられており、`JSON_INDENT()` マクロの `indent_level * 4` 演算はオーバーフロー不可能
+- `json_escape_str()` で NULL を受け取った場合に NULL を返し、呼び出し元の `writer_printf` に `%s` として渡す（UB）パスは `json_print_item_str()` に存在するが、この引数は内部 FFmpeg コードから渡されるものであり、外部メディアファイルから直接注入できる攻撃経路が存在しない
+- `av_bprint_init`/`av_bprint_finalize` のライフサイクルは全パスで正確に管理されており、メモリリークや二重解放も見当たらない
 
 NO_VULN_FOUND
 

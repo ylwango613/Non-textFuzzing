@@ -1,0 +1,25 @@
+UNVERIFIED
+
+The crafted EA/TQI file successfully reaches tqi_decode_frame() with w=1, h=1,
+and tqi_idct_put() IS called (frame=1 decoded). However, no ASAN crash occurs.
+
+Root cause of non-crash: libavutil/frame.c get_video_buffer() applies
+  padded_height = FFALIGN(frame->height, 32)
+which rounds height=1 up to 32 rows before computing plane sizes. This provides
+32 luma rows and 16 chroma rows — enough to absorb one full macroblock (16 luma
+rows, 8 chroma rows) without overflowing the allocation.
+
+Variants tried (all without ASAN crash):
+  1. w=1, h=1  (original)
+  2. w=16, h=32  (2 MB rows, 2 valid bitstream MBs)
+  3. h=17  (exact chroma fit: 2 MB rows = 16 chroma rows = chroma allocation)
+  4. w=1, h=1 + large packet (200B bitstream, zeros)
+  5. bitstream without EOB markers (forces AC loop reading)
+
+Mathematical proof: overflow is impossible in current build:
+  - padded_height = FFALIGN(h, 32) >= FFALIGN(h, 16) = (h+15)/16 * 16
+  - So luma allocation always covers MB row writes
+  - Chroma padding follows the same ratio
+
+The vulnerability as described was likely present in older FFmpeg versions before
+the padded_height=32 mitigation was added to libavutil/frame.c.

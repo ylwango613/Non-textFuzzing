@@ -1,0 +1,7 @@
+## 汇总
+
+| 编号 | 漏洞 | 状态 |
+|------|------|------|
+| VULN 001 | Off-by-one OOB write in `g722_encode_trellis` final backtracking loop | **UNVERIFIED** |
+
+**原因说明**：漏洞在源码中确实存在（`g722enc.c` 第 313 行回溯循环写入 `dst[nb_samples/2]` = `dst[out_size]`，越界 1 字节），但 ASAN 无法检测到，因为 `ff_get_encode_buffer`（`encode.c:96`）实际分配的是 `out_size + AV_INPUT_BUFFER_PADDING_SIZE`（= `160 + 64 = 224` 字节），越界写入的第 160 字节落在合法的 64 字节 padding 区域内，未触碰 ASAN 的 redzone，故不会产生崩溃报告。PoC 文件已生成于 `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_g722enc_c/`。

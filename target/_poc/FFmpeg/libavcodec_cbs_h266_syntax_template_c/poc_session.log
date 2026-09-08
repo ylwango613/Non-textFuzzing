@@ -1,0 +1,9 @@
+## Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | OOB Heap Write in VPS Parsing via vps_num_ptls_minus1 Exceeding VVC_MAX_PTLS | **UNVERIFIED** |
+
+**Key finding**: The vulnerability as described in the audit report is structurally impossible. `vps_num_ptls_minus1` is read with `u(8, ...)` — a fixed 8-bit read — capping its value at 255. Since `VVC_MAX_PTLS = 256`, all three affected arrays have valid indices 0–255, making the claimed OOB write (at index 256) unreachable. The audit report's assertion that "256 can be encoded as an 8-bit value 0x100" is incorrect (0x100 requires 9 bits).
+
+The PoC was generated, run against the ASAN-instrumented binary (`build_test/ffmpeg`), and produced no ASAN errors — confirming the vulnerability is not triggerable as described. Status written as `UNVERIFIED`.

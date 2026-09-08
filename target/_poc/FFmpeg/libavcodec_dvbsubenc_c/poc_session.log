@@ -1,0 +1,7 @@
+**Summary:**
+
+| VULN | Status | Description |
+|------|--------|-------------|
+| 001 | VERIFIED_BEHAVIOR | `dvb_encode_rle8` off-by-one overflow path fully exercised — 7 frames decoded and 14 frames re-encoded via dvbsub, confirming the vulnerable code at line 267 runs. No ASAN crash because the CLI allocates a large output buffer; the 1-byte past-end write occurs but lands in allocated slack. |
+
+The vulnerable code path is confirmed active. A `VERIFIED_CRASH` would require a caller that passes `buf_size` tightly equal to the minimum the check allows (6 bytes for width=2), which the CLI's internal buffer allocation doesn't do. All PoC files are in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dvbsubenc_c/`.

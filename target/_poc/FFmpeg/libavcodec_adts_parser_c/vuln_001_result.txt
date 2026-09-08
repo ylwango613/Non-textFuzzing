@@ -1,0 +1,44 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      === Done. Result in vuln_001_result.txt ===
+ 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0 @ 0x517000000080] Opening 'poc_key.bin' for reading
+[in#0 @ 0x517000000080] Opening 'segment.ts' for reading
+Format mpegts detected only with low score of 2, misdetection possible!
+[mpegts @ 0x517000000400] Could not detect TS packet size, defaulting to non-FEC/DVHS
+[aac @ 0x519000001480] Input buffer exhausted before END element found
+[in#0/hls @ 0x517000000080] Could not find codec parameters for stream 0 (Audio: aac (LC) ([15][0][0][0] / 0x000F), mono, fltp): unspecified sample rate
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, hls, from 'vuln_001_input.m3u8':
+  Duration: 00:00:10.00, start: 0.000000, bitrate: 0 kb/s
+  Program 0 
+    Metadata:
+      variant_bitrate : 0
+  Stream #0:0[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), mono, fltp
+    Metadata:
+      variant_bitrate : 0
+Stream mapping:
+  Stream #0:0 -> #0:0 (aac (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+[aac @ 0x519000004180] Input buffer exhausted before END element found
+[aist#0:0/aac @ 0x514000000840] [dec:aac @ 0x513000001380] Error submitting packet to decoder: Invalid data found when processing input
+[aist#0:0/aac @ 0x514000000840] [dec:aac @ 0x513000001380] Decode error rate 1 exceeds maximum 0.666667
+[aist#0:0/aac @ 0x514000000840] [dec:aac @ 0x513000001380] Task finished with error: Error number -1145393733 occurred
+[aist#0:0/aac @ 0x514000000840] [dec:aac @ 0x513000001380] Terminating thread with error: Error number -1145393733 occurred
+[graph_-1_in_0:0 @ 0x51100001a300] Sample rate not set
+[af#0:0 @ 0x51a000000080] Error initializing filters!
+[af#0:0 @ 0x51a000000080] Task finished with error: Invalid argument
+[af#0:0 @ 0x51a000000080] Terminating thread with error: Invalid argument
+[aost#0:0/pcm_s16le @ 0x517000005800] [enc:pcm_s16le @ 0x511000001440] Could not open encoder before EOF
+[aost#0:0/pcm_s16le @ 0x517000005800] Task finished with error: Invalid argument
+[aost#0:0/pcm_s16le @ 0x517000005800] Terminating thread with error: Invalid argument
+[out#0/null @ 0x511000000f40] Nothing was written into output file, because at least one of its streams received no packets.
+size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+Conversion failed!
+EXIT=0

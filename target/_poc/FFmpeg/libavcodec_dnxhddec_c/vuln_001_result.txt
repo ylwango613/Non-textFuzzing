@@ -1,0 +1,37 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0 @ 0x517000000080] mov tag found in avi (fourcc AVDN)
+[dnxhd @ 0x519000000a80] ac tex damaged 0, 64
+[dnxhd @ 0x519000000a80] 1 lines with errors
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:00.04, start: 0.000000, bitrate: 200 kb/s
+  Stream #0:0: Video: dnxhd (DNXHR SQ) (AVDN / 0x4E445641), yuv422p(bt709/unknown/unknown), 16x16, 25 fps, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (dnxhd (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[dnxhd @ 0x519000002880] ac tex damaged 0, 64
+[dnxhd @ 0x519000002880] 1 lines with errors
+[vist#0:0/dnxhd @ 0x514000000240] [dec:dnxhd @ 0x513000000900] Decoding error: Invalid data found when processing input
+[vist#0:0/dnxhd @ 0x514000000240] [dec:dnxhd @ 0x513000000900] Decode error rate 1 exceeds maximum 0.666667
+[vist#0:0/dnxhd @ 0x514000000240] [dec:dnxhd @ 0x513000000900] Task finished with error: Error number -1145393733 occurred
+[vist#0:0/dnxhd @ 0x514000000240] [dec:dnxhd @ 0x513000000900] Terminating thread with error: Error number -1145393733 occurred
+[vf#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: wrapped_avframe, yuv422p(progressive), 16x16, q=2-31, 200 kb/s, 25 fps, 25 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+[out#0/null @ 0x511000000e00] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000000e00] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+frame=    0 fps=0.0 q=0.0 Lsize=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+Conversion failed!
+EXIT=0

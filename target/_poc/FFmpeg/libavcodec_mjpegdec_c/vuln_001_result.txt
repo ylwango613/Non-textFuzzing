@@ -1,0 +1,71 @@
+Written 149 bytes to vuln_001_input.jpg
+  NOTE: This file will be REJECTED by FFmpeg pixel format check (pix_fmt=0x31211100).
+  The SOF fails before blocks[] is allocated; SOS OOB never reached.
+Written 149 bytes to vuln_001_input_alt.jpg
+  NOTE: This file uses recognized format 0x31111100 (YUV444P-like).
+  Exercises the vulnerable code path but no OOB (3*ceil(w/24)>=ceil(w/8)).
+=== Primary PoC (3:2:1 subsampling, ideal trigger) ===
+=== Alternative PoC (3:1:1 subsampling, recognized format) ===
+ersion N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[mjpeg @ 0x519000000a80] Pixel format 0x31211100 bits:8 is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[in#0/jpeg_pipe @ 0x517000000080] Could not find codec parameters for stream 0 (Video: mjpeg (Progressive), none(bt470bg/unknown/unknown), 72x8): unspecified pixel format
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, jpeg_pipe, from 'vuln_001_input.jpg':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: mjpeg (Progressive), none(bt470bg/unknown/unknown), 72x8, 25 fps, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (mjpeg (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[mjpeg @ 0x519000002380] Pixel format 0x31211100 bits:8 is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[vist#0:0/mjpeg @ 0x514000000240] [dec:mjpeg @ 0x513000000ac0] Error submitting packet to decoder: Not yet implemented in FFmpeg, patches welcome
+[vist#0:0/mjpeg @ 0x514000000240] [dec:mjpeg @ 0x513000000ac0] Decode error rate 1 exceeds maximum 0.666667
+[vf#0:0 @ 0x51a000000080] Cannot determine format of input 0:0 after EOF
+[vf#0:0 @ 0x51a000000080] Task finished with error: Invalid data found when processing input
+[vf#0:0 @ 0x51a000000080] Terminating thread with error: Invalid data found when processing input
+[vist#0:0/mjpeg @ 0x514000000240] [dec:mjpeg @ 0x513000000ac0] Task finished with error: Error number -1145393733 occurred
+[vost#0:0/wrapped_avframe @ 0x517000000780] [enc:wrapped_avframe @ 0x511000001440] Could not open encoder before EOF
+[vist#0:0/mjpeg @ 0x514000000240] [dec:mjpeg @ 0x513000000ac0] Terminating thread with error: Error number -1145393733 occurred
+[vost#0:0/wrapped_avframe @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/null @ 0x511000000f40] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+Conversion failed!
+
+=== Alternative PoC (3:1:1 subsampling, recognized format) ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, jpeg_pipe, from 'vuln_001_input_alt.jpg':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: mjpeg (Progressive), yuvj444p(pc, bt470bg/unknown/unknown), 72x8, 25 fps, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (mjpeg (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[mjpeg @ 0x519000002380] component 0 is incomplete
+[mjpeg @ 0x519000002380] component 1 is incomplete
+[mjpeg @ 0x519000002380] component 2 is incomplete
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: wrapped_avframe, yuvj444p(pc, bt470bg/unknown/unknown, progressive), 72x8, q=2-31, 200 kb/s, 25 fps, 25 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+[out#0/null @ 0x511000000f40] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:00.04 bitrate=N/A speed=3.55x elapsed=0:00:00.01    
+EXIT=0

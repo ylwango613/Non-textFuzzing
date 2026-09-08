@@ -1,0 +1,8 @@
+UNVERIFIED
+The PoC ran to completion (exit 0) with no ASAN errors. The reported heap OOB via crafted
+quant-table context index is a mathematical false positive: the FFV1 quant table encoding
+system guarantees context < context_count for any valid quant table configuration. With
+all-zero tables (context_count=1), get_context() always returns 0, which is in bounds.
+With non-trivial tables, the cumulative-product scale design keeps the maximum reachable
+context strictly below context_count. The av_assert2 at ffv1dec_template.c:77 is a no-op
+in release builds but would never be violated even if enabled. See vuln_001_notes.md.

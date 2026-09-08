@@ -1,0 +1,9 @@
+UNVERIFIED
+parse_ext_ele() fragmented extension element accumulation path confirmed reachable
+with usacExtElementPayloadFrag=1. Integer overflow (uint32_t pl_data_offset + len)
+requires ~4.3 GB input (~65,278 frames x ~65,788 bytes/frame) to trigger; the
+overflow threshold is impractical for a small PoC file. ffmpeg decodes the crafted
+1171-byte MP4 without error (exit 0, audio:20KiB decoded, no ASAN errors), confirming
+the vulnerable code path is exercised. The structural vulnerability (no overflow check
+at line 1995 in aacdec_usac.c before av_refstruct_alloc_ext(pl_data_offset + len, ...))
+exists and is reachable via crafted USAC input.

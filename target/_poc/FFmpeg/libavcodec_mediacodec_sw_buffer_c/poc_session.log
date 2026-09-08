@@ -1,0 +1,8 @@
+Both subagents have completed. Here is the summary:
+
+| VULN | 描述 | 状态 |
+|------|------|------|
+| VULN 001 | OOB Read via Unchecked `src` Offset in YUV420 SW Copy Functions | **SKIPPED** |
+| VULN 002 | Signed Integer Overflow in `height * stride` → Heap OOB Write | **SKIPPED** |
+
+**跳过原因**：两个漏洞均位于 Android MediaCodec 专属代码路径（`ff_mediacodec_dec_receive` → `mediacodec_wrap_sw_video_buffer`），依赖 Android 系统库（`libmediandk`/`libandroid`）。确认 ffmpeg 二进制无任何 mediacodec 解码器（`-decoders | grep -i mediacodec` 无输出），在 Linux 宿主机上无论构造何种畸形媒体文件均无法触达漏洞函数，故两者均依规跳过。

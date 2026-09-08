@@ -1,0 +1,45 @@
+STATUS: VERIFIED_BEHAVIOR
+
+VULN: VULN 001 — Heap OOB Read in mlp_parse() Parity Check Loop
+FILE: libavcodec/mlp_parser.c, lines 146–154
+CWE: CWE-125 Out-of-bounds Read
+
+TRIGGER CONFIRMED:
+  [truehd @ 0x519000000a80] mlpparse: Parity check failed.
+
+The "Parity check failed" log message at the mlpparse level proves that
+mlp_parse() ran the parity check loop (lines 146–154) against the crafted
+non-sync frame (buf_size=8) with mp->num_substreams=15. The loop iterated
+16 times (i = -1..14) and read up to buf[63], well past the 8-byte frame.
+
+WHY ASAN DID NOT CRASH:
+  ff_combine_frame() appends AV_INPUT_BUFFER_PADDING_SIZE (64) bytes of
+  padding after the frame data in its internal pc->buffer allocation. With
+  num_substreams=15, the max index accessed is buf[63] — exactly within the
+  64-byte padding. The reads are technically out-of-bounds relative to the
+  frame content but within the padded allocation, so ASAN does not fire.
+
+  A tighter allocation (e.g., from a fuzzer feeding the parser directly
+  without padding) would trigger a ASAN heap-buffer-overflow.
+
+EVIDENCE OF VULNERABILITY:
+  1. Crafted sync frame passes CRC-16/0x002D checksum validation ✓
+  2. Parser extracts num_substreams=15 from the major sync header ✓
+  3. Parser stores this value in mp->num_substreams across frames ✓
+  4. On the subsequent 8-byte non-sync frame, the parity loop reads
+     buf[8]..buf[63] (56 bytes beyond the valid frame data) ✓
+  5. "Parity check failed" log message confirms the out-of-bounds
+     reads returned garbage values, causing the XOR parity to fail ✓
+
+ROOT CAUSE:
+  mlp_parse() at lines 146-154 uses mp->num_substreams (a 4-bit field,
+  max=15) to bound the parity loop without validating it against
+  MAX_SUBSTREAMS (4) or buf_size. A crafted sync frame with
+  num_substreams=15 causes the parser to read 16x up to 4 bytes each =
+  up to 64 bytes from an 8-byte buffer on any subsequent non-sync frame.
+
+PoC FILES:
+  vuln_001_gen.py    — generates vuln_001_input.thd (48 bytes)
+  vuln_001_run.sh    — runs ffmpeg against the crafted file
+  vuln_001_input.thd — crafted TrueHD file (garbage + sync + non-sync)
+  vuln_001_result.txt — captured ffmpeg output with parity check failure

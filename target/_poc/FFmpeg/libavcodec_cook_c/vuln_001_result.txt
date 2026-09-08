@@ -1,0 +1,45 @@
+=== Step 1: Generate crafted .rm file ===
+[+] Written 2336 bytes to /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_cook_c/vuln_001_input.rm
+    cook_extra length    : 16
+    ra_header length     : 90
+    codec_data length    : 94
+    js_subband_start     : 50 (OOB trigger)
+    subbands             : 3
+    total_subbands       : 53 (≤ 53 limit)
+    samples_per_channel  : 512 (must be 256/512/1024)
+
+=== Step 2: Verify ffmpeg binary and check for ASAN ===
+-rwxrwxr-x 1 yuelinwang yuelinwang 615618800 Sep  6 23:24 /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+[!] No ASAN symbols found in binary (may still work if linked dynamically)
+
+=== Step 3: Run ffmpeg on crafted input ===
+Command: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_cook_c/vuln_001_input.rm -f null -
+
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, rm, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_cook_c/vuln_001_input.rm':
+  Duration: 00:00:10.00, start: 0.000000, bitrate: 1 kb/s
+  Stream #0:0: Audio: cook (cook / 0x6B6F6F63), 44100 Hz, stereo, fltp
+Stream mapping:
+  Stream #0:0 -> #0:0 (cook (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000e00] video:0KiB audio:4KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+size=N/A time=00:00:00.04 bitrate=N/A speed=3.59x elapsed=0:00:00.01    
+
+=== Step 4: Results ===
+ffmpeg exit code: 0
+EXIT=0

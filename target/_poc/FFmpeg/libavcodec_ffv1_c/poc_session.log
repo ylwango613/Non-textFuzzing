@@ -1,0 +1,11 @@
+The subagent has completed. Here is the summary:
+
+---
+
+## Results Summary
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| VULN 001 — OOB Stack Array Access in `decode_current_mul` via 32-bit FFV1 remap | **SKIPPED** | Two reasons: (1) the audit report's math is incorrect — with `mul_count = 4096` and `i = 0x100000000`, `ndx = (0x100000000 × 4096) >> 32 = 4096`, which is the *last valid* index of the 4097-element `mul[]` array, not an OOB access; (2) reaching `i = 0xFFFFFFFF` in the remap loop would require a ~48 GB frame containing one pixel per IEEE 754 float bit-pattern — not practically triggerable via `ffmpeg -i <file>`. All mutation attempts produced `AVERROR_INVALIDDATA` with no ASAN hit. |
+
+**Conclusion**: VULN 001 is not reproducible via `ffmpeg -i <crafted_file> -f null -`. The vulnerability as described in the audit report contains a mathematical error — the actual array index computed is `4096` (the last valid slot in a 4097-element array), not `268,435,456`. There is a genuine logic anomaly (calling `decode_current_mul` with `i` outside its valid domain), but it does not cause an out-of-bounds access under current code constraints.

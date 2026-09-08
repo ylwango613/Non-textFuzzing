@@ -1,0 +1,7 @@
+## Summary
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| VULN 001 — Integer Overflow in `decode_i_frame` → Heap OOB Read | **VERIFIED_BEHAVIOR** | Vulnerable code path confirmed reached; ASAN did not crash because `av_new_packet` adds 64-byte padding beyond the logical buffer end, keeping the two OOB reads physically within the malloc block |
+
+**Key finding**: The integer overflow on line 790 (`4 * 0x40000000 = 0 mod 2^32`) is confirmed to bypass both size sanity checks (lines 793–794), and `read_huffman_tables()` is called with `prestream = buf + length` (one past logical end). The `"invalid data in read_huffman_tables"` error message in the output confirms lines 635–636 executed with `buf_size=0`. ASAN did not produce a crash signature because FFmpeg's `av_new_packet()` appends `AV_INPUT_BUFFER_PADDING_SIZE` (64 bytes) of extra allocation, absorbing the 2-byte OOB read into physically valid memory. A real exploitability scenario would need to eliminate that padding or extend the read further.

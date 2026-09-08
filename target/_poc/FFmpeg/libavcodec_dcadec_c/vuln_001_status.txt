@@ -1,0 +1,32 @@
+STATUS: VERIFIED_CRASH
+
+AddressSanitizer confirmed a global-buffer-overflow (OOB read) in ff_dca_set_channel_layout().
+
+== ASAN Report Summary ==
+ERROR: AddressSanitizer: global-buffer-overflow
+READ of size 1 at 0x5e1bb26d64df
+Function: ff_dca_set_channel_layout (libavcodec/dcadec.c)
+
+Call stack:
+  #0  ff_dca_set_channel_layout          (dcadec.c)
+  #1  ff_dca_core_filter_frame           (dca_core.c)
+  #2  dcadec_decode_frame                (dcadec.c)
+  #3  decode_simple_internal
+  ...
+
+Root cause reported by ASAN:
+  "0x5e1bb26d64df is located 3 bytes after global variable 'dca2wav_norm'
+   defined in 'src/libavcodec/dcadec.c:38:22' (size 28)"
+
+  dca2wav_norm has 28 elements (indices 0–27).  With xxch_spkr_mask bit 31 set
+  and -channel_order coded, the loop in ff_dca_set_channel_layout() reaches
+  dca_ch=31 and reads dca2wav_norm[31] → 3 bytes past end of the 28-byte array.
+
+== Trigger ==
+  Input file: vuln_001_input.dca (128-byte crafted DCA CSS frame)
+  Command:    ffmpeg -nostdin -channel_order coded -f dts -i vuln_001_input.dca -f null /dev/null
+
+== Conclusion ==
+  CWE-125 Out-of-Bounds Read is reproducible with the crafted input.
+  The vulnerability exists in ff_dca_set_channel_layout() when a DCA file
+  carries a XXCH extension with xxch_spkr_mask bit 31 (speaker RSV4) set.

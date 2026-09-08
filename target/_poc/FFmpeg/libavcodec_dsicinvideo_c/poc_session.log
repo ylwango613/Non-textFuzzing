@@ -1,0 +1,8 @@
+Both subagents have completed. Here is the final summary:
+
+| VULN | Description | Status |
+|------|-------------|--------|
+| 001 | `cin_decode_huffman` heap OOB read — missing `src_size` check before 15-byte `memcpy` (line 104) | **VERIFIED_BEHAVIOR** |
+| 002 | `cin_decode_huffman` heap OOB read — missing `src_end` check in decode loop (lines 111, 120) | **VERIFIED_BEHAVIOR** |
+
+**Key finding for both**: The vulnerable code paths were confirmed reached (ASAN logs and ffmpeg output show the decoder entered `cin_decode_huffman` with the crafted inputs), but ASAN did not report a crash because `av_new_packet()` always appends 64 bytes of padding (`AV_INPUT_BUFFER_PADDING_SIZE`) to every packet allocation. The logical out-of-bounds reads land within this padding region, so the memory access doesn't fault. A true ASAN crash would require a tightly-bounded allocation (e.g., via `av_packet_from_data()` with an exact-size `malloc`), which is a harness-only approach disallowed by the rules.

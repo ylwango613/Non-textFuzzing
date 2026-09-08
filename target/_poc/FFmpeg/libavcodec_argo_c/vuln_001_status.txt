@@ -1,0 +1,28 @@
+VERIFIED_BEHAVIOR
+
+The decode_mad1() case-8 OOB write vulnerability code path is successfully triggered:
+  - AVI file parsed correctly (ffmpeg reports "argo (Argo / 0x6F677241), pal8, 8x10")
+  - decode_frame() receives the MAD1-tagged frame packet
+  - decode_mad1() case 8 executes for h=10, w=8
+  - Outer loop iterates y=0 and y=8 (h=10 is not a multiple of 8)
+  - At y=8, inner loop writes 8 rows (rows 8-15), but frame->height=10 only has rows 0-9
+
+No ASAN crash/heap-buffer-overflow was reported. Reason:
+  - libavutil/frame.c line 110: padded_height = FFALIGN(frame->height, 32)
+  - For h=10: padded_height=32, so plane-0 is allocated as linesize*32 bytes
+  - Case-8 overflow rows (10-15) fall within the padded allocation (rows 0-31)
+  - For ALL even heights h that are not multiples of 8, the maximum 7-row overflow
+    is fully absorbed by the FFALIGN(h,32) padding (analysis confirmed for h=2..30)
+
+The vulnerability is real (incorrect bounds: loop should use y+8<=h, mirroring the
+y+12<=h guard in decode_mad1_24 case 8), and constitutes CWE-787 Out-of-bounds Write
+into a logically unowned region (the padding beyond frame->height rows). In allocators
+without such large alignment padding, or under memory pressure scenarios, this could
+corrupt adjacent heap data.
+
+Evidence:
+  - ffmpeg exits with code 0 (no crash)
+  - "frame= 1" decoded successfully (confirms decode_mad1 case 8 was reached)
+  - vuln_001_result.txt shows no ASAN error messages
+  - Mathematical proof: max overflow rows = 7, min FFALIGN(h,32) extra rows >= 7
+    (tight when h%32 in {25..31}) => overflow never escapes allocation

@@ -1,0 +1,21 @@
+The subagent has completed. Here is the summary:
+
+---
+
+## PoC Generation Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | h261_find_frame_end returns i-2 causing 1-byte heap OOB read in ff_combine_frame | **UNVERIFIED** |
+
+**Key finding from the subagent:**
+
+The subagent determined that the OOB read at `pc->buffer[-1]` is **mathematically unreachable** in practice. The two required conditions are mutually exclusive:
+
+- Triggering `h261_find_frame_end` to return `-1` requires `frame_start_found=1`
+- Achieving `pc->last_index=0` (needed for the OOB access) requires a prior complete frame delivery, which resets `frame_start_found=0`
+
+These two conditions cannot both be true simultaneously, so while the audit report's logic is theoretically sound, the actual memory access path cannot be triggered through the real ffmpeg execution flow. The PoC ran successfully (EXIT=0, processed 2 frames) but produced no ASAN error.
+
+**Files written to** `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_h261_parser_c/`:
+- `vuln_001_gen.py`, `vuln_001_run.sh`, `vuln_001_notes.md`, `vuln_001_result.txt`, `vuln_001_status.txt` → `UNVERIFIED`

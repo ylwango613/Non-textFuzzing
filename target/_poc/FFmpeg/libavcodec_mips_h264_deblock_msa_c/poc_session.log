@@ -1,0 +1,9 @@
+Subagent completed. Here is the summary:
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| 001 | **SKIPPED** | Architecture mismatch — the vulnerability is in MIPS MSA-specific code (`libavcodec/mips/h264_deblock_msa.c`), but the target binary is x86-64. The `ff_h264_loop_filter_strength_msa` code path is never reached on x86-64 regardless of input. |
+
+Files written to `_poc/FFmpeg/libavcodec_mips_h264_deblock_msa_c/`:
+- `vuln_001_status.txt` — `SKIPPED`
+- `vuln_001_notes.md` — explanation of the skip reason

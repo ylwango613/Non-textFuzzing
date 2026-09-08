@@ -1,0 +1,7 @@
+## Summary
+
+| VULN | Description | Status |
+|------|-------------|--------|
+| 001 | Heap OOB Read in `dvbsub_parse_pixel_data_block` – cases 0x20/0x21/0x22 missing bounds check | **VERIFIED_BEHAVIOR** |
+
+**Details**: The vulnerable code path was confirmed reached — FFmpeg's DVB subtitle decoder enters `case 0x22` and executes the 16-byte out-of-bounds read loop (`for (i = 0; i < 16; i++) map4to8[i] = *buf++`) with `buf == buf_end`. ASAN did not fire because FFmpeg appends `AV_INPUT_BUFFER_PADDING_SIZE` (64 bytes) of zeroed padding to every `AVPacket` allocation, so the 16-byte overread falls within the padding region that ASAN considers valid. The vulnerability is real and would trigger ASAN crashes in custom `libavcodec` integrations that don't provide this padding.

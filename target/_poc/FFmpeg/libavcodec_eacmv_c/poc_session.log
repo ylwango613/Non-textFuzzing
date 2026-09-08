@@ -1,0 +1,7 @@
+**Summary: 1 VULN processed**
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | Off-by-8 Bounds Check in cmv_decode_frame (1-Byte OOB Read) | **SKIPPED** |
+
+**Reason**: The 1-byte OOB read at line 198 falls within the mandatory 64-byte zero-padding (`AV_INPUT_BUFFER_PADDING_SIZE`) that FFmpeg appends to every `AVPacket` allocation. Since that padding is part of the same `malloc()` block, ASAN does not flag it. The zero byte read causes an early `AVERROR_INVALIDDATA` return — a functional error, not a crash — so the vulnerability cannot be confirmed via the ffmpeg command-line binary.

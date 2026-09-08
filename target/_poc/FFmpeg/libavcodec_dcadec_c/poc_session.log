@@ -1,0 +1,13 @@
+Both subagents completed. Here is the final summary:
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | OOB Read in `ff_dca_export_downmix_matrix` (DoS via `av_assert0` abort) | **VERIFIED_CRASH** |
+| 002 | OOB Read in `ff_dca_set_channel_layout` (`-channel_order coded` path) | **VERIFIED_CRASH** |
+
+Both PoCs triggered ASAN `global-buffer-overflow` errors reading past the 28-element `dca2wav_norm` array in real ffmpeg execution:
+
+- **VULN 001**: crafted DCA file with XXCH `xxch_spkr_mask` bit 31 set + `-channel_order coded` → `dca2wav_norm[31]` (3 bytes OOB)
+- **VULN 002**: crafted DCA file with XXCH `xxch_spkr_mask` bits 28-29 set + `-channel_order coded` → `dca2wav_norm[28]`/`[29]` OOB
+
+All artifacts are under `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dcadec_c/`.

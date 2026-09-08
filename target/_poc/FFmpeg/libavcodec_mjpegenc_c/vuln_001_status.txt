@@ -1,0 +1,25 @@
+UNVERIFIED
+
+Vulnerability exists analytically but is unreachable via external inputs.
+
+Root cause confirmed at libavcodec/mjpegenc.c:637:
+    pic->data[i] += pic->linesize[i] * (vsample * s->c.height / V_MAX - 1);
+    For luma: factor = height - 1; overflow when linesize[0] * (height-1) > INT_MAX
+
+Why unreachable:
+    Overflow requires: w * h > INT_MAX (~2.1B pixels)
+    FFmpeg's av_image_check_size2() (libavutil/imgutils.c:301) enforces:
+        stride * (h + 128) < INT_MAX   [where stride = 8*w + 1024 for unknown pix_fmt]
+    This limits valid frames to: w * h < ~268M pixels (~8192x8192)
+    The overflow threshold (2.1B) is 8x larger than the size-check limit (268M).
+
+Evidence from PoC runs:
+    - 46352x46352: "Picture size 46352x46352 is invalid" (size check blocks it)
+    - 65488x32800: "Picture size 65488x32800 is invalid" (size check blocks it)
+    - 8192x8192:   Encoded successfully, no ASAN crash (linesize*(height-1)=67M << INT_MAX)
+
+Conclusion:
+    The code path in amv_encode_picture() is reachable (attempt 3 confirmed),
+    but no externally-supplied frame can have dimensions large enough to trigger
+    the signed integer overflow because av_image_check_size2() rejects such frames
+    before they reach the encoder.

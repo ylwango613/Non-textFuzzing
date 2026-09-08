@@ -1,0 +1,131 @@
+[*] Generating crafted AV1 inputs...
+Generated /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_av1_parser_c/vuln_001_input_raw.av1 (19 bytes)
+Generated /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_av1_parser_c/vuln_001_input.ivf (63 bytes)
+
+OBU contents:
+  Temporal Delimiter OBU : 2 bytes
+  Sequence Header OBU    : 10 bytes  (payload 8 bytes)
+  Frame Header OBU       : 7 bytes  (tid=1, sid=0, extension_flag=1)
+
+Drop filter arithmetic (cbs_av1.c:884,886):
+  operating_point_idc[0] = 0x101
+  in_temporal = (0x101 >> 1) & 1 = 0  → DROPPED → content=NULL → NULL DEREF (if idc!=0)
+
+NOTE: Standard ffmpeg parser CBS has operating_point=-1
+      → operating_point_idc never set → drop check always SKIPPED
+      → vulnerability NOT directly triggerable via 'ffmpeg -i'
+      → would be triggered by a library user setting operating_point=0
+
+==================================================================
+Test 1: Raw .av1 file (OBU demuxer + av1_frame_merge path)
+  - av1_frame_merge BSF has separate CBS with operating_point=-1
+  - Will try to parse frame header OBU payload → likely parse error
+==================================================================
+Command: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i vuln_001_input_raw.av1 -f null -
+
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[av1_frame_merge @ 0x50e000000200] Invalid value at reduced_tx_set: bitstream ended.
+[av1_frame_merge @ 0x50e000000200] Failed to read unit 0 (type 3): Invalid data found when processing input.
+[av1_frame_merge @ 0x50e000000200] Failed to read packet.
+[in#0/obu @ 0x517000000080] av1_frame_merge filter failed to send output packet
+[av1 @ 0x519000000a80] No sequence header available
+[in#0/obu @ 0x517000000080] Could not find codec parameters for stream 0 (Video: av1, none): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, obu, from 'vuln_001_input_raw.av1':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: av1, none, 25 fps, 1200k tbr, 1200k tbn
+Output #0, null, to 'pipe:':
+[out#0/null @ 0x511000001300] Output file does not contain any stream
+Error opening output file -.
+Error opening output files: Invalid argument
+
+
+==================================================================
+Test 2: IVF container (bypasses av1_frame_merge)
+  - IVF demuxer passes AV1 frames directly to AV1 parser
+  - Parser CBS has operating_point=-1 → idc=0 → no OBU drop
+  - Frame header with tid=1 will be PARSED (not dropped)
+  - Vulnerable NULL deref requires CBS operating_point >= 0
+==================================================================
+Command: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i vuln_001_input.ivf -f null -
+
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[av1 @ 0x519000000a80] Invalid value at reduced_tx_set: bitstream ended.
+[av1 @ 0x519000000a80] Failed to read unit 2 (type 3): Invalid data found when processing input.
+[av1 @ 0x519000000a80] Failed to parse temporal unit.
+[extract_extradata @ 0x50e000000740] Invalid OBU of type 3, skipping.
+Input #0, ivf, from 'vuln_001_input.ivf':
+  Duration: 00:00:00.03, start: 0.000000, bitrate: 15 kb/s
+  Stream #0:0: Video: av1 (Main) (AV01 / 0x31305641), yuv420p, 1x1, 30 tbr, 30 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (av1 (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[vf#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 1x1, q=2-31, 200 kb/s, 30 fps, 30 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+[out#0/null @ 0x511000001300] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000001300] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+frame=    0 fps=0.0 q=0.0 Lsize=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.01    
+
+
+==================================================================
+Test 3: IVF with explicit -operating_point 0 decoder option
+  - Sets AV1 decoder CBS operating_point=0 (still separate from parser)
+  - Decoder null check (av1dec.c:1251) guards the decoder's loop
+==================================================================
+Command: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -operating_point 0 -i vuln_001_input.ivf -f null -
+
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[av1 @ 0x519000000a80] Invalid value at reduced_tx_set: bitstream ended.
+[av1 @ 0x519000000a80] Failed to read unit 2 (type 3): Invalid data found when processing input.
+[av1 @ 0x519000000a80] Failed to parse temporal unit.
+[extract_extradata @ 0x50e000000800] Invalid OBU of type 3, skipping.
+Input #0, ivf, from 'vuln_001_input.ivf':
+  Duration: 00:00:00.03, start: 0.000000, bitrate: 15 kb/s
+  Stream #0:0: Video: av1 (Main) (AV01 / 0x31305641), yuv420p, 1x1, 30 tbr, 30 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (av1 (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[vf#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 1x1, q=2-31, 200 kb/s, 30 fps, 30 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+[out#0/null @ 0x511000001300] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000001300] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+frame=    0 fps=0.0 q=0.0 Lsize=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+
+EXIT=0

@@ -1,0 +1,34 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0/rawvideo @ 0x517000000080] Stream #0: not enough frames to estimate rate; consider increasing probesize
+Input #0, rawvideo, from '/dev/zero':
+  Duration: N/A, start: 0.000000, bitrate: 1909125 kb/s
+  Stream #0:0: Video: rawvideo (Y800 / 0x30303859), gray, 15448x15448, 1909125 kb/s, 1 tbr, 1 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (rawvideo (native) -> jpeg2000 (native))
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: jpeg2000, gray(pc, progressive), 15448x15448, q=2-31, 200 kb/s, 1 fps, 1 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 jpeg2000
+src/libavcodec/j2kenc.c:1482:70: runtime error: signed integer overflow: 238640704 * 9 cannot be represented in type 'int'
+[jpeg2000 @ 0x519000011380] Invalid minimum required packet size -2147184576 (max allowed is 2147483583)
+[vost#0:0/jpeg2000 @ 0x517000000780] [enc:jpeg2000 @ 0x511000001080] Error submitting video frame to the encoder
+[vost#0:0/jpeg2000 @ 0x517000000780] [enc:jpeg2000 @ 0x511000001080] Error flushing encoder: Invalid argument
+[vost#0:0/jpeg2000 @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/jpeg2000 @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/null @ 0x511000000b80] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000000b80] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+frame=    0 fps=0.0 q=0.0 Lsize=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:56.13    
+Exiting normally, received signal 15.
+EXIT=124

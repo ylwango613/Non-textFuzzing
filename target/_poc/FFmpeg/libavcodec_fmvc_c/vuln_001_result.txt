@@ -1,0 +1,22 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[fmvc @ 0x519000000a80] [IMGUTILS @ 0x7138d2710ea0] Picture size 32768x32769 is invalid
+[in#0/avi @ 0x517000000080] Failed to open codec in avformat_find_stream_info
+    Last message repeated 1 times
+[in#0/avi @ 0x517000000080] Could not find codec parameters for stream 0 (Video: fmvc (FMVC / 0x43564D46), bgra): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:00.03, start: 0.000000, bitrate: 9126 kb/s
+  Stream #0:0: Video: fmvc (FMVC / 0x43564D46), bgra, 30 fps, 30 tbr, 30 tbn
+[vist#0:0/fmvc @ 0x514000000040] [dec:fmvc @ 0x513000000c80] Error while opening decoder: Invalid data found when processing input
+Error opening output file -.
+Error opening output files: Invalid data found when processing input
+EXIT=0

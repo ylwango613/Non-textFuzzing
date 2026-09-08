@@ -1,0 +1,23 @@
+VERIFIED_BEHAVIOR
+
+UBSan detected signed integer overflow (CWE-190) at j2kenc.c:1482:70:
+  runtime error: signed integer overflow: 238640704 * 9 cannot be represented in type 'int'
+
+Overflow details:
+  - width=15448, height=15448 (15448*15448 = 238,640,704 pixels)
+  - 238,640,704 * 9 = 2,147,766,336 > INT32_MAX (2,147,483,647)
+  - UBSan build (-fsanitize=undefined) confirmed the CWE-190 integer overflow
+  - Negative wrapped result (-2,147,184,576) caught by ff_alloc_packet size check
+  - Encoding fails with "Invalid minimum required packet size -2147184576"
+
+Note on CWE-122 (Heap Buffer Overflow):
+  - The positive overflow case (small buffer allocation) requires dimensions
+    where width*height*9 > 2^32 (e.g., 30000x16000)
+  - Those dimensions are rejected by FFmpeg's size check (stride*(h+128) >= INT_MAX)
+  - The negative overflow case (valid dimensions, UBSan detectable) occurs here
+  - In a non-sanitized build, the undefined behavior could lead to heap overflow
+
+Trigger:
+  - Dimensions: 15448x15448 gray8 rawvideo -> jpeg2000
+  - elapsed time: ~56 seconds (ASAN+UBSan overhead for large image init)
+  - UBSan output: src/libavcodec/j2kenc.c:1482:70: runtime error: signed integer overflow

@@ -1,0 +1,7 @@
+The subagent has completed. Here is the summary:
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| VULN 001 — OOB Read of `buf[0]` before size check in `g723_1_decode_frame` | **UNVERIFIED** | Three FFmpeg internal guards prevent the decoder from receiving a zero-size/null packet via the CLI: (1) `avcodec_send_packet` rejects size=0 packets, (2) flush-packet guard returns EOF before calling the decoder for codecs without `AV_CODEC_CAP_DELAY`, (3) `av_new_packet(pkt, 0)` always allocates padding so `data` is never NULL. The `buf[0]` read hits zeroed padding memory and ASAN does not flag it. The code flaw is real (CWE-125) but only reachable by a custom harness calling the decoder directly — not through the ffmpeg CLI. |
+
+All PoC files are in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_g723_1dec_c/`. `vuln_001_status.txt` records `UNVERIFIED`.

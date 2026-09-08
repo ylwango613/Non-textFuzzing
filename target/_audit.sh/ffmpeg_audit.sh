@@ -14,7 +14,7 @@
 
 set -euo pipefail
 
-export PATH="$HOME/.nvm/versions/node/v20.19.6/bin:$HOME/.local/bin:$HOME/bin:$PATH"
+export PATH="$HOME/.vscode-server/extensions/anthropic.claude-code-2.1.259-linux-x64/resources/native-binary:$HOME/.nvm/versions/node/v20.19.6/bin:$HOME/.local/bin:$HOME/bin:$PATH"
 
 SOURCE_DIR="/data/ylwang/non-textfuzz/target/FFmpeg"
 OUTDIR="/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg"

@@ -1,0 +1,7 @@
+## 汇总
+
+| VULN 编号 | 漏洞标题 | 状态 |
+|---|---|---|
+| VULN 001 | Stack OOB Write via Unchecked NAXIS Value in FITS Header Parser | **UNVERIFIED** |
+
+**分析说明**：代码缺陷（`fits.c:181` 缺少 `naxis_index < 999` 越界检查）确认真实存在，但通过 FITS 文件无法实际触发越界写入。原因：FITS 格式的关键字名最长 8 个字符，`NAXIS` 占 5 个字符后只剩 3 位数字，因此可编码的最大关键字为 `NAXIS999`。当 `NAXIS=1000` 时，第 1000 个关键字 `NAXIS1000`（9 字符）会被截断为 `NAXIS100`，导致 `dim_no=100 != 1000`，在 `fits.c:176` 处提前返回 `AVERROR_INVALIDDATA`，写操作（`fits.c:181`）永远不会执行。文件层面的攻击面被 FITS 格式自身的关键字长度限制阻断，ASAN 无法报告内存错误。

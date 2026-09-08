@@ -1,0 +1,17 @@
+UNVERIFIED
+
+The PoC successfully reaches the vulnerable code path in pred_temp_direct_motion()
+(h264_direct.c:521-524) with col_fieldoff=-1 set correctly. The PAFF BOTTOM FIELD
+B-slice with B_Direct_16x16 macroblock triggers ff_h264_pred_direct_motion() as expected.
+
+However, no actual OOB memory access occurs. FFmpeg initializes the first macroblock
+of any BOTTOM FIELD slice at mb_y=1 (not 0) via the +1 correction in h264_field_start()
+(h264_slice.c:1956-1957). This means after the col_fieldoff=-1 adjustment:
+  mb_y  = 1 + (-1) = 0  [valid]
+  mb_xy = mb_stride + mb_stride*(-1) = 0  [valid, non-negative]
+
+The accesses parent->mb_type[0], h->mb2b_xy[0], parent->ref_index[0][0] are all
+within bounds. No ASAN heap-buffer-overflow, no crash detected.
+
+Input file: vuln_001_input.h264 (614 bytes)
+FFmpeg exit code: 0, ASAN exit code: 0, No sanitizer errors

@@ -1,0 +1,7 @@
+## 汇总
+
+| VULN | 状态 | 原因 |
+|------|------|------|
+| VULN-001: Heap OOB Write in clut_init() | **SKIPPED** | ARIB 解码器未编译进目标二进制，系统也无 libaribcaption 库 |
+
+**结论**：当前 `/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg` 构建时未启用 `--enable-libaribcaption`，无法通过命令行触发 `libavcodec/libaribcaption.c` 中的代码路径。若需复现，需用 `--enable-libaribcaption` 重新编译 FFmpeg 并安装 libaribcaption 库后运行 `vuln_001_run.sh`。

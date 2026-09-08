@@ -1,0 +1,22 @@
+VERIFIED_BEHAVIOR
+
+The integer underflow in aac_adtstoasc_filter() is confirmed triggered.
+
+Evidence from the run:
+1. AVI wrapper (vuln_001_input.avi) successfully opens: codec params are read
+   directly from WAVEFORMATEX (sample_rate=48000 Hz, channels=1 mono) without
+   decoding the audio payload.
+2. The aac_adtstoasc BSF is automatically applied (stream copy AVI-AAC → MP4).
+3. The BSF processes the malicious ADTS frame:
+   - channel_config=0 → PCE path taken
+   - init_get_bits(&gb, pkt->data, 10*8=80 bits); safe cap = 88 bits
+   - PCE structure reads 56 bits; comment_size=0xFF (255), tries 2040 more bits
+   - Safe reader caps at 88 bits: get_bits_count(&gb)/8 = 11
+   - pkt->size -= 11  →  pkt->size = 10 - 11 = -1  (integer underflow)
+   - pkt->data advances 1 byte past end of the 10-byte heap buffer
+   - BSF returns 0 (success) at line 120 with pkt->size = -1
+4. Downstream: avio_write() checks "if (size <= 0) return;" and skips the write.
+   Audio data is silently dropped (output shows "audio:0KiB").
+5. No ASan crash in this path because avio_write guards against negative size.
+   However, the corrupted packet (pkt->size=-1, pkt->data past buffer end) is
+   a real defect that could crash less-guarded consumers of av_bsf_receive_packet().

@@ -1,0 +1,7 @@
+UNVERIFIED
+Reason: The off-by-one OOB write at dst[nb_samples/2] (= dst[out_size]) is a real
+logic bug, but ASAN cannot detect it because ff_get_encode_buffer allocates
+out_size + AV_INPUT_BUFFER_PADDING_SIZE (64) bytes, placing the 1-byte OOB write
+within the legitimately-allocated heap padding zone rather than past the ASAN redzone.
+The write at g722enc.c:314 clobbers the first byte of the 64-byte padding that was
+zeroed by ff_get_encode_buffer, but produces no detectable memory safety signal.

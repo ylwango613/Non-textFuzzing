@@ -1,0 +1,25 @@
+VERIFIED_BEHAVIOR
+The crafted G2M-in-AVI file causes clear anomalous behavior in the ELS decoder
+(ff_els_decode_bit / elsdec.c). Indicators:
+
+1. "RGB 6 -6 -2 (out of range)" — ELS state corruption produces out-of-range pixel
+   components that would be impossible in a valid G2M stream.
+2. "RGB 0 -1 0 (out of range)" — second occurrence of the same corruption.
+3. "ePIC: tile decoding failed" — the ELS decoder's corrupted state causes the
+   ePIC tile decoder to fail.
+
+Root cause (confirmed by analysis):
+- In the MPS branch of ff_els_decode_bit (elsdec.c line 309-310),
+  when ctx->t -= z causes ctx->t to become negative (as int), the comparison
+  `ctx->t > pAllowable[ctx->j]` treats the negative int as a large uint32_t
+  (≈ 4290115909), which always exceeds the maximum value in els_exp_tab
+  (16777216). The while loop increments ctx->j indefinitely past j=36 (the
+  last valid pAllowable index), performing up to ~35754 OOB reads of uint32_t
+  values from 143KB past the end of the array before accidentally reading a
+  qualifying value and terminating.
+
+Why no ASAN crash: GCC's ASan implementation does not instrument static const
+global arrays with overflow-detection red zones, so reads past els_exp_tab
+(a static const global) are not flagged. The OOB reads corrupt the decoder
+state but do not immediately crash the process. The anomalous RGB values and
+tile failure confirm the vulnerability is exercised.

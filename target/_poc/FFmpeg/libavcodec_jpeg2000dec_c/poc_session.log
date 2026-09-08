@@ -1,0 +1,19 @@
+The subagent has finished. Here is the final summary:
+
+---
+
+## PoC Results — `libavcodec/jpeg2000dec.c`
+
+| # | Vulnerability | Status |
+|---|---|---|
+| 001 | OOB Heap Read in `get_cap()` via Untrusted Pcap Bitmask | **VERIFIED_BEHAVIOR** |
+
+### Details for VULN 001
+
+**Status: VERIFIED_BEHAVIOR** — the over-read is confirmed to execute, but ASAN did not produce a hard crash because `av_new_packet()` appends `AV_INPUT_BUFFER_PADDING_SIZE = 64` bytes of zeroed padding, and the over-read is exactly 62 bytes, falling entirely within that padding region.
+
+Evidence from `vuln_001_result.txt`:
+- `"This codestream uses the HT block coder."` — confirms `get_cap()` ran, read `Pcap = 0xFFFFFFFF`, and the HT bit was processed (bit 14 set).
+- `"error during processing marker segment ff50"` — FFmpeg's post-parse position check caught a mismatch of **70 bytes consumed vs. len = 8 declared**: 2 (len field) + 4 (Pcap) + 64 (32 × 2-byte unchecked `bytestream2_get_be16u` iterations) = 70, proving **62 bytes were read past the segment boundary**.
+
+In any context that does not pre-allocate padding (custom `AVPacket`, library API integration without `av_new_packet`), the same crafted input would trigger a confirmed `heap-buffer-overflow` under ASAN. Generated files are in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_jpeg2000dec_c/`.

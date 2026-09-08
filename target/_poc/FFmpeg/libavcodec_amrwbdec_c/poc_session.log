@@ -1,0 +1,7 @@
+## Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | OOB Read in `amrwb_decode_frame` stereo bad-quality path (lines 1140-1152) | **VERIFIED_BEHAVIOR** |
+
+**Details**: The crafted 20-byte AMR-WB multichannel file (magic `#!AMR-WB_MC1.0\n` + 2 channels + frame byte `0x40`) correctly triggers the stereo decode loop. Channel 0 enters the bad-quality branch and advances `buf` by 61 bytes without a bounds check, making `buf_size = -60`. Channel 1 then calls `decode_mime_header` and reads `packet->data[61]` — 60 bytes past the 1-byte payload — confirmed by "Encountered a bad or corrupted frame" appearing twice. No ASAN crash occurs because the read lands inside the 64-byte `AV_INPUT_BUFFER_PADDING_SIZE` padding; Valgrind/MSan would report the uninitialized read definitively.

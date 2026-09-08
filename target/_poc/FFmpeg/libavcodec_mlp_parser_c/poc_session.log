@@ -1,0 +1,13 @@
+## Summary
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| VULN 001 — Heap OOB Read in `mlp_parse()` parity check loop | **VERIFIED_BEHAVIOR** | The parity loop at lines 146–154 ran with `mp->num_substreams=15` against a crafted 8-byte non-sync frame, confirmed by the ffmpeg log line `mlpparse: Parity check failed.`. ASAN did not crash because `ff_combine_frame()` appends 64 bytes of padding to its internal buffer, which absorbs the out-of-bounds read exactly at the boundary (reads up to `buf[63]` against an 8-byte frame). A direct parser call without that padding would produce an ASAN `heap-buffer-overflow` report. |
+
+All PoC files are in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_mlp_parser_c/`:
+- `vuln_001_gen.py` — crafted 48-byte TrueHD stream generator (sync frame with `num_substreams=15` + 8-byte non-sync frame)
+- `vuln_001_run.sh` — shell runner
+- `vuln_001_input.thd` — generated malformed input
+- `vuln_001_result.txt` — captured ffmpeg output
+- `vuln_001_notes.md` — trigger path and analysis
+- `vuln_001_status.txt` — `VERIFIED_BEHAVIOR`

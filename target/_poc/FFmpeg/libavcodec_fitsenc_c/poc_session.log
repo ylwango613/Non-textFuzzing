@@ -1,0 +1,7 @@
+The subagent has completed. Here is the summary:
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | FITS encoder integer overflow in `data_size` → heap buffer overflow | **UNVERIFIED** |
+
+**Reason**: The vulnerability exists in the source code (`fitsenc.c:80`) but cannot be triggered via the standard `ffmpeg` CLI. FFmpeg's `av_image_check_size2` guard mathematically prevents any dimension combination that would cause `(bitpix>>3) * width * height * naxis3` to overflow int32 — the guard enforces `(8w+1024)(h+128) < INT_MAX`, which implicitly caps the product below INT32_MAX for all supported pixel formats. The bug is real but exploitable only in library contexts where dimension validation is bypassed.

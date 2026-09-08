@@ -1,0 +1,22 @@
+UNVERIFIED
+
+The integer overflow in cfhd_encode_init() (cfhdenc.c:286) is a real CWE-190 in the source code,
+but is NOT triggerable through the ffmpeg CLI due to two protection layers:
+
+1. av_image_check_size2() in avcodec_open2() (avcodec.c:241-246) rejects dimensions
+   ≥ ~16383x16383 (where stride*(h+128) >= INT_MAX) BEFORE calling cfhd_encode_init().
+   Any dimensions large enough to cause the overflow (w=h=65536) are rejected here.
+
+2. Mathematical contradiction: dimensions needed for positive-wrapping overflow
+   ((w+512)*h > 2^35) are incompatible with dimensions allowed by imgutils
+   ((w+512)*(h+128) < 2^30). No valid (w,h) satisfies both.
+
+The CFHD encoder is also lazy-initialized (opened on first frame), so without a valid
+frame at the trigger dimensions, cfhd_encode_init() is never called.
+
+All three attempts failed:
+- Attempt 1 (crafted AVI with 65536x65536): rawvideo decoder rejects dimensions via imgutils
+- Attempt 2 (lavfi 16x16 scaled to 65536x65536): scale filter imgutils rejection
+- Attempt 3 (lavfi direct 65536x65536): lavfi color imgutils rejection
+
+Proof: cfhd_encode_init() was NEVER called in any attempt (encoder could not be opened before EOF).

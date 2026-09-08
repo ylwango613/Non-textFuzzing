@@ -1,2 +1,0 @@
-UNVERIFIED
-PoC triggered sub2video code path but 16-bit subtitle coordinates cannot produce the INT_MAX overflow required by this CWE-190 bug.

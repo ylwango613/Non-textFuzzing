@@ -1,21 +1,27 @@
-After exhaustively reading the full file and tracing all relevant data structures, bounds, and call chains, here is my final assessment:
+After reading the complete file (689 lines) and tracing all relevant data structures and array definitions, I've performed the following systematic checks:
 
-**Read pass summary:**
+**Group 1 (lines 41–111): dequant_scalefactors, apply_mid_side_stereo**
+- `sfo[128]` / `sf[128]` / `band_type[128]` / `ms_mask[128]` — maximum index `(num_window_groups-1)*max_sfb + (max_sfb-1)` ≤ `8*15-1 = 119` for short windows (4-bit max_sfb), ≤ 62 for long windows. All within [0,127].
+- `ff_aac_pow2sf_tab[428]` — sfo ranges [-100,155] (standard) or [-200,170] (USAC noise), giving tab indices [100,370], safely below 428.
 
-- **Lines 41–79 `dequant_scalefactors`**: `ff_aac_pow2sf_tab` (428 entries) indexed by `sfo[idx] + 200`; sfo is pre-clipped in `decode_scalefactors` to ranges that keep all indices within [100, 355]. `band_type`, `sfo`, `sf` arrays all size 128; worst-case product `num_window_groups * max_sfb = 8 * 15 = 120 ≤ 128`. Safe.
+**Group 2 (lines 120–219): apply_intensity_stereo, apply_tns**
+- TNS order validated ≤ 20 = `TNS_MAX_ORDER`; `lpc[20]`, `tmp[21]` correctly sized.
+- `coef[start]` and `coef[start ± i*inc]`: bounded by `w*128 + swb_offset[mmm] - 1` ≤ 1023 for all window types.
 
-- **Lines 84–156 `apply_mid_side_stereo` / `apply_intensity_stereo`**: `ms_mask[128]`, `band_type[128]`, `sf[128]` indexed with max value 119. `coeffs[1024]` pointer arithmetic stays in `[0, 1023]` for all group/sfb combos. `swb_offset[sfb+1]` valid since `max_sfb ≤ num_swb` and tables have `num_swb+1` sentinel entries. Safe.
+**Group 3 (lines 225–320): windowing_and_mdct_ltp, apply_ltp, update_ltp**
+- `ltp->lag` decoded as 11-bit (0–2047); `ltp_state[3072]` access range [1,3071] — safe.
+- `saved_ltp = coeffs[1024]`; all write paths cover exactly [0,1023].
 
-- **Lines 164–219 `apply_tns`**: Stack buffers `lpc[20]` and `tmp[21]` bounded by `order ≤ TNS_MAX_ORDER = 20`. `swb_offset[FFMIN(top/bottom, mmm)]` clipped to `mmm ≤ max_sfb ≤ num_swb`; all table entries valid. AR/MA filter accesses coef[start..end-1], both within the 1024-element array. `compute_lpc_coefs` reads `autoc[0..order-1]` from `tns->coef[w][filt][0..19]`. Safe.
+**Group 4 (lines 325–602): imdct_and_windowing variants**
+- `buf_mdct[1024]`: MDCT outputs (1024/960/768 samples) always fit.
+- `saved[1536]`: ELD variant uses up to `3n-1` = 1535 (n=512) or 1439 (n=480).
+- ELD `ff_aac_eld_window_512[1920]`/`ff_aac_eld_window_480[1800]`: max index accessed is `15n/4-1` = 1919/1799, exactly at boundary.
+- `temp[128]`: vector_fmul_window writes at most 128 elements (2×64).
 
-- **Lines 252–279 `apply_ltp`**: `ltp->lag` from `get_bits(gb,11)` ∈ [0..2047]. `ltp_state[3072]` accessed at `i + 2048 - lag`; maximum = 3071 in all lag scenarios. `predTime = ret_buf[2048]` adequate for 2048-element write + `windowing_and_mdct_ltp`. Safe.
-
-- **Lines 284–320 `update_ltp`**: All memcpy/memset destinations within `coeffs[1024]`, `ltp_state[3072]`; sources within `saved[1536]`, `buf_mdct[1024]`. swindow table accesses ≤ index 127. Safe.
-
-- **Lines 325–514 `imdct_and_windowing*`**: `buf_mdct[1024]`, `temp[128]`, `saved[1536]`, `ret_buf[2048]` all correctly bounded for 1024, 960, 768 frame variants. ELD windowing uses saved[0..1535] exactly for n=512 mode. Safe.
-
-- **Lines 636–663 `apply_prediction`**: `predictor_state[MAX_PREDICTORS=672]`; max `k = swb_offset[40] - 1 = 671 < 672` at worst (44.1/48 kHz). `prediction_used[41]` indexed up to sfb=40. Safe.
-
-- **Lines 619–631 `reset_all_predictors` / `reset_predictor_group`**: `reset_predictor_group` guarded by `if (predictor_reset_group)` so group_num ≥ 1; max loop index ≤ 671. Safe.
+**Group 5 (lines 619–663): apply_prediction**
+- `predictor_state[MAX_PREDICTORS=672]`: `swb_offset[ff_aac_pred_sfb_max[idx]]` gives at most 672 for all sampling rates — verified against tables.
+- `reset_predictor_group`: `predictor_reset_group` validated [1,30]; step-30 loop stays within [0,671].
 
 NO_VULN_FOUND
+
+<!-- AUDIT_PROMPT_VERSION: 1 -->

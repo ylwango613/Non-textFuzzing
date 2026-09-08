@@ -1,0 +1,92 @@
+VULN 001 – AMR-NB Decoder buf[0] OOB Read Before Size Check
+============================================================
+
+STATUS: PARTIAL – Code path exercised; no ASAN crash triggered through file input
+
+DATE: 2026-09-08
+BINARY: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg (ASAN build)
+
+──────────────────────────────────────────────────────────────
+WHAT WAS TESTED
+──────────────────────────────────────────────────────────────
+Generated 7 crafted AMR-NB files covering all key FT scenarios:
+
+  vuln_001_input.amr       – FT=9 mode byte ×500 (1-byte frames)
+  vuln_001_input_trunc.amr – FT=0 mode byte only, no payload (truncated)
+  vuln_001_input_ft15.amr  – FT=15 mode byte ×500 (1-byte frames)
+  vuln_001_input_mixed.amr – FT=9 ×10 + trailing truncated FT=0
+  vuln_001_input_empty.amr – magic header only (tests flush/drain path)
+  vuln_001_input_valid_ft0.amr – valid FT=0 frames (baseline)
+  vuln_001_input_mixed_ft.amr  – all FT types (0,1,7,8,9,14,15) mixed
+
+Tested with both:
+  - amr demuxer (auto-detected via #!AMR\n magic)
+  - amrnb demuxer (-f amrnb forced)
+  - stdin pipe (single FT=9 byte via pipe:0)
+
+──────────────────────────────────────────────────────────────
+RESULTS
+──────────────────────────────────────────────────────────────
+No ASAN crash or memory error was observed in any test.
+
+Observable behavior:
+  - FT=9/15 (1-byte frames): decoder reads buf[0] successfully, calls
+    Decoder_Interface_Decode(); opencore-amr reports "Corrupt bitstream"
+    and returns error – no memory safety violation.
+  - Truncated FT=0 (1-byte packet, expects 13): decoder reads buf[0]
+    (valid), then detects packet_size(13) > buf_size(1), logs
+    "AMR frame too short", returns AVERROR_INVALIDDATA – no crash.
+  - Magic-only file: EOF before any frame reaches the decoder; no packet
+    is sent to the codec at all.
+  - Stdin pipe (0 or 1 byte): same as truncated / empty cases.
+
+──────────────────────────────────────────────────────────────
+ANALYSIS
+──────────────────────────────────────────────────────────────
+The vulnerable code at line 118:
+
+    dec_mode = (buf[0] >> 3) & 0x000F;   // read before size check
+    packet_size = block_size[dec_mode] + 1;
+    if (packet_size > buf_size) { … }    // check arrives too late
+
+IS exercised in all test cases (buf[0] is always read first). However,
+triggering an actual NULL pointer dereference requires avpkt->data == NULL,
+which in turn requires avpkt->size == 0 reaching the decoder.
+
+Two layers of protection prevent this through the normal file pipeline:
+
+  1. AMR parser (libavcodec/amr_parser.c): amrnb_packed_size[] has minimum
+     value 1; every FT produces at least a 1-byte packet. Zero-byte packets
+     are never emitted.
+
+  2. FFmpeg decode framework (libavcodec/decode.c): flush/drain packets
+     (avpkt==NULL or size==0) are handled at the framework level before
+     dispatching to the codec's decode callback.
+
+The opencore-amr library also provides a second line of defense by
+validating the mode before attempting memory access.
+
+──────────────────────────────────────────────────────────────
+CONCLUSION
+──────────────────────────────────────────────────────────────
+VULN 001 is a real code-quality issue / latent vulnerability:
+  - The missing size guard before buf[0] is a genuine defensive-coding defect.
+  - It can be triggered if amr_nb_decode_frame() is called directly (outside
+    the normal demuxer→parser→codec pipeline) with a NULL-data, zero-size
+    packet – e.g., from a unit test, a fuzzer harness, or a future refactor.
+  - Through crafted file input via the standard ffmpeg command-line tool,
+    the current pipeline architecture prevents a 0-byte packet from ever
+    reaching the decoder, so no ASAN crash is reproducible by file input alone.
+
+RECOMMENDED FIX:
+  Add at the top of amr_nb_decode_frame(), before line 118:
+    if (buf_size < 1) {
+        av_log(avctx, AV_LOG_ERROR, "AMR-NB packet too short\n");
+        return AVERROR_INVALIDDATA;
+    }
+
+FILES:
+  vuln_001_gen.py           – generator script
+  vuln_001_run.sh           – runner script
+  vuln_001_notes.md         – technical writeup
+  vuln_001_result.txt       – full test output (all exits = 0, no ASAN errors)

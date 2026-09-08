@@ -1,16 +1,14 @@
-After reading all 2702 lines of aacdec.c in five passes, and tracing every allocation, array index, and bounds check through related headers and tables, here is my final conclusion:
+Based on my complete read-through of all 2702 lines plus the included `aacdec_latm.h`, and following up with `grep` checks on all key structures and constants, here is a summary of what I verified for each category:
 
-**Summary of all bounds verified:**
-- `band_type[128]` / `sfo[128]` / `ms_mask[128]` — indexed via `g*max_sfb + k`; enforced by `if (max_sfb > num_swb) → fail` in `decode_ics_info`. Maximums: EIGHT_SHORT (8×15=120<128), LONG (1×51=51<128). ✓
-- `group_len[8]` — `num_window_groups` starts at 1, increments max 7 more times → max 8. ✓
-- `TemporalNoiseShaping.n_filt[8]` — `num_windows` ≤ 8; `n_filt[w] ≤ 3` for long, `≤ 1` for short; `order[w][filt] ≤ tns_max_order ≤ 20 = TNS_MAX_ORDER`. ✓
-- `ff_tns_tmp2_map[tmp2_idx][bits]` — `tmp2_idx` ∈ {0-3}; index values match table sizes (4, 8, or 16 entries). ✓
-- `DynamicRangeControl.band_top[17]` / `dyn_rng_sgn[17]` / `dyn_rng_ctl[17]` — `drc_num_bands = 1 + band_incr ≤ 16`. ✓
-- `DynamicRangeControl.exclude_mask[64]` — loop terminates when `num_excl_chan = 63 < 64`. ✓
-- `height_map[4][16]` / `tag[6][16][3]` in PCE height extension — enum values 1-5, second dimension ≤ 15 (4-bit field). ✓
-- `layout_map[256][3]` writes — max tags = 15+15+15+3+15 = 63; `id_map[7][64]` accessed only with validated type ∈ {0-3}. ✓
-- LATM `mux_slot_length` potential integer overflow — caught by `< 0` check; value never used to bound memory access. ✓
-- `buf[256]` in `decode_fill` — loop condition `i+1 < 256` limits max write to `buf[255]`. ✓
+**Group 1 (lines 1–500):** `count_channels`, `che_configure`, `frame_configure_elements`, channel-layout helpers — all array accesses bounded by `MAX_CHANNELS=64`, `MAX_ELEM_ID=64`; no integer overflow in index arithmetic.
+
+**Group 2 (lines 500–1000):** `ff_aac_output_configure`, `decode_pce` (including height extension) — `layout_map[MAX_ELEM_ID*4][3]` (256 rows); max PCE tags = 63 (sum of 4-bit + 2-bit + 4-bit fields). `height_map[4][16]` used at indices 1–3; `tag[6][16][3]` used at indices 1–5. All within bounds. Conservative overread guard at line 852 (counts CC twice, but safe in the safe direction).
+
+**Group 3 (lines 1000–1500):** `decode_ga_specific_config`, `decode_eld_specific_config`, `decode_audio_specific_config*`, `decode_ics_info` — `group_len[8]` accessed at max index 7; `max_sfb` validated against `num_swb` before use; `max_sfb * num_window_groups` ≤ 8×15=120 < 128 (band_type/sfo size).
+
+**Group 4 (lines 1500–2000):** `decode_band_types`, `decode_scalefactors`, `decode_pulses`, `ff_aac_decode_tns`, `decode_mid_side_stereo`, `decode_dynamic_range` — `band_top[17]`/`dyn_rng_*[17]` with max `drc_num_bands`=16; `exclude_mask[64]` with max writes of 63 entries; all within declared array sizes.
+
+**Group 5 (lines 2000–2702 + LATM):** `decode_extension_payload`, `spectral_to_sample`, `parse_adts_frame_header`, `aac_decode_frame*`, `latm_decode_audio_specific_config`, `read_payload_length_info` — LATM `esize` bounded by `FFMIN(asclen, get_bits_left(gb))`; no allocation underflow; `mux_slot_length` overflow-to-negative is caught by `< 0` guard.
 
 NO_VULN_FOUND
 

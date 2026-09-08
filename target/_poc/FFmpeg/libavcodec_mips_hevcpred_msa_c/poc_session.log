@@ -1,0 +1,5 @@
+**Summary:**
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| 001 — Stack OOB Read in MIPS MSA HEVC 32x32 Angular Intra Prediction | **SKIPPED** | Architecture mismatch: the vulnerable code (`libavcodec/mips/hevcpred_msa.c`) is MIPS MSA-only and is never compiled into the x86_64 binary. No crafted HEVC file can reach this code path on this machine. |

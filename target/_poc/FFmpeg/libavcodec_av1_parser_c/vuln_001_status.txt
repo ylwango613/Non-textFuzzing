@@ -1,0 +1,33 @@
+UNVERIFIED
+
+The vulnerability code pattern is confirmed in libavcodec/av1_parser.c:103-109.
+The NULL dereference of unit->content cannot be triggered via standard ffmpeg
+command-line invocation for the following reason:
+
+ROOT CAUSE (confirmed):
+  av1_parser_parse() at line 103: `const AV1RawOBU *obu = unit->content;`
+  is missing a null check before dereference at lines 107 and 109.
+
+WHY NOT TRIGGERED via `ffmpeg -i`:
+  The AV1 PARSER's CBS context (s->cbc in AV1ParseContext) is initialized via
+  ff_cbs_init() without setting the "operating_point" option, so it defaults to -1.
+  With operating_point=-1, cbs_av1.c:901 (`if (priv->operating_point >= 0)`) is
+  FALSE and operating_point_idc is never set (stays 0).
+  The drop check at cbs_av1.c:882 (`priv->operating_point_idc`) is therefore always
+  FALSE → EAGAIN is never returned → unit->content is never NULL in the parser.
+
+IVF TEST RESULT:
+  Using IVF container (which bypasses the av1_frame_merge BSF), the AV1 parser IS
+  called directly ([av1 @ ...] in the log). The sequence header parses successfully,
+  but the frame header fails with AVERROR_INVALIDDATA (not EAGAIN), so the parser
+  exits via goto end before reaching the vulnerable loop.
+
+CONFIRMED CODE DEFECT:
+  The missing null check at av1_parser.c:103 is a real bug. The AV1 decoder
+  (av1dec.c:1251) has the analogous `if (!obu) continue;` guard, but the parser
+  does not. A library user who calls av_opt_set_int(parser_cbc->priv_data,
+  "operating_point", 0, 0) before feeding crafted AV1 data would trigger the crash.
+
+INPUT FILES:
+  vuln_001_input_raw.av1  - raw AV1 OBU bitstream (blocked by av1_frame_merge)
+  vuln_001_input.ivf      - IVF container (reaches parser, fails at frame header parse)

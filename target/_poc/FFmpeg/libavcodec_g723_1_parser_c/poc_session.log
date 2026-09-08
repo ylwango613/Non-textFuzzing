@@ -1,0 +1,7 @@
+## Summary
+
+| VULN | Status | Description |
+|------|--------|-------------|
+| VULN 001 | **VERIFIED_BEHAVIOR** | Integer overflow in `g723_1_parse()` line 41 — UBSAN confirmed `signed integer overflow: 24 * 178956971 cannot be represented in type 'int'` |
+
+The PoC triggers the overflow via a crafted 167-byte MKV file with an `A_MS/ACM` audio track setting EBML `Channels=178956971`. The run command uses `-codec_whitelist 'none'` to prevent FFmpeg from resetting the channel count before the parser sees it. All artifacts are in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_g723_1_parser_c/`.

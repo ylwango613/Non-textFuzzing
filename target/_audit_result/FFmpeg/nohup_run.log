@@ -1,0 +1,79 @@
+==========================================
+ FFmpeg Full Security Audit
+ Mode: resume  (audit=1, poc=1, audit_parallel=5, poc_parallel=5)
+ Files to audit: 3048 (skipped 0 missing)
+ Results: /data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/   PoCs: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/
+ Log: /data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/ffmpeg_audit.log
+==========================================
+
+[1/3048] Auditing: fftools/cmdutils.c
+[2/3048] Auditing: fftools/ffmpeg.c
+[3/3048] Auditing: fftools/ffmpeg_dec.c
+[4/3048] Auditing: fftools/ffmpeg_demux.c
+[5/3048] Auditing: fftools/ffmpeg_enc.c
+[6/3048] Auditing: fftools/ffmpeg_filter.c
+  -> [fftools/ffmpeg.c] Clean.
+[7/3048] Auditing: fftools/ffmpeg_hw.c
+  -> [fftools/cmdutils.c] Clean.
+[8/3048] Auditing: fftools/ffmpeg_mux.c
+  -> [fftools/ffmpeg_dec.c] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=414228, running=1/5)
+[9/3048] Auditing: fftools/ffmpeg_mux_init.c
+  -> [fftools/ffmpeg_hw.c] Clean.
+[10/3048] Auditing: fftools/ffmpeg_opt.c
+  -> [fftools/ffmpeg_filter.c] Clean.
+[11/3048] Auditing: fftools/ffmpeg_sched.c
+  -> [fftools/ffmpeg_mux.c] Clean.
+[12/3048] Auditing: fftools/ffplay.c
+  -> [fftools/ffmpeg_demux.c] Clean.
+[13/3048] Auditing: fftools/ffplay_renderer.c
+  -> [fftools/ffmpeg_enc.c] Clean.
+[14/3048] Auditing: fftools/ffprobe.c
+  -> [fftools/ffmpeg_opt.c] Clean.
+[15/3048] Auditing: fftools/graph/graphprint.c
+  -> [fftools/ffmpeg_sched.c] Clean.
+[16/3048] Auditing: fftools/opt_common.c
+  -> [fftools/ffplay_renderer.c] Clean.
+[17/3048] Auditing: fftools/resources/resman.c
+  -> [fftools/opt_common.c] Clean.
+[18/3048] Auditing: fftools/sync_queue.c
+  -> [fftools/graph/graphprint.c] Clean.
+[19/3048] Auditing: fftools/textformat/avtextformat.c
+  -> [fftools/ffmpeg_mux_init.c] Clean.
+[20/3048] Auditing: fftools/textformat/tf_compact.c
+  -> [fftools/resources/resman.c] Clean.
+[21/3048] Auditing: fftools/textformat/tf_default.c
+  -> [fftools/textformat/tf_compact.c] Clean.
+[22/3048] Auditing: fftools/textformat/tf_flat.c
+  -> [fftools/textformat/avtextformat.c] Clean.
+[23/3048] Auditing: fftools/textformat/tf_ini.c
+  -> [fftools/textformat/tf_default.c] Clean.
+[24/3048] Auditing: fftools/textformat/tf_json.c
+  -> [fftools/sync_queue.c] Clean.
+[25/3048] Auditing: fftools/textformat/tf_mermaid.c
+  -> [fftools/textformat/tf_flat.c] Clean.
+[26/3048] Auditing: fftools/textformat/tf_xml.c
+  -> [fftools/textformat/tf_ini.c] Clean.
+[27/3048] Auditing: fftools/textformat/tw_avio.c
+  -> [fftools/textformat/tf_json.c] Clean.
+[28/3048] Auditing: fftools/textformat/tw_buffer.c
+  -> [fftools/textformat/tf_xml.c] Clean.
+[29/3048] Auditing: fftools/textformat/tw_stdout.c
+  -> [fftools/textformat/tw_avio.c] Clean.
+  -> [fftools/ffprobe.c] Clean.
+[30/3048] Auditing: fftools/thread_queue.c
+[31/3048] Auditing: libavcodec/012v.c
+  -> [fftools/ffplay.c] FOUND 1 vulnerability(ies)!
+  -> launched PoC (bg pid=465003, running=2/5)
+[32/3048] Auditing: libavcodec/4xm.c
+  -> [fftools/textformat/tw_buffer.c] Clean.
+[33/3048] Auditing: libavcodec/8bps.c
+  -> [fftools/textformat/tw_stdout.c] Clean.
+[34/3048] Auditing: libavcodec/8svx.c
+  -> [fftools/textformat/tf_mermaid.c] Clean.
+[35/3048] Auditing: libavcodec/a64multienc.c
+  -> [fftools/thread_queue.c] Clean.
+[36/3048] Auditing: libavcodec/aac/aacdec_ac.c
+  -> [libavcodec/8svx.c] Clean.
+[37/3048] Auditing: libavcodec/aac/aacdec.c
+Terminated

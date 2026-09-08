@@ -1,0 +1,5 @@
+**汇总结果：**
+
+| VULN | 状态 | 原因 |
+|------|------|------|
+| VULN 001 — Heap OOB Write in `d3d12va_encode_h264_init_picture_params` | **SKIPPED** | `h264_d3d12va` 编码器依赖 D3D12VA（Windows 专有 API），当前系统为 Linux，ffmpeg 构建中不包含该编码器，无法通过命令行触发漏洞 |

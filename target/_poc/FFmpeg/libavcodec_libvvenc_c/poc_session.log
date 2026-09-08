@@ -1,0 +1,5 @@
+Subagent complete. Summary:
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| VULN-001 (Integer overflow in `vvenc_init()` width×height → heap buffer overflow) | **SKIPPED** | `libvvenc` encoder not compiled into the ASAN binary (`ffmpeg -encoders | grep vvenc` returns nothing). The vulnerability cannot be triggered without rebuilding FFmpeg with `--enable-libvvenc`. |

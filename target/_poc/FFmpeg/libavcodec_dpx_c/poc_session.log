@@ -1,0 +1,15 @@
+Both subagents have completed. Here is the final summary:
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | Integer overflow in size check bypasses bounds guard → heap OOB read in `unpack_frame` | **VERIFIED_BEHAVIOR** |
+| 002 | Integer overflow in `dpx->stride` computation → negative `src_linesize` for `av_image_copy_plane` | **UNVERIFIED** |
+
+**VULN 001**: The integer overflow at line 630 (`stride × height` wrapping to `INT_MIN`) is confirmed to bypass the size check guard — the overflow IS triggered with `bits=16, width=2048, height=131072`. However, no ASAN crash occurs because `av_image_check_size2` with the real pixel format (`AV_PIX_FMT_RGBA64BE`) rejects the ~2GB frame allocation before `unpack_frame()` is reached. Status: `VERIFIED_BEHAVIOR`.
+
+**VULN 002**: Three independent guards block the attack path in the current FFmpeg build:
+1. `av_image_check_size2` rejects width=268435327 (product exceeds ~268M pixel limit)
+2. The `bits_per_raw_sample > 31` guard at line 369 exits early before any stride computation
+3. Even if reached, the `av_image_copy_plane` path is only taken for single-component descriptors, not RGBA (which uses a per-pixel loop instead)
+
+Status: `UNVERIFIED`.

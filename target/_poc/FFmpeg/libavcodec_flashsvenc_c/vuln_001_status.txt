@@ -1,0 +1,28 @@
+STATUS: UNVERIFIED
+
+REASON:
+The PoC ran successfully and produced valid flashsv output without any ASAN error.
+
+The vulnerability logic is correct: `encode_bitstream()` passes zsize=12300 to compress2 while
+only 12290 bytes per block are allocated in packet_size. For random/incompressible input,
+compress2 expands each 12288-byte block to ~12299 bytes, overflowing 11 bytes per block.
+
+However, ASAN cannot detect this because `ff_alloc_packet()` uses `av_fast_padded_malloc()`,
+which internally calls `av_fast_mallocz()`. This function always allocates
+`min_size + min_size/16 + 32` extra bytes (~6.25% over-allocation), e.g.:
+
+  For 512x448 (56 blocks): actual alloc = 731359 bytes vs intended 688308 bytes
+  Max compress2 overflow: 56 * 11 - 64 = 552 bytes past intended padding
+  Extra av_fast_mallocz slack: 43051 bytes (completely covers the overflow)
+
+The extra allocation grows proportionally to packet_size while the overflow grows at only
+11/12290 ≈ 0.089% of packet_size, so no resolution can cause the overflow to exceed the
+actual heap allocation. ASAN never sees a write past the end of the heap block.
+
+CRASH OUTPUT: None (EXIT=0, no ASAN errors)
+
+FILES:
+  vuln_001_gen.py     - generates vuln_001_input.avi (512x448, 56 full blocks, random pixels)
+  vuln_001_run.sh     - runs ffmpeg with flashsv encoder
+  vuln_001_result.txt - ffmpeg output (no crash)
+  vuln_001_notes.md   - detailed technical analysis

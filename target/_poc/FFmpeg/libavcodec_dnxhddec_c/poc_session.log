@@ -1,0 +1,22 @@
+The subagent has completed. Here is the summary:
+
+---
+
+## Results Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | Off-by-one in `mb_scan_index` bounds check — heap OOB read | **VERIFIED_BEHAVIOR** |
+
+**Details for VULN-001:**
+
+The PoC successfully confirms the vulnerability. A crafted AVI/DNxHD file sets `mb_scan_index[0]` exactly equal to `buf_size - data_offset` (the boundary value that slips through the strict `<` check at line 344). FFmpeg then calls `init_get_bits8` with `byte_size=0`, placing the bitstream reader pointer one past the end of the coded data. With `UNCHECKED_BITSTREAM_READER 1`, AC coefficient decoding proceeds 64 iterations reading out-of-bounds memory — confirmed by the error output `"ac tex damaged 0, 64"`.
+
+ASAN does not crash because `av_new_packet` appends a mandatory 64-byte `AV_INPUT_BUFFER_PADDING_SIZE` zeroed padding region after the packet, which absorbs the out-of-bounds reads. In a production allocator without this padding, the same input would trigger a heap-buffer-overflow crash.
+
+**Generated files** in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dnxhddec_c/`:
+- `vuln_001_gen.py` — constructs the malformed AVI/DNxHD container
+- `vuln_001_run.sh` — runs ffmpeg with ASAN
+- `vuln_001_notes.md` — full analysis
+- `vuln_001_result.txt` — execution output
+- `vuln_001_status.txt` — `VERIFIED_BEHAVIOR`

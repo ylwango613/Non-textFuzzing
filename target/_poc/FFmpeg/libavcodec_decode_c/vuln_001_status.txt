@@ -1,0 +1,7 @@
+SKIPPED
+
+Detail: Vulnerability not triggered: all FFmpeg demuxers hardcode SKIP_SAMPLES size=10; the OOB requires size<10 which is impossible via any standard file-based path. The discard_samples() code at decode.c:346 lacks a side->size>=10 guard on the write-back path, but the precondition (size<10 side data) cannot be created by any file demuxer.
+
+Command: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -flags2 +skip_manual -i /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_decode_c/vuln_001_input.nut -f null -
+Exit code: 0
+Log: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_decode_c/vuln_001_run.log

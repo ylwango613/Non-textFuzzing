@@ -1,0 +1,9 @@
+## 汇总
+
+| VULN 编号 | 漏洞标题 | 状态 |
+|-----------|----------|------|
+| VULN-001 | Heap Buffer Overflow in tqi_idct_put (Missing Minimum Dimension Check) | **UNVERIFIED** |
+
+**原因**：PoC 成功触达了目标路径（`tqi_decode_frame()` → `tqi_idct_put()` → `ff_ea_idct_put_c()`，frame=1 已解码），但未触发 ASAN 报错。
+
+根本原因：`libavutil/frame.c` 的 `get_video_buffer()` 函数中有 `padded_height = FFALIGN(frame->height, 32)` 的填充逻辑，将 h=1 向上对齐到 32 行后再分配缓冲区。单个宏块最多只写 16 行亮度数据，完全落在 32 行分配范围之内，因此内存越界在当前构建版本中数学上不可能发生。该漏洞描述的行为可能存在于旧版 FFmpeg（`padded_height=32` 保护加入之前）。

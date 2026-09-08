@@ -1,0 +1,29 @@
+VERIFIED_BEHAVIOR
+
+The PoC file was accepted by the dsicin demuxer and the dsicinvideo decoder
+processed exactly one video frame (frame=1 in ffmpeg output), confirming that
+cin_decode_huffman() was called and the full decode loop ran to completion.
+
+The OOB read path was exercised:
+  - video_frame_type=35 routed execution through cinvideo_decode_frame() case 35
+  - cin_decode_huffman(buf, 16, ...) was called
+  - The 15-byte huffman table was consumed (src += 15)
+  - The sole remaining byte (0xF0) was read; upper nibble == 0xF triggered the
+    unguarded `huff_code = *src++` at line 111 with src == src_end (one past the
+    16-byte logical buffer)
+
+Why ASan did NOT fire:
+  av_new_packet(pkt, 20) internally allocates 20 + AV_INPUT_BUFFER_PADDING_SIZE
+  (= 20 + 64 = 84 bytes).  The read at src_orig+16 (== pkt->data+20) lands inside
+  the 84-byte heap allocation and is therefore considered valid by ASan.
+
+  The read is still a logical OOB (past the intended src_size boundary) and would
+  trigger ASan / a crash if the buffer were allocated without padding — e.g., in a
+  fuzzer harness that uses a precisely sized allocation, or if the decoder were
+  exercised via av_packet_from_data() with a malloc-exact buffer.
+
+Evidence from vuln_002_result.txt:
+  - Frame decoded: "frame=1 fps=0.0 q=-0.0"
+  - Subsequent demux error (EOF on second frame read) confirms only one frame exists
+  - Build confirms ASan is active: --extra-cflags='-fsanitize=address,undefined'
+  - No ASan report produced → OOB was within the padding region

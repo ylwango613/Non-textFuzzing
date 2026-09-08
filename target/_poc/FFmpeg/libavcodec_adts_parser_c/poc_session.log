@@ -1,0 +1,11 @@
+The subagent has completed. Here is the summary:
+
+---
+
+## VULN Summary — `libavcodec_adts_parser_c`
+
+| # | Vulnerability | Status |
+|---|---------------|--------|
+| 001 | `avpriv_adts_header_parse` passes undersized buffer (missing AV_INPUT_BUFFER_PADDING_SIZE) to GetBitContext — OOB read | **UNVERIFIED** |
+
+**Why UNVERIFIED:** The trigger path (HLS SAMPLE-AES → `avpriv_adts_header_parse`) is reachable and confirmed executing with a 7-byte ADTS buffer. However, ASAN does not fire because `av_new_packet(pkt, 7)` internally allocates `7 + AV_INPUT_BUFFER_PADDING_SIZE = 71 bytes`. The optimized bit reader's `AV_RB64` reads 8 bytes (byte 7 is the first zero-padding byte) — still within ASAN's valid 71-byte allocation. The OOB read would only manifest if an external caller passed a truly unpadded 7-byte buffer directly to `avpriv_adts_header_parse`, which FFmpeg's internal `av_packet` allocation prevents in practice.

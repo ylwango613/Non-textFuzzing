@@ -1,0 +1,9 @@
+UNVERIFIED
+Extradata correctly encodes lastframelen=2047 (>MPC_FRAME_SIZE=1152) and the
+codec stores it unchecked in c->lastframelen. However, the MPC demuxer
+(libavformat/mpc.c:mpc_read_packet) sets pkt->data[1] (last_frame) via:
+  (c->curframe > c->fcount) && c->fcount
+This is always 0 because the EOF guard (curframe >= fcount → EOF) runs first,
+preventing curframe from ever exceeding fcount. The nb_samples overwrite at
+mpc7.c:281 is therefore unreachable via the standard ffmpeg -i CLI path.
+ASAN build confirmed no crash. See vuln_001_notes.md for full analysis.

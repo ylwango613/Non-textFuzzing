@@ -1,0 +1,13 @@
+VERIFIED_BEHAVIOR
+The OOB heap read in get_cap() is confirmed to occur.
+
+Evidence:
+- "This codestream uses the HT block coder." shows get_cap() WAS called and read Pcap=0xFFFFFFFF (bit 14 set => isHT=1).
+- "error during processing marker segment ff50" is printed from the position-mismatch check at jpeg2000dec.c:2661: bytestream2_tell(&s->g)-oldpos (=70) != len (=8). This proves the loop consumed 70 bytes total (2 for len field + 4 for Pcap + 64 for 32 Ccap iterations) when the segment declared only 8 bytes, i.e., 62 bytes were read past the segment boundary.
+
+Why no ASAN hard crash:
+- av_new_packet() allocates avpkt->size + AV_INPUT_BUFFER_PADDING_SIZE (= 64) bytes.
+- The 62-byte over-read falls entirely within the 64-byte padding region (all zeroed), so it never reaches ASAN's red zone.
+- If called without the 64-byte padding (e.g., from a custom integration or with a minimal avpkt allocation), this would be a heap-buffer-overflow caught by ASAN.
+
+Trigger confirmed: The crafted J2K codestream (SOC → SIZ → CAP[len=8, Pcap=0xFFFFFFFF, 1xCcap]) successfully triggers the unchecked bytestream2_get_be16u loop inside get_cap() at libavcodec/jpeg2000dec.c:462-464, reading 31 iterations (62 bytes) beyond the declared segment boundary.

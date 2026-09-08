@@ -1,0 +1,7 @@
+The subagent has completed. Here is the summary:
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| VULN 001 — Integer Overflow in `stats()` → Heap Buffer Overflow in `merge_superframe()` | **SKIPPED** | Triggering the uint32 overflow requires ≥4GB of actual packet data across up to 8 cached frames (~512MB/frame). The `memcpy` loop uses real `in[n]->size` values, so there is no way to synthesize oversized frames without genuine multi-GB input. Architecturally valid but impractical to trigger via a normal crafted media file. |
+
+`vuln_001_status.txt` first line: `SKIPPED`. `vuln_001_notes.md` documents the skip rationale.

@@ -1,0 +1,14 @@
+## Summary
+
+| VULN # | Title | Status |
+|--------|-------|--------|
+| VULN 001 | OOB Read in `ff_els_decode_bit` — Unbounded while-decrement Loop with z=0 | **VERIFIED_BEHAVIOR** |
+
+**Result:** The PoC successfully demonstrates anomalous behavior from the vulnerability. A crafted AVI container carrying a G2M4-coded stream with malformed ELS data (`0xFF` bytes) causes `ff_els_decode_bit()` to perform ~35,754 out-of-bounds reads past the 145-entry `els_exp_tab[]` global array, reading ~143 KB of adjacent `.rodata` memory.
+
+**Evidence in output:**
+- `RGB 6 -6 -2 (out of range)` — corrupted ELS state yields impossible pixel values
+- `RGB 0 -1 0 (out of range)` — second occurrence
+- `ePIC: tile decoding failed` — downstream failure from corrupted state
+
+**Why no ASAN crash:** GCC's ASan does not insert red zones around `static const` global arrays, so the OOB reads are not intercepted — but the state corruption is clearly observable. The vulnerability is real and exercised by the PoC.

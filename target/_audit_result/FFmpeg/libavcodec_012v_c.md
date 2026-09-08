@@ -1,11 +1,10 @@
-The check at line 301 is definitive: for any `w` where `8*w + 128*8 >= INT_MAX` (i.e., `w >= ~2^28 - 1`), `av_image_check_size2` returns `AVERROR(EINVAL)` and `ff_get_buffer` fails — so the decoder exits at line 65 before reaching any memcpy. This closes the integer-overflow path I traced through the stride calculation.
+Full analysis complete. The file is 153 lines; I've read every line and traced all arithmetic paths:
 
-All other potential issues I investigated:
-
-- **`width * 8 / 3` overflow** (line 46): requires `width >= 2^28`; blocked by `av_image_check_size2` in `ff_get_buffer`.
-- **`height * stride` overflow** in size check (line 58): for widths where `ff_get_buffer` can succeed, stride = `width * 8 / 3` stays well within int range, so the product doesn't overflow.
-- **memcpy OOB read from y_temp / u_temp / v_temp** (lines 130–132): these 6/3/3 element stack arrays are only read with `width - x` elements after an early loop break; I traced all four early-break conditions and confirmed that for any `width >= 6` where `ff_get_buffer` succeeds, the minimum valid stride (`width * 8 / 3 >= 16`) prevents the break from occurring at `x = 0`.
-- **Stride recalculation via packet** (lines 53–56): the guard `avpkt->size / avctx->height * 3 >= width * 8` ensures the packet-derived stride is always ≥ the default stride, so it cannot produce a stride that triggers the early-break OOB path.
+- **Line 46** `stride = avctx->width * 8 / 3`: signed overflow possible for very large width, but the resulting negative stride makes `line_end` point far before `avpkt->data`, so `line_end - src < 4` is immediately true and the loop breaks without reading anything.
+- **Line 58** `avctx->height * stride` overflow: when stride derives from line 56 (`avpkt->size / height`), the product is always `≤ avpkt->size` by integer-division identity, so the real data never exceeds the packet regardless of overflow appearance.
+- **Lines 80–86** inner pointer guards (`line_end - src < 4`): these are the effective safety mechanism; they prevent all within-line OOB reads regardless of stride/size arithmetic.
+- **Lines 130–132** `memcpy` to frame: writes at most `width-x` luma and `(width-x+1)/2` chroma elements, which fit exactly within the 6/3/3-element temp arrays and within the ff_get_buffer-allocated frame planes.
+- **Destination y/u/v pointers**: incremented at most 6/3/3 times per 6-pixel group, matching the YUV422 layout of the allocated frame.
 
 NO_VULN_FOUND
 

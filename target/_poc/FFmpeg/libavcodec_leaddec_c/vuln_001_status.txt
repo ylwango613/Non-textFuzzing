@@ -1,0 +1,22 @@
+UNVERIFIED
+The PoC successfully crafted a valid AVI/LEAD file with height=9 (not a multiple
+of 8) and format=0x2000 (YUV444P). The decoder executed 1 frame and reached the
+j=1 loop iteration that writes IDCT output to rows 8-15 of each plane.
+
+However, ASAN did not trigger. Root cause: libavutil/frame.c line 110 sets
+  padded_height = FFALIGN(frame->height, 32)
+so for height=9, each plane gets 32 allocated rows (not 9). The j=1 writes
+(rows 8-15) are entirely within the 32-row padded allocation. By mathematical
+proof, for any height H, the last written row (8*ceil(H/8)-1) always ≤
+FFALIGN(H,32)-1, so the 32-row padding unconditionally absorbs the OOB writes
+when using the default FFmpeg frame allocator.
+
+The logical OOB is real: the decoder writes to rows 9-15 of each plane's
+"padding zone" rather than stopping at valid row 8. This corrupts the padding
+rows with IDCT output data. The vulnerability would produce an ASAN
+heap-buffer-overflow in a custom harness that allocates frames with alignment=1
+(i.e., exactly avctx->height rows per plane via av_image_alloc with align=1),
+which is the scenario the audit report's analysis assumes.
+
+With the standard ffmpeg binary and its default frame allocator this specific
+trigger path does not produce an ASAN-detectable crash.

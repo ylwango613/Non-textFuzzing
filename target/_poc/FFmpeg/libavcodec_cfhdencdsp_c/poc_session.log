@@ -1,0 +1,7 @@
+## Summary
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| 001 | **UNVERIFIED** | ASAN did not fire — `cfhdenc.c` allocates `dwt_buf` with `w8 = width/8 + 64` (64-element padding per row), so even with `width=16` and `len=4`, the OOB indices still land within the padded allocation. The code path is confirmed reachable and the read does occur, but the padding prevents ASAN from detecting it as an overflow. |
+
+The root cause in `filter()` is real (unconditional reads of `input[4]`/`input[5]` regardless of `len`), but exploitation is mitigated in practice by the allocator padding added in `cfhdenc.c:278`. No ASAN crash was produced.

@@ -1,0 +1,12 @@
+## 汇总结果
+
+| 编号 | 漏洞 | 状态 |
+|------|------|------|
+| VULN-001 | Off-by-one OOB Write in `sei_pic_timing` (`num_decoding_units_minus1` loop) | **VERIFIED_CRASH** |
+
+UBSan 在真实 ffmpeg 执行路径中确认了越界写入：
+```
+cbs_h265_syntax_template.c:2005: runtime error: index 600 out of bounds for type 'uint16_t [600]'
+```
+
+PoC 文件位于 `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_cbs_h265_c/`，触发方式是通过 `trace_headers` BSF 强制调用 CBS 解析带有 `num_decoding_units_minus1=600` 的 SEI pic_timing 消息。

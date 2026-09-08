@@ -1,0 +1,11 @@
+Subagent completed. Here is the summary:
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | Use-After-Free in ff_h274_hash_freep() (Big-Endian) | **SKIPPED** |
+
+**Reason**: The UAF lives entirely inside a `#if HAVE_BIGENDIAN` preprocessor block. The test binary is `ELF 64-bit LSB x86-64` (little-endian), and `config.h` confirms `HAVE_BIGENDIAN=0` — the vulnerable code was never compiled in, so it cannot be triggered by any crafted input file.
+
+Files written:
+- `vuln_001_status.txt` — `SKIPPED`
+- `vuln_001_notes.md` — skip rationale

@@ -1,0 +1,7 @@
+## Summary
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| VULN 001 — OOB Heap Write in `discard_samples()` | **SKIPPED** | Every FFmpeg demuxer hardcodes `size=10` when allocating `AV_PKT_DATA_SKIP_SAMPLES` side data (e.g., `nutdec.c` calls `av_packet_new_side_data(pkt, AV_PKT_DATA_SKIP_SAMPLES, 10)` with a literal `10`). The undersized side data condition (`size < 10`) that the vulnerability requires cannot be introduced through any crafted media file — it would only be reachable by calling `av_frame_new_side_data()` with a smaller size directly from C code, which violates the no-harness rule. |
+
+The PoC files are in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_decode_c/` — `vuln_001_status.txt` records `SKIPPED`, and `vuln_001_notes.md` documents the full reasoning.

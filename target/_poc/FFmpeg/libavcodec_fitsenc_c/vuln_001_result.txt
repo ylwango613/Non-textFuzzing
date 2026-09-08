@@ -1,0 +1,60 @@
+[*] Generating FITS input files...
+=== PoC: FITS encoder int32 overflow (fitsenc.c line 80) ===
+
+Generating vuln_001_input.fits with NAXIS1=65537, NAXIS2=65537, BITPIX=8
+[+] Created vuln_001_input.fits: 65537x65537 BITPIX=8
+[+] File size: 5760 bytes (truncated data)
+[+] Expected full data_size: 4,295,098,369 bytes (4.00 GB)
+[+] int32 product (bitpix/8 * h * w):  131073 (0x00020001)
+[+] If overflow, encoder allocates ~131,073 bytes instead of 4,295,098,369
+[+] Overflow = True
+
+Generating vuln_001_input_16bit.fits with NAXIS1=46341, NAXIS2=46341, BITPIX=16
+[+] Created vuln_001_input_16bit.fits: 46341x46341 BITPIX=16
+[+] File size: 5760 bytes (truncated data)
+[+] Expected full data_size: 4,294,976,562 bytes (4.00 GB)
+[+] int32 product (bitpix/8 * h * w):  9266 (0x00002432)
+[+] If overflow, encoder allocates ~9,266 bytes instead of 4,294,976,562
+[+] Overflow = True
+
+Note: Both files have truncated data. The FITS decoder will likely fail
+      to fully decode, but the overflow exists in the encoder on line 80.
+
+=== Attempt 1: Truncated FITS file (65537x65537 GRAY8) ===
+    Tests whether decoder accepts truncated file
+[*] Attempt 1 output:
+[in#0 @ 0x513000000200] Error opening input: Invalid data found when processing input
+Error opening input file vuln_001_input.fits.
+Error opening input files: Invalid data found when processing input
+
+=== Attempt 2: lavfi color source -> FITS encoder (GRAY8, 65537x65537) ===
+    Bypasses decoder; creates frame synthetically to directly hit the encoder
+    Expected: encoder computes 1*65537*65537=4295098369 -> int32 overflow -> 131073
+    Then allocates ~132KB but writes ~4.3GB -> heap-buffer-overflow
+[*] Attempt 2 output:
+[Parsed_color_0 @ 0x511000000680] [IMGUTILS @ 0x7561fab112a0] Picture size 65537x65537 is invalid
+[Parsed_color_0 @ 0x511000000680] Failed to configure output pad on Parsed_color_0
+[in#0 @ 0x513000000200] Error opening input: Invalid argument
+Error opening input file color=color=black:size=65537x65537:rate=1.
+Error opening input files: Invalid argument
+
+=== Attempt 3: lavfi color source -> FITS encoder (GBRP, 65537x65537) ===
+    GBRP: naxis3=3, encoder computes 1*65537*65537*3=12885295107 -> int32 overflow -> 393219
+    Allocates ~394KB but writes ~12.9GB -> heap-buffer-overflow
+[*] Attempt 3 output:
+[Parsed_color_0 @ 0x511000000680] [IMGUTILS @ 0x7b69a91112a0] Picture size 65537x65537 is invalid
+[Parsed_color_0 @ 0x511000000680] Failed to configure output pad on Parsed_color_0
+[in#0 @ 0x513000000200] Error opening input: Invalid argument
+Error opening input file color=color=black:size=65537x65537:rate=1.
+Error opening input files: Invalid argument
+
+[*] Done.
+EXIT=0
+
+=== Mathematical Analysis ===
+FFmpeg's av_image_check_size2 enforces: (8w+1024)*(h+128) < INT_MAX
+This implies: 8*w*h < INT_MAX
+Therefore: max(bitpix/8 * w * h * naxis3) <= 8*w*h < INT_MAX = 2,147,483,647
+So NO supported pixel format can overflow int32 in the encoder via standard pipeline.
+
+The closest case (GBRAP16BE): max 8*wh = 2,147,483,640 (margin of only 7 below INT_MAX).

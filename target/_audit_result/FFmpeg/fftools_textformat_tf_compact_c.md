@@ -1,19 +1,11 @@
-I've now read the complete file (281 lines) and both related headers. Let me do the full security analysis.
+完成全文精读（共 281 行），并逐一追踪了所有关键调用链：
 
-**File scope:** `tf_compact.c` is a text *output* formatter used by `ffprobe`. It formats already-extracted, pre-validated key/value strings for terminal/pipe output. It does **not** parse any media file bytes directly.
-
-**Array bounds analysis:**
-- `compact->terminate_line[wctx->level]`, `has_nested_elems[wctx->level]`, `nested_section[wctx->level]` — all sized `SECTION_MAX_NB_LEVELS` (12). Access only happens after `tf_get_section()` checks `level >= SECTION_MAX_NB_LEVELS` and returns NULL, and the function guards on `if (!section) return;` (lines 147–148, 200–202). Bounds are safe.
-- `wctx->nb_item[wctx->level]` / `wctx->nb_item[wctx->level - 1]` — same bounds, same guard. The `level - 1` access (line 185) is only reached when `parent_section != NULL`, which `tf_get_parent_section` only returns for `level > 0`. Safe.
-
-**String/buffer analysis:**
-- All string output uses `AVBPrint` with `AV_BPRINT_SIZE_UNLIMITED` — dynamic, auto-resizing, no fixed buffers.
-- `c_escape_str`, `csv_escape_str`, `none_escape_str` — all write only to `AVBPrint`; no fixed-size stack buffers.
-- `csv_escape_str` stack array `meta_chars[5]` is correctly null-terminated and only passed to `strcspn`. Safe.
-
-**Memory allocation:** There are zero `av_malloc`/`av_realloc`/`memcpy` calls with size arguments in this file. No integer arithmetic on attacker-controlled data.
-
-**Data flow:** All `value` and `key` strings entering `compact_print_str`/`compact_print_int` come from upstream `ffprobe` formatting code (already-extracted metadata), not raw container bytes. No direct attack surface from a crafted media file at this layer.
+- `AVBPrint` 以 `AV_BPRINT_SIZE_UNLIMITED` 初始化，动态扩容，不会溢出。
+- `c_escape_str` / `csv_escape_str` / `none_escape_str` 均不涉及固定大小缓冲区写入。
+- `meta_chars[5]` 仅作 `strcspn` 的匹配集，未做边界写入。
+- 所有 `wctx->level` 相关数组下标（`terminate_line[]`、`nested_section[]`、`has_nested_elems[]`、`section_pbuf[]`、`nb_item[]`）在每次访问前均经过 `tf_get_section()` 的范围验证（`level >= 0 && level < SECTION_MAX_NB_LEVELS`）或依赖 `parent_section != NULL` 保证 `level > 0`，不存在越界。
+- 文件内无 `av_malloc` / `av_realloc` / `memcpy` / `memmove` 调用，无整数溢出乘法，无来自媒体容器字节流的直接尺寸字段读取。
+- 该文件为纯输出格式化器，不解析任何外部媒体输入，攻击面极小。
 
 NO_VULN_FOUND
 

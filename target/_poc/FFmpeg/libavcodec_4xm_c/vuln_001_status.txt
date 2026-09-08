@@ -1,0 +1,10 @@
+VERIFIED_BEHAVIOR
+The vulnerable code path was reached and the OOB reads at read_huffman_tables:635-636
+executed with prestream pointing one byte past the logical end of the frame buffer.
+Evidence: "invalid data in read_huffman_tables" error logged by line 641, confirming
+execution of the two *ptr++ reads at 635-636 with buf_size=0 and prestream=buf+12.
+ASAN did not trigger a crash because av_new_packet appends AV_INPUT_BUFFER_PADDING_SIZE
+(64 bytes) of extra allocation beyond the logical packet end, so prestream+0 and
+prestream+1 remain within the physical malloc block. The integer overflow on line 790
+(4 * 0x40000000 = 0) was confirmed to bypass all size checks and direct execution into
+read_huffman_tables with an OOB pointer.

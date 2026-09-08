@@ -1,0 +1,7 @@
+**汇总**
+
+| VULN | 编号 | 状态 | 原因 |
+|------|------|------|------|
+| Integer Truncation in bitstream_frame_size | 001 | **SKIPPED** | 目标二进制未编译 `libsvtjpegxs` 编码器，无法通过命令行触发该漏洞 |
+
+唯一漏洞（VULN-001）被跳过：`/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg` 中不包含 `libsvtjpegxs` 编码器，该漏洞需要 `-c:v libsvtjpegxs` 才能进入 `svt_jpegxs_enc_init()` 的溢出路径，无法通过向 ffmpeg 传递畸形媒体文件来触发。

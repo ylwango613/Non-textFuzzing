@@ -1,0 +1,9 @@
+**Summary: VULN 001 — SKIPPED**
+
+The subagent analyzed the source code and determined the vulnerability cannot be triggered via a crafted media file:
+
+- The RPU decoder (`dovi_rpudec.c` line 436) hard-caps `coef_log2_denom` at 32 via `VALIDATE(hdr->coef_log2_denom, 13, 32)` — rejecting any input with the value ≥ 45 needed to cause overflow in the encoder.
+- With the parser-enforced maximum of 32, the actual per-segment write size (~174 bytes) stays under the 177-byte estimate, so no overflow occurs.
+- There is no command-line-accessible path to inject a `coef_log2_denom` value bypassing this validation.
+
+**Result: VULN 001 → SKIPPED** (vulnerability not reachable via malformed media file command-line path)

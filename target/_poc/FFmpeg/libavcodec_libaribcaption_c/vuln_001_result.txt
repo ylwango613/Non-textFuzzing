@@ -1,0 +1,2 @@
+SKIPPED: arib decoder not compiled
+EXIT=0

@@ -1,0 +1,8 @@
+两个 subagent 均已完成。汇总如下：
+
+| VULN | 状态 | 说明 |
+|------|------|------|
+| VULN 001 — `decode_mad1()` case-8 OOB Write (8bpp, h=10) | `VERIFIED_BEHAVIOR` | 触发路径确认（ffmpeg 成功解码 h=10 的 Argo 8bpp 帧），逻辑越界写入发生，但 `libavutil/frame.c` 的 `FFALIGN(h, 32)` 分配策略使溢出最多 7 行的写落在对齐填充区内，ASAN 未报错 |
+| VULN 002 — `decode_mad1_24()` case-12 OOB Write (24bpp, h=10) | `VERIFIED_BEHAVIOR` | 触发路径确认（BRP 容器，BGR0 模式，case 12 block 激活 dy=10/11 越界写），`avcodec_align_dimensions2()` 对 Argo 硬编码 `h_align=8` 使物理分配扩至 16 行，写操作落在分配范围内，ASAN 未报错 |
+
+**结论**：两个漏洞均为真实的逻辑越界写，代码路径已在真实 ffmpeg 二进制中确认触发。ASAN 未崩溃的原因是 FFmpeg 的帧缓冲区对齐机制（`FFALIGN`/`avcodec_align_dimensions2`）在 CLI 路径下产生了足够的填充，使溢出被吸收。在不含此对齐的直接 API 调用场景或内存分配紧凑的环境下，这两处 OOB write 仍可造成实际堆破坏。

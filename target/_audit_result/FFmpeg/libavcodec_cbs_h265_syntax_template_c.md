@@ -1,0 +1,25 @@
+I've completed the full read of all 2399 lines in 5 batches and cross-examined the struct definitions. I found one confirmed memory-safety vulnerability.
+
+**Finding summary (batch-by-batch):**
+- **Lines 1–500**: Struct bounds, HRD allocation — all within range.
+- **Lines 500–1000**: ST-RPS, scaling list, SPS parsing — bounded correctly.
+- **Lines 1000–1500**: PPS, colour-mapping recursion, multilayer ext — arrays within range.
+- **Lines 1500–2000**: Slice header, pred weight table — entry-point check guards array; `slice_segment_header_extension_data_byte[256]` accessed ≤ index 255 ✓. **`sei_pic_timing` loop at line 2004 uses `i <= num_decoding_units_minus1`, max 600, but `num_nalus_in_du_minus1[600]` has only 600 entries (indices 0–599) → off-by-one OOB write.**
+- **Lines 2000–2399**: Remainder SEI functions — no additional issues.
+
+---
+
+## VULN: Off-by-One OOB Heap Write in HEVC CBS sei_pic_timing via num_decoding_units_minus1
+- **漏洞类别**: memory-safety
+- **函数**: FUNC(sei_pic_timing)()
+- **行号**: 1997-2009
+- **CWE**: CWE-787 (Out-of-bounds Write)
+- **CVSS v3.1**: 8.8 (AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H)
+- **严重程度**: High
+- **攻击向量**: crafted HEVC media file
+- **外部触发路径**: `ffmpeg -i crafted.h265 -bsf:v trace_headers -f null -` → `ff_cbs_read_packet()` → `cbs_h265_read_nal_unit()` → `FUNC_H265(sei_pic_timing)()` → OOB write at line 2005
+- **描述**: 在 `sei_pic_timing` 函数（通过 READ 宏展开的 CBS H.265 解析路径）中，`num_decoding_units_minus1` 通过 `ue(num_decoding_units_minus1, 0, HEVC_MAX_SLICE_SEGMENTS)` 读取，允许的最大值为 `HEVC_MAX_SLICE_SEGMENTS = 600`。随后的循环 `for (i = 0; i <= current->num_decoding_units_minus1; i++)` 在 `i = 600` 时执行 `ues(num_nalus_in_du_minus1[i], 0, HEVC_MAX_SLICE_SEGMENTS, 1, i)` 写操作，但 `H265RawSEIPicTiming.num_nalus_in_du_minus1[HEVC_MAX_SLICE_SEGMENTS]` 仅有 600 个元素（有效下标 0–599）。当 `i = 600` 时，写入超出数组末尾 1 个 `uint16_t`（2 字节），覆盖紧随其后的 `du_cpb_removal_delay_increment_minus1[0]` 的低 16 位（可被攻击者控制为 0–600 范围内的任意值）。`H265RawSEIPicTiming` 结构体由 CBS SEI 框架在堆上分配，因此该写入是堆内存越界写。
+- **触发条件**: 攻击者构造如下畸形 HEVC 码流：(1) SPS 的 VUI HRD 参数中设置 `sub_pic_hrd_params_present_flag=1` 且 `sub_pic_cpb_params_in_pic_timing_sei_flag=1`；(2) Prefix SEI NAL 中包含 `pic_timing` 消息，其 `num_decoding_units_minus1` 字段编码为 600（UE-Golomb）。当 CBS 解析该码流时（通过 trace_headers/filter_units BSF、hevc_metadata BSF 或 ffprobe SEI 元数据提取路径）即可触发。
+- **安全影响**: 攻击者可将可控的 2 字节值写入堆上紧邻的 `du_cpb_removal_delay_increment_minus1[0]` 前两字节，造成堆内存损坏。最坏情况下可利用此原语结合进一步的内存布局操控实现任意代码执行（RCE），或至少导致进程崩溃（DoS）。
+
+<!-- AUDIT_PROMPT_VERSION: 1 -->

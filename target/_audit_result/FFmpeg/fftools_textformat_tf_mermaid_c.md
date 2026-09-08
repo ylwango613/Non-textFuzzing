@@ -1,22 +1,14 @@
-I have now read the entire `tf_mermaid.c` (676 lines), all related headers (`avtextformat.h`, `tf_internal.h`, `tf_mermaid.h`), and traced every called function: `av_strireplace`, `av_stristr`, `av_bprint_init`, `ff_resman_get_string`.
+After reading the complete file, the full `AVDiagramConfig` struct definition, the `av_strireplace` implementation, and all call sites, I now have a complete picture for my assessment.
 
-**Summary of findings per audit pattern:**
+**Summary of analysis:**
 
-| Pattern | Result |
-|---|---|
-| Integer overflow → av_malloc underalloc | Not present – no `malloc` sizing in this file |
-| extradata heap overflow | Not present – no extradata handling |
-| Seek table underalloc | Not present |
-| Packet data OOB | Not present |
-| Chunk/atom size heap overflow | Not present – output formatter only |
-| Fixed-size stack buffer overflow | Not present – all strings use AVBPrint |
-| AVFrame image alloc overflow | Not present |
-
-**Notable non-security observations:**
-- `has_link_pair` (line 176–190): initializes `AVBPrint buf` with `AV_BPRINT_SIZE_UNLIMITED` but never calls `av_bprint_finalize` — resource leak, not memory safety.
-- If `ff_resman_get_string` returns NULL for the CSS resource, the `av_strireplace(NULL, …)` call at line 273 would crash. This is triggered by an internal OOM/decompression failure, **not** by attacker-controlled media file bytes.
-
-This file is a Mermaid-diagram text formatter. It operates on already-parsed, abstracted metadata (section IDs, display labels) — not raw container bytes. No attacker-reachable code path performs unchecked allocation from media-file–derived sizes.
+- `tf_mermaid.c` is a **text output formatter** for FFmpeg graph diagrams, used by `ffprobe`/`ffplay`. It does **not** parse raw media file bytes.
+- All string data processed comes from FFmpeg's internal graph state (codec names, pad names, stream ids), passed through safe `AVBPrint`-based APIs with no fixed-size buffers.
+- `av_strireplace` returns NULL on OOM failure; those returns at lines 273 and 280 are not checked before use — but this is an OOM scenario, not an externally-triggered memory corruption.
+- `has_link_pair()` (lines 176–190) initializes an `AVBPrint` but never calls `av_bprint_finalize` — this is a memory leak, not a safety bug.
+- `diagram_css` comes from `ff_resman_get_string()` (graphprint.c:925) which can return NULL; passing NULL into `av_strireplace` → `av_stristr(NULL,...)` would NULL-deref, but this is a resource-manager/configuration failure path, not reachable via crafted media files.
+- All array indexing of `section_data[]` and `nb_link_captions[]` by `tfc->level` is guarded by the early-return from `tf_get_section()`, which rejects `level >= SECTION_MAX_NB_LEVELS`.
+- No `malloc`/`av_malloc` with user-controlled sizes, no `memcpy` with container-derived lengths, no fixed-size stack buffers receiving external strings.
 
 NO_VULN_FOUND
 

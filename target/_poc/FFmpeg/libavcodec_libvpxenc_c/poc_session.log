@@ -1,0 +1,5 @@
+The subagent has completed. Here is the summary:
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| 001 | **SKIPPED** | The `libvpx` encoder is not compiled into the test binary (`--enable-libvpx` was not set at build time). The only VP-family encoder present is `vp8_v4l2m2m` (V4L2 hardware path), which never calls `realloc_alpha_uv()`. The source-level vulnerability is real, but it cannot be triggered through this binary. |

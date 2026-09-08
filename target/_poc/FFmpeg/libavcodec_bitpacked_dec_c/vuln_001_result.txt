@@ -1,0 +1,127 @@
+[*] Generating crafted files...
+[+] Written vuln_001_input.avi (272 bytes)
+[+] Written vuln_001_tiny.bin (16 bytes)
+[+] Frame dimensions: 64x64, required bytes: 8192
+[+] Actual frame payload: 16 bytes
+[+] OOB delta: 8176 bytes beyond packet buffer
+
+[*] Invocation 1: bitpacked demuxer + forced decoder, null sink (baseline)
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0/bitpacked @ 0x517000000080] Packet corrupt (stream = 0, dts = 0).
+[in#0/bitpacked @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+Input #0, bitpacked, from 'vuln_001_tiny.bin':
+  Duration: N/A, start: 0.000000, bitrate: 1638 kb/s
+  Stream #0:0: Video: bitpacked (UYVY / 0x59565955), uyvy422, 64x64, 1638 kb/s, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (bitpacked (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[in#0/bitpacked @ 0x513000000200] corrupt input packet in stream 0
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: wrapped_avframe, uyvy422(progressive), 64x64, q=2-31, 200 kb/s, 25 fps, 25 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+[out#0/null @ 0x511000000cc0] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:00.04 bitrate=N/A speed= 3.8x elapsed=0:00:00.01    
+
+[*] Invocation 2: bitpacked + pix_fmt conversion (forces swscale to read all 8192 bytes)
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0/bitpacked @ 0x517000000080] Packet corrupt (stream = 0, dts = 0).
+[in#0/bitpacked @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+Input #0, bitpacked, from 'vuln_001_tiny.bin':
+  Duration: N/A, start: 0.000000, bitrate: 1638 kb/s
+  Stream #0:0: Video: bitpacked (UYVY / 0x59565955), uyvy422, 64x64, 1638 kb/s, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (bitpacked (native) -> rawvideo (native))
+Press [q] to stop, [?] for help
+[in#0/bitpacked @ 0x513000000200] corrupt input packet in stream 0
+Output #0, rawvideo, to '/dev/null':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: rawvideo (RGB[24] / 0x18424752), rgb24(pc, gbr/unknown/unknown, progressive), 64x64, q=2-31, 2457 kb/s, 25 fps, 25 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 rawvideo
+[out#0/rawvideo @ 0x511000000cc0] video:12KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.000000%
+frame=    1 fps=0.0 q=-0.0 Lsize=      12KiB time=00:00:00.04 bitrate=2457.6kbits/s speed=1.38x elapsed=0:00:00.02    
+
+[*] Invocation 3: bitpacked + scale filter (forces plane reads)
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0/bitpacked @ 0x517000000080] Packet corrupt (stream = 0, dts = 0).
+[in#0/bitpacked @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+Input #0, bitpacked, from 'vuln_001_tiny.bin':
+  Duration: N/A, start: 0.000000, bitrate: 1638 kb/s
+  Stream #0:0: Video: bitpacked (UYVY / 0x59565955), uyvy422, 64x64, 1638 kb/s, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (bitpacked (native) -> rawvideo (native))
+Press [q] to stop, [?] for help
+[in#0/bitpacked @ 0x513000000200] corrupt input packet in stream 0
+Output #0, rawvideo, to '/dev/null':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: rawvideo (UYVY / 0x59565955), uyvy422(progressive), 4x4, q=2-31, 6 kb/s, 25 fps, 25 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 rawvideo
+[out#0/rawvideo @ 0x511000000cc0] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.000000%
+frame=    1 fps=0.0 q=-0.0 Lsize=       0KiB time=00:00:00.04 bitrate=   6.4kbits/s speed=1.39x elapsed=0:00:00.02    
+
+[*] Invocation 4: bitpacked + yuv420p conversion
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0/bitpacked @ 0x517000000080] Packet corrupt (stream = 0, dts = 0).
+[in#0/bitpacked @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+Input #0, bitpacked, from 'vuln_001_tiny.bin':
+  Duration: N/A, start: 0.000000, bitrate: 1638 kb/s
+  Stream #0:0: Video: bitpacked (UYVY / 0x59565955), uyvy422, 64x64, 1638 kb/s, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (bitpacked (native) -> rawvideo (native))
+Press [q] to stop, [?] for help
+[in#0/bitpacked @ 0x513000000200] corrupt input packet in stream 0
+Output #0, rawvideo, to '/dev/null':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: rawvideo (I420 / 0x30323449), yuv420p(progressive), 64x64, q=2-31, 1228 kb/s, 25 fps, 25 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 rawvideo
+[out#0/rawvideo @ 0x511000000cc0] video:6KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.000000%
+frame=    1 fps=0.0 q=-0.0 Lsize=       6KiB time=00:00:00.04 bitrate=1228.8kbits/s speed=1.69x elapsed=0:00:00.02    
+
+[*] Collecting ASAN logs...
+
+[*] Done.
+EXIT=0

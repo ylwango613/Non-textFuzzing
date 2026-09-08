@@ -1,0 +1,5 @@
+## Summary
+
+**VULN 001** — `realloc_texture` signed-integer overflow → memset heap OOB write — **SKIPPED**
+
+The `ffplay` binary does not exist at the build path. The vulnerability lives entirely in `ffplay.c`'s SDL rendering pipeline (`subtitle_thread` → `video_image_display` → `realloc_texture`), which is unreachable via the `ffmpeg` binary. Cannot be triggered by passing a malformed media file to `ffmpeg -i`.

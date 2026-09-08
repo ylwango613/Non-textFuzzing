@@ -1,0 +1,11 @@
+The subagent has completed. Here is the summary:
+
+---
+
+## PoC Results Summary
+
+| VULN | 名称 | 状态 |
+|------|------|------|
+| 001 | OOB Heap Read in AVRN Interlaced Decode Path | **VERIFIED_BEHAVIOR** |
+
+**说明**：PoC 成功构造了触发条件（宽100×高4的 AVRN interlaced AVI，帧包大小精确为 800 字节），ffmpeg 成功解码并进入了有问题的代码路径。逻辑上越界读取了 4 字节（偏移 800–803），但 ASAN 未报崩溃，原因是 FFmpeg 每个 `av_new_packet()` 分配时强制附加 `AV_INPUT_BUFFER_PADDING_SIZE=64` 字节的填充区，4 字节越界落在填充区内，ASAN 认为该地址仍合法。漏洞逻辑成立，已静态确认；运行时无可见崩溃，故定级为 `VERIFIED_BEHAVIOR`。

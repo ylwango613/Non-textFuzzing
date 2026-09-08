@@ -1,0 +1,25 @@
+The subagent has completed. Here is the final summary:
+
+---
+
+## PoC Results Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | Integer Overflow in Packet Buffer Allocation (j2kenc.c:1482) | **VERIFIED_BEHAVIOR** |
+
+### Details
+
+**VULN 001 — VERIFIED_BEHAVIOR**
+
+UBSan confirmed the CWE-190 integer overflow at runtime:
+```
+src/libavcodec/j2kenc.c:1482:70: runtime error: signed integer overflow:
+238640704 * 9 cannot be represented in type 'int'
+```
+
+- **Trigger**: `ffmpeg -f rawvideo -video_size 15448x15448 -pixel_format gray8 -i /dev/zero -c:v jpeg2000 -frames:v 1 -f null -`
+- **Why not VERIFIED_CRASH**: The integer overflow produces a negative buffer size, which `ff_alloc_packet` catches and rejects — the integer overflow (CWE-190) is real and confirmed, but the downstream heap overflow (CWE-122) is blocked by a safety check in the allocator.
+- **Note**: The originally described dimensions (30000×16000) are rejected upstream by `av_image_check_size`; dimensions 15448×15448 pass that check while still triggering the signed integer overflow.
+
+Files are in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_j2kenc_c/`.

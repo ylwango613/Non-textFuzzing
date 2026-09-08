@@ -1,0 +1,45 @@
+=== VULN 001 PoC Execution Results ===
+
+--- Generator output ---
+[*] Raw data size: 17 bytes
+[*] ADTS frame size: 24 bytes
+[*] SBR parameters:
+    SBR sample rate: 16000 Hz (base AAC: 8000 Hz, ADTS sfi=11)
+    bs_start_freq=0 → k[0]=16
+    bs_stop_freq=13 → k[2]=64
+    kx[1]=16, m[1]=48 (boundary of g_filt_tab[48])
+    bs_smoothing_mode=0 → h_SL=4 (g_filt_tab code path active)
+    n[1]=18 (high-res bands), n_q=4 (noise bands)
+[*] Written 240 bytes to vuln_001_input.aac
+
+--- FFmpeg output ---
+[in#0/aac @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+Input #0, aac, from 'vuln_001_input.aac':
+  Duration: 00:00:01.28, bitrate: 1 kb/s
+  Stream #0:0: Audio: aac (aac_fixed) (HE-AACv2), 16000 Hz, stereo, s32p, 1 kb/s
+Stream mapping:
+  Stream #0:0 -> #0:0 (aac (aac_fixed) -> pcm_s16le (native))
+Output #0, null, to 'pipe:':
+  Stream #0:0: Audio: pcm_s16le, 16000 Hz, stereo, s16, 512 kb/s
+size=N/A time=00:00:01.28 bitrate=N/A speed=33.1x
+EXIT=0
+
+--- ASAN findings ---
+No ASAN violations detected (no asan_001.log.* files created).
+
+--- Analysis ---
+The crafted HE-AAC ADTS file successfully reaches the SBR/HF-assembly code path
+(confirmed: FFmpeg detects "HE-AACv2" and decodes at 16000 Hz). With:
+  kx[1]=16, m[1]=48, k[2]=64
+the sbr_hf_assemble() loop runs m=0..47 (48 iterations), filling
+g_filt_tab[0..47] and q_filt_tab[0..47] exactly to the array boundary.
+No out-of-bounds write occurs with m[1]=48.
+
+The missing check "m[1] <= 48" is confirmed absent in sbr_make_f_derived():
+only "kx[1] + m[1] <= 64" is checked. This allows m[1]=48 at our parameters.
+For an actual stack overflow (VERIFIED_CRASH), m[1]>48 would be needed, requiring
+either a higher SBR rate or a bypass of the max_qmf_subbands guard.
+
+Verdict: The vulnerable code path IS reachable and the missing bounds check is
+confirmed. At the standard parameter boundary (m[1]=48), the loop fills the arrays
+to their exact capacity with no crash.

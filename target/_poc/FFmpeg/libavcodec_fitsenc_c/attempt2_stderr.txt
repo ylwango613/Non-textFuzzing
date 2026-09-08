@@ -1,0 +1,5 @@
+[Parsed_color_0 @ 0x511000000680] [IMGUTILS @ 0x7561fab112a0] Picture size 65537x65537 is invalid
+[Parsed_color_0 @ 0x511000000680] Failed to configure output pad on Parsed_color_0
+[in#0 @ 0x513000000200] Error opening input: Invalid argument
+Error opening input file color=color=black:size=65537x65537:rate=1.
+Error opening input files: Invalid argument

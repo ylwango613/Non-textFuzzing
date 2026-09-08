@@ -1,0 +1,12 @@
+Both subagents have completed. Here is the summary:
+
+---
+
+## PoC Results Summary — libavcodec/leaddec.c
+
+| VULN # | Title | Status | Notes |
+|--------|-------|--------|-------|
+| VULN 001 | YUV444P heap OOB write (height not multiple of 8) | **UNVERIFIED** | Decoder executed the j=1 loop (OOB path), but FFmpeg's internal frame allocator pads height to 32 rows — writes to rows 8–15 land within padding. ASAN sees no physical overflow. |
+| VULN 002 | YUV420P heap OOB write (height not multiple of 16) | **VERIFIED_BEHAVIOR** | Decoder executed mb_y=1 (OOB path), idct_put called with dst beyond declared height. h_align=32 absorbs the writes (height=17 → 32-row allocation covers max write row 31). No ASAN crash but semantic OOB confirmed. |
+
+**Root cause for both UNVERIFIED/BEHAVIOR outcomes**: FFmpeg's `libavutil/frame.c` aligns frame buffer height to `FFALIGN(height, 32)` = 32 rows regardless of format. For the tested heights (9 for YUV444P, 17 for YUV420P), the OOB writes mathematically fall within this 32-row padded allocation, preventing a physical heap-buffer-overflow that ASAN can detect. The logical vulnerability (IDCT writing beyond declared frame height into padding bytes) is real and would trigger ASAN in a custom allocator with `align=1`. To trigger a true crash with the stock binary, heights closer to a 32-row boundary (e.g., height=25 for YUV444P where last write reaches row 31, or heights requiring 2+ full 32-row blocks) would need to be explored.

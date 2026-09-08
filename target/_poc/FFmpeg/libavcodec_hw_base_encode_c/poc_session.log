@@ -1,0 +1,5 @@
+Subagent completed. Here is the summary:
+
+| VULN | 状态 | 原因 |
+|------|------|------|
+| 001 — ts_ring OOB Write/Read (hw_base_encode.c:488-490,555-556) | **SKIPPED** | 目标 ffmpeg 二进制未编译任何硬件编码器（无 h264_vaapi/hevc_vaapi/NVENC/QSV 等），漏洞代码路径不可达，无法通过命令行触发 |

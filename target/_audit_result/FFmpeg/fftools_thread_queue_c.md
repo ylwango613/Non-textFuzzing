@@ -1,15 +1,16 @@
-Now I have a complete picture. Let me finalize the analysis.
+`av_assert0` is confirmed **always-on** (unconditional `abort()`, not gated by NDEBUG). All bounds checks are always enforced.
 
-**Key observations from the full read:**
+Complete analysis of `thread_queue.c` (269 lines, all read):
 
-- `thread_queue.c` (269 lines, fully read in one pass)
-- All `tq->finished[stream_idx]` accesses are guarded by `av_assert0(stream_idx < tq->nb_streams)` before use (lines 122, 229, 245)
-- `av_calloc(nb_streams, sizeof(*tq->finished))` — `av_calloc` internally checks for integer overflow; safe
-- `tq->fifo_stream_index` is a fixed-capacity circular buffer (no auto-grow); `tq->fifo` (container fifo) has `AV_FIFO_FLAG_AUTO_GROW` (confirmed in `container_fifo.c` line 83)
-- The send path (lines 139–145) writes to `fifo_stream_index` first, then to `fifo`. If `av_container_fifo_write` fails after `av_fifo_write` succeeds, an orphaned stream-index entry is left, causing a logical desync (wrong stream-index returned to consumer). However, all stream-index values stored are pre-validated integers < `nb_streams`, so the subsequent `tq->finished[idx]` access stays in-bounds even with the desync. Data objects are moved, not aliased; `av_frame_unref`/`av_packet_unref` are idempotent — no double-free or UAF results
-- The `av_assert0(ret >= 0)` on line 169 cannot be violated: `fifo_stream_index` always has ≥ as many entries as `fifo` (index is written before data), so the consumer reads always find a valid index entry whenever a data entry is present
-- All allocation sizes are computed by `av_calloc`/`av_fifo_alloc2`/`av_realloc_array` with built-in overflow protection
-- No fixed-size stack buffers, no `memcpy` with attacker-controlled sizes, no unchecked pointer arithmetic
+**`tq_alloc()` (lines 72–115):** `av_calloc(nb_streams, sizeof(*tq->finished))` — safe, `av_calloc` has internal overflow protection. `av_fifo_alloc2(queue_size, sizeof(unsigned), 0)` — `queue_size` is a `size_t`, no overflow path.
+
+**`tq_send()` (lines 117–154):** `av_assert0(stream_idx < tq->nb_streams)` is always-on. FIFO write order: `fifo_stream_index` first, `fifo` second. If `av_container_fifo_write()` fails, `fifo_stream_index` has a stale entry — a logic desync — but since `stream_idx` was already validated before writing, stale entries are always within `[0, nb_streams)`. No OOB possible.
+
+**`receive_locked()` (lines 156–195):** Reads from `fifo` then `fifo_stream_index`. `av_assert0(ret >= 0)` ensures the pairing can't silently break. `idx` used at `tq->finished[idx]` always came from `tq_send()` which validated it; no external file bytes control this value directly.
+
+**`tq_send_finish()` / `tq_receive_finish()` (lines 227–256):** Both guard with `av_assert0(stream_idx < tq->nb_streams)`.
+
+**Key finding:** This file is an internal threading utility — no bytes from a crafted media file reach `stream_idx` or any of the FIFO indices directly. Stream indices come from FFmpeg's demuxer layer, which is already tracked separately. No `malloc`/`memcpy` with attacker-controlled sizes, no pointer arithmetic, no buffer reads from external data.
 
 NO_VULN_FOUND
 

@@ -1,0 +1,7 @@
+## Summary
+
+| VULN # | Description | Status |
+|--------|-------------|--------|
+| 001 | Off-by-4 OOB Read in HQ/HQA Slice Offset Bounds Check | **VERIFIED_BEHAVIOR** |
+
+**Details**: The crafted AVI with FOURCC `CUVC` sets the last slice end offset to exactly `data_size`, which passes the flawed check `slice_off[1] > data_size` (100 > 100 = false) but should fail under the correct check (`> data_size - 4`). `init_get_bits` is called with a buffer whose declared end is 4 bytes past `avpkt->size`. No ASAN hard crash occurs because FFmpeg's standard 64-byte padding absorbs the 4-byte OOB read — consistent with the report's analysis that in standard builds the padding masks the crash. The behavior (decoder accepting a logically invalid slice and producing output) confirms the vulnerability is present on the real execution path.

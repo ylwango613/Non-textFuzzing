@@ -1,0 +1,38 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.3.0-6ubuntu2~24.04)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0 @ 0x517000000080] Format truehd detected only with low score of 1, misdetection possible!
+[truehd @ 0x519000000a80] mlpparse: Parity check failed.
+[truehd @ 0x519000000a80] 15 substreams (more than the maximum supported by the decoder) is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 0x519000000a80] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+Input #0, truehd, from 'vuln_001_input.thd':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Audio: truehd, 48000 Hz, stereo, s32 (24 bit)
+Stream mapping:
+  Stream #0:0 -> #0:0 (truehd (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+[truehd @ 0x519000002d80] 15 substreams (more than the maximum supported by the decoder) is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 0x519000002d80] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[aist#0:0/truehd @ 0x514000000240] [dec:truehd @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[aist#0:0/truehd @ 0x514000000240] [dec:truehd @ 0x513000000900] Decode error rate 1 exceeds maximum 0.666667
+[aist#0:0/truehd @ 0x514000000240] [dec:truehd @ 0x513000000900] Task finished with error: Error number -1145393733 occurred
+[aist#0:0/truehd @ 0x514000000240] [dec:truehd @ 0x513000000900] Terminating thread with error: Error number -1145393733 occurred
+[af#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000cc0] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000000cc0] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.01    
+Conversion failed!
+EXIT=0

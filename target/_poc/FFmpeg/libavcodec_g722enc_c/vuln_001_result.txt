@@ -1,0 +1,47 @@
+=== PoC Run: g722_encode_trellis OOB Write (VULN 001) ===
+
+Command:
+  ffmpeg -i vuln_001_input.wav -c:a g722 -trellis 1 -f null -
+
+Input:
+  vuln_001_input.wav: 16kHz, mono, 16-bit PCM, 3200 samples (10 frames x 320 samples)
+
+ffmpeg output (no ASAN errors):
+  [aist#0:0/pcm_s16le @ 0x514000000040] Guessed Channel Layout: mono
+  Input #0, wav, from 'vuln_001_input.wav':
+    Duration: 00:00:00.20, bitrate: 257 kb/s
+    Stream #0:0: Audio: pcm_s16le, 16000 Hz, mono, s16, 256 kb/s
+  [out#0/null @ ...] video:0KiB audio:2KiB subtitle:0KiB ...
+  size=N/A time=00:00:00.19 bitrate=N/A speed=15x
+  EXIT=0
+
+=== Analysis: Why ASAN Does Not Trigger ===
+
+The off-by-one write in g722_encode_trellis() is real:
+  - out_size = (frame->nb_samples + 1) / 2 = 160 bytes (for 320 samples)
+  - Buffer allocated: out_size + AV_INPUT_BUFFER_PADDING_SIZE = 160 + 64 = 224 bytes
+  - Final backtracking loop writes dst[nb_samples/2] = dst[160] (1 byte past out_size)
+  - dst[160] is at offset 160 from start; allocated region ends at 223 (with 64-byte padding)
+  - ASAN only places its redzone AFTER the 224-byte allocation, so dst[160] is within the
+    legitimately allocated heap region (padding area) and does NOT trip ASAN
+
+Code path confirmed (g722enc.c:351-358):
+  out_size = (frame->nb_samples + 1) / 2;           // = 160
+  ff_get_encode_buffer(avctx, avpkt, out_size, 0);  // allocates 160+64=224 bytes
+  nb_samples = frame->nb_samples - (frame->nb_samples & 1); // = 320
+  g722_encode_trellis(c, ..., avpkt->data, nb_samples, ...);
+
+In g722_encode_trellis (g722enc.c:311-317):
+  // After main loop exits, i = nb_samples/2 = 160
+  for (j = i; j > froze; j--) {
+      dst[j] = ...;  // First iteration: dst[160] -- OOB past logical out_size,
+                     // but within the 64-byte AV_INPUT_BUFFER_PADDING_SIZE padding
+  }
+
+Conclusion:
+  The OOB write is a logic/correctness bug (clobbering the padding zeroes written
+  by ff_get_encode_buffer), but ASAN cannot detect it because the write stays within
+  the heap allocation. A real exploit scenario would require the caller to have
+  allocated an exact-fit buffer without padding (custom get_encode_buffer callback).
+
+EXIT=0

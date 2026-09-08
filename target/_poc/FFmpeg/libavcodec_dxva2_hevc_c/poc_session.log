@@ -1,0 +1,7 @@
+**汇总**
+
+| VULN | 状态 | 说明 |
+|------|------|------|
+| VULN 001 — OOB Heap Write via Tile Column/Row Array Overflow in DXVA2 HEVC HW Decoder | **SKIPPED** | DXVA2/D3D11VA 是 Windows-only API，当前系统为 Linux，ffmpeg 构建不含 dxva2 hwaccel，`ff_dxva2_hevc_fill_picture_parameters()` 在此环境下永远不会被调用 |
+
+该漏洞需要在 Windows 平台配合 DXVA2 兼容 GPU 才能复现，Linux 测试环境下无法触发。

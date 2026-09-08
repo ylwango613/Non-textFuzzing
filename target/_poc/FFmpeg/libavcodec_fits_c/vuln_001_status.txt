@@ -1,0 +1,9 @@
+UNVERIFIED
+The FITS file is correctly recognized and parsed (probe signature verified).
+999 NAXISn cards drive naxis_index through 0..998, exercising the STATE_NAXIS_N
+loop without any bounds check (demonstrating the missing guard in fits.c:181).
+However, the OOB write to naxisn[999] is NOT triggered: the FITS format's
+8-character keyword limit causes "NAXIS1000" to be read as "NAXIS100" (dim_no=100),
+failing the sequential check at fits.c:176 (100 != 1000) BEFORE the write executes.
+ASAN reports no memory error. The code defect is real but the file-level attack
+surface is blocked by the inherent keyword length constraint.

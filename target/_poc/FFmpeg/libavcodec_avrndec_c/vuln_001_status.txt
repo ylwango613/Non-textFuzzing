@@ -1,0 +1,42 @@
+VERIFIED_BEHAVIOR
+
+The interlaced decode path in decode_frame() (libavcodec/avrndec.c:71-77) is
+successfully triggered by the crafted AVI file. The OOB read logically occurs
+(4 bytes past buf_size) but ASAN does not fire due to FFmpeg's packet buffer
+padding mechanism.
+
+== Evidence ==
+- FFmpeg successfully parses the crafted AVI as an AVRN stream (width=100, height=4)
+- Frame is decoded (frame=1 in output), confirming decode_frame() ran
+- Extradata correctly triggers interlace=1:
+    extradata[4]=5 → ndx=9
+    extradata[9..12]="1:1(" → a->interlace=1
+    extradata_size=37 > 5+28=33 ✓
+
+== OOB Analysis ==
+- buf_size = 800 bytes (= 2 * 100 * 4, exactly the minimum accepted)
+- true_height = 800 / (2*100) = 4 = height  (no remainder)
+- buf start offset = (true_height - height) * width = 0
+- Last loop iteration (y=2): second memcpy reads
+    buf + width*true_height + 4 = buf + 400 + 4 = buf + 404
+    (buf advanced by 200 in first iteration, so actual offset from pkt start)
+    absolute offsets: 604 to 803 (200 bytes)
+- buf_size = 800, so bytes 800-803 are LOGICALLY past end of packet data
+
+== Why ASAN Does Not Fire ==
+FFmpeg defines AV_INPUT_BUFFER_PADDING_SIZE = 64 (libavcodec/defs.h).
+Every AVPacket buffer is allocated as (size + 64) bytes via av_new_packet().
+ASAN tracks the full 800+64=864 byte allocation as valid memory.
+The 4-byte OOB (offsets 800-803) falls within the 64-byte padding region,
+so ASAN sees no violation.
+
+The vulnerability is real: the code reads 4 bytes of undefined/padding memory
+that are NOT part of the video frame data. In contexts with a custom allocator,
+a smaller allocation, or if AV_INPUT_BUFFER_PADDING_SIZE is reduced, this would
+produce a genuine heap-buffer-overflow detectable by ASAN.
+
+== Conclusion ==
+The bug exists as described in the report. The 4-byte OOB read at the end of
+the interlaced decode loop is confirmed by static analysis and the code path
+is verified to execute. The limitation is that ASAN cannot demonstrate it as
+a crash because FFmpeg's mandatory 64-byte packet padding absorbs the overread.

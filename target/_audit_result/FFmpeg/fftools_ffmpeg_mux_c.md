@@ -1,18 +1,13 @@
-After reading the complete 888-line file in two batches and verifying all suspicious patterns:
+Now I have the key data. Let me verify the `desc[]` vs `wallclock[]` sizes precisely:
 
-**Findings summary:**
+- `fd->wallclock[LATENCY_PROBE_NB]` — array size = `LATENCY_PROBE_NB` = 7 (indices 0–6)
+- `desc[]` initializer uses `[LATENCY_PROBE_NB]` = "mux" as the last entry → array size = `LATENCY_PROBE_NB + 1` = 8 (indices 0–7)
+- Inner loop: `next <= FF_ARRAY_ELEMS(fd->wallclock)` = `next <= 7` → max `next` = 7
+- At `next = 7 = LATENCY_PROBE_NB`: `val_next = now` (guarded), `desc[7]` = "mux" — valid, no OOB
 
-1. **`mux_log_debug_ts` `desc[next]` access (lines 86-124):** `desc` has 8 entries (0..`LATENCY_PROBE_NB`=7) and the inner loop caps `next` at `FF_ARRAY_ELEMS(fd->wallclock)` = 7, so `desc[7]="mux"` is the intentional sentinel. No OOB.
+The `sch_stream_idx[stream_idx]` access (line 428–429): `stream_idx` only has a lower-bound check (`< 0`), and no upper-bound check against `mux->nb_sch_stream_idx`. However, this index is set by the internal scheduler (`sch_mux_receive`), not derived from media file content — the scheduler allocates exactly as many entries as registered streams and sets `stream_index` within that range as an invariant.
 
-2. **`print_sdp` stack buffer (line 503):** `char sdp[16384]` with `av_sdp_create(..., sizeof(sdp))` passes the bound correctly. Safe.
-
-3. **`muxer_thread` `sch_stream_idx[stream_idx]` (line 429):** `stream_idx` comes from the internal scheduler via `sch_mux_receive()`, not from attacker-controlled media data. Only a negative check is present but there is no external-input path into this value.
-
-4. **`sync_queue_process` `of->streams[ret]` (line 268):** `ret` comes from `sq_receive()`, the internal sync queue, not from the media file.
-
-5. **`bsf_init` / `avcodec_parameters_copy` (line 578):** These copy internal parameters set up during output stream initialization, not from untrusted input at this point in the call chain.
-
-This file is the muxer output path (`fftools/ffmpeg_mux.c`) — it writes already-validated internal packets to the output file and does not parse raw attacker-controlled media file bytes.
+The file is the mux **output** path — it operates on data already validated and produced by the internal encoding/filtering pipeline. No code in this file parses attacker-controlled byte streams (chunk sizes, nb_entries, extradata, etc.) from a container format. All externally-controlled parsing happens upstream in demuxers and decoders, not here.
 
 NO_VULN_FOUND
 

@@ -1,0 +1,24 @@
+VERIFIED_BEHAVIOR
+
+Details:
+- Frame 1 (sync, 32 bytes) parsed successfully: major sync header checksum passes,
+  num_substreams=15 stored in mp->num_substreams.
+  Confirmed by ffmpeg output: "15 substreams (more than the maximum supported by the
+  decoder)" and stream info showing 48000 Hz stereo TrueHD.
+
+- Frame 2 (non-sync, 4 bytes) triggers the parity loop in mlp_parser.c:146-154.
+  The loop runs (1 + 15) = 16 iterations, reading buf[p++] far beyond buf_size=4.
+  Confirmed by: "mlpparse: Parity check failed." (loop completed all 16 iterations,
+  reading buf[0..63] instead of the declared 4 bytes).
+
+- No ASAN crash: The packet buffer is allocated with AV_INPUT_BUFFER_PADDING_SIZE=64
+  bytes of zeroed padding. With num_substreams=15 the parity loop reads at most
+  4 + 15*4 = 64 bytes (all iterations using 4-byte substream headers), which is
+  exactly within the 68-byte physical allocation (4 data + 64 padding). ASAN
+  therefore does not report a heap-buffer-overflow.
+
+- The vulnerability is a logical OOB (reads beyond buf_size) but not a physical OOB
+  (stays within the allocated region including AV_INPUT_BUFFER_PADDING_SIZE).
+  In exploitation scenarios using custom packet allocations without padding (e.g.,
+  fuzzing harnesses, memory-mapped I/O), the OOB read would extend into unmapped
+  memory and cause a crash / information disclosure.

@@ -1,0 +1,15 @@
+The subagent completed. Here is the summary:
+
+---
+
+## PoC Results — `libavcodec/aac/aacdec_usac.c`
+
+| # | Vulnerability | Status |
+|---|---|---|
+| 001 | Integer Overflow in `pl_data_offset` → Heap Buffer Overflow in `parse_ext_ele()` | **UNVERIFIED** |
+
+### Details
+
+**VULN-001**: The PoC successfully exercises the `parse_ext_ele()` code path with `usacExtElementPayloadFrag=1` — ffmpeg decodes the crafted MP4/USAC file and accumulates `pl_data_offset` across multiple fragmented frames, confirming the vulnerable code path is reachable. However, the integer overflow itself requires accumulating ~4.3 GB of extension payload (~65,278 frames × ~65,788 bytes/frame), which is impractical to trigger in a small PoC file. ASAN reported no errors on the minimal 1171-byte test file.
+
+Status written: `UNVERIFIED` — vulnerable code path is exercised and confirmed reachable, but the overflow threshold makes full PoC demonstration infeasible without multi-GB input and ~4 GB free memory.
