@@ -1,0 +1,99 @@
+======================================================================
+VULN 001 PoC: vc2enc_dwt.c:266 integer overflow attempt
+======================================================================
+
+[A] Generating crafted MKV (46000x46000 V_UNCOMPRESSED/YV12)...
+[*] Dimension analysis for vulnerability VULN-001:
+    Overflow target: 46000x46000
+      av_image_check_size2 PASSES: False
+      vc2enc overflow TRIGGERED:   True
+    Max valid dims: 16200x16200
+      av_image_check_size2 PASSES: True
+      vc2enc overflow TRIGGERED:   False
+
+[+] Written 171 bytes to /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_vc2enc_dwt_c/vuln_001_input.mkv
+[+] MKV video dimensions: 46000x46000 (V_UNCOMPRESSED + YV12 ColorSpace)
+
+[!] EXPECTED RESULT:
+    av_image_check_size2(46000, 46000, INT64_MAX, AV_PIX_FMT_NONE, ...)
+    stride = 8*46000 + 1024 = 369024
+    369024 * (46000+128) = 17022339072 >= INT_MAX -> FAIL
+    Result: ffmpeg rejects dimensions; vc2 encoder never initializes.
+
+[!] THE INTEGER OVERFLOW IN ff_vc2enc_init_transforms (line 266) IS BLOCKED
+    by the av_image_check_size2 guard in ff_set_dimensions(). The guard uses
+    pix_fmt=NONE (stride=8*w), making it ~8x more restrictive than needed.
+    No (w,h) satisfies BOTH: the guard's stride*(h+128)<INT_MAX AND
+    the overflow's (w+1024)*(h+1024)>INT_MAX simultaneously.
+
+
+[A] Running ffmpeg -c:v vc2 on crafted MKV (expect dimension rejection)...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[rawvideo @ 0x519000000580] [IMGUTILS @ 0x7ffe6c8c1650] Picture size 46000x46000 is invalid
+[in#0/matroska,webm @ 0x517000000080] Failed to open codec in avformat_find_stream_info
+[rawvideo @ 0x519000000580] width is not set
+[in#0/matroska,webm @ 0x517000000080] Could not find codec parameters for stream 0 (Video: rawvideo (YV12 / 0x32315659), yuv420p): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, matroska,webm, from 'vuln_001_input.mkv':
+  Metadata:
+    encoder         : vuln001gen
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0(eng): Video: rawvideo (YV12 / 0x32315659), yuv420p, SAR 1:1 DAR 0:0, 1k tbr, 1k tbn (default)
+Stream mapping:
+  Stream #0:0 -> #0:0 (rawvideo (native) -> dirac (vc2))
+Press [q] to stop, [?] for help
+[rawvideo @ 0x519000001e80] width is not set
+[vist#0:0/rawvideo @ 0x514000000040] [dec:rawvideo @ 0x5130000011c0] Error submitting packet to decoder: Invalid data found when processing input
+[vist#0:0/rawvideo @ 0x514000000040] [dec:rawvideo @ 0x5130000011c0] Decode error rate 1 exceeds maximum 0.666667
+[vist#0:0/rawvideo @ 0x514000000040] [dec:rawvideo @ 0x5130000011c0] Task finished with error: Error number -1145393733 occurred
+[vist#0:0/rawvideo @ 0x514000000040] [dec:rawvideo @ 0x5130000011c0] Terminating thread with error: Error number -1145393733 occurred
+[graph -1 input from stream 0:0 @ 0x511000010300] Invalid size 0x0
+[vf#0:0 @ 0x51a000000080] Error initializing filters!
+[vf#0:0 @ 0x51a000000080] Task finished with error: Invalid argument
+[vf#0:0 @ 0x51a000000080] Terminating thread with error: Invalid argument
+[vost#0:0/vc2 @ 0x517000000780] [enc:vc2 @ 0x511000000f40] Could not open encoder before EOF
+[vost#0:0/vc2 @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/vc2 @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/null @ 0x511000000a40] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+Conversion failed!
+
+[B] Running ffmpeg with lavfi nullsrc at 16200x16200 (max valid, exercises vc2enc)...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, lavfi, from 'nullsrc=size=16200x16200:rate=1:duration=0.1':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Video: wrapped_avframe, yuv420p, 16200x16200 [SAR 1:1 DAR 1:1], 1 fps, 1 tbr, 1 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> dirac (vc2))
+Press [q] to stop, [?] for help
+[vc2 @ 0x519000002380] Format does not strictly comply with VC2 specs
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: dirac, yuv420p(tv, progressive), 16200x16200 [SAR 1:1 DAR 1:1], q=2-31, 600000 kb/s, 1 fps, 1 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 vc2
+frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:02.00    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:02.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:03.00    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:03.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:04.00    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:04.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:05.00    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:05.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:06.00    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:06.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:07.00    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:07.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:08.00    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:08.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:09.00    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:09.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:10.00    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:10.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:11.00    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:11.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:12.00    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:12.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:13.00    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:13.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:14.00    [out#0/null @ 0x511000000f40] video:54413KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.1 q=-0.0 Lsize=N/A time=00:00:01.00 bitrate=N/A speed=0.0712x elapsed=0:00:14.04    
+[vc2 @ 0x519000002380] Qavg: 0
+
+[*] Done. See vuln_001_result.txt for full output.
+EXIT=0

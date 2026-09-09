@@ -1,0 +1,157 @@
+[*] Generating crafted AVI files...
+[*] ProSumer integer overflow PoC generator
+[*] FourCC: BT20 (AV_CODEC_ID_PROSUMER in libavformat/riff.c)
+
+   65536x43692     stride=   98304  s->size=    131072  overflow=YES  av_check=FAIL  # original report: stride=98304, size wraps to 131072
+   32768x87382     stride=   49152  s->size=     32768  overflow=YES  av_check=FAIL  # halved width, doubled height
+   16384x174763    stride=   24576  s->size=      8192  overflow=YES  av_check=FAIL  # quarter width, 4x height
+    8192x349526    stride=   12288  s->size=      8192  overflow=YES  av_check=FAIL  # 1/8 width
+    4096x699052    stride=    6144  s->size=      8192  overflow=YES  av_check=FAIL  # 1/16 width, wraps to ~2KB
+    2048x1398102   stride=    3072  s->size=      2048  overflow=YES  av_check=FAIL  # 1/32 width
+    1024x2796204   stride=    1536  s->size=      2048  overflow=YES  av_check=FAIL  # 1/64 width
+     512x5592406   stride=     768  s->size=       512  overflow=YES  av_check=FAIL  # 1/128 width
+     256x11184810  stride=     384  s->size=4294967040  overflow=no   av_check=FAIL  # 1/256 width
+
+[!] No dimension set found that BOTH overflows AND passes av_image_check_size2.
+[!] This confirms the mathematical impossibility: the overflow requires
+[!] h*stride_prosumer > 2^32, but av_image_check_size2 requires
+[!] h*(8*w + 1024) < 2^31. The ratio (8w)/(3w/2) = 5.33x means the
+[!] overflow always requires ~10.7x more area than the check allows.
+[!] Using original report dimensions (65536x43692) for the PoC anyway.
+[+] Using width=65536, height=43692
+[+] ProSumer stride = 98304
+[+] s->size = 43692 * 98304 = 4295098368 -> wrapped to 131072
+[+] OVERFLOW: av_malloc(131072) allocates only 131072 bytes
+[+] vertical_predict will try to write 4295098368 bytes -> CRASH
+
+[+] Written vuln_001_input.avi (768 bytes)
+[+] Done.
+
+=== ATTEMPT 1: Report dimensions (65536x43692) ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[prosumer @ 0x519000000580] [IMGUTILS @ 0x7ffd68b8ee00] Picture size 65536x43692 is invalid
+[in#0/avi @ 0x517000000080] Failed to open codec in avformat_find_stream_info
+[prosumer @ 0x519000000580] [IMGUTILS @ 0x7ffd68b8e8c0] Picture size 0x0 is invalid
+[prosumer @ 0x519000000580] video_get_buffer: image parameters invalid
+[prosumer @ 0x519000000580] get_buffer() failed
+[in#0/avi @ 0x517000000080] Could not find codec parameters for stream 0 (Video: prosumer (BT20 / 0x30325442), yuv411p): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:00.03, start: 0.000000, bitrate: 184 kb/s
+  Stream #0:0: Video: prosumer (BT20 / 0x30325442), yuv411p, 30 fps, 30 tbr, 30 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (prosumer (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[prosumer @ 0x519000001e80] [IMGUTILS @ 0x7fcc641213a0] Picture size 0x0 is invalid
+[prosumer @ 0x519000001e80] video_get_buffer: image parameters invalid
+[prosumer @ 0x519000001e80] get_buffer() failed
+[vist#0:0/prosumer @ 0x514000000040] [dec:prosumer @ 0x513000000e40] Error submitting packet to decoder: Invalid argument
+[vist#0:0/prosumer @ 0x514000000040] [dec:prosumer @ 0x513000000e40] Decode error rate 1 exceeds maximum 0.666667
+[vist#0:0/prosumer @ 0x514000000040] [dec:prosumer @ 0x513000000e40] Task finished with error: Error number -1145393733 occurred
+[vist#0:0/prosumer @ 0x514000000040] [dec:prosumer @ 0x513000000e40] Terminating thread with error: Error number -1145393733 occurred
+[graph -1 input from stream 0:0 @ 0x511000010300] Invalid size 0x0
+[vf#0:0 @ 0x51a000000680] Error initializing filters!
+[vf#0:0 @ 0x51a000000680] Task finished with error: Invalid argument
+[vf#0:0 @ 0x51a000000680] Terminating thread with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] [enc:wrapped_avframe @ 0x511000000f40] Could not open encoder before EOF
+[vost#0:0/wrapped_avframe @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/null @ 0x511000000a40] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+Conversion failed!
+
+=== ATTEMPT 2: Force prosumer codec explicitly ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[prosumer @ 0x519000000580] [IMGUTILS @ 0x7fff60c8af20] Picture size 65536x43692 is invalid
+[in#0/avi @ 0x517000000080] Failed to open codec in avformat_find_stream_info
+[prosumer @ 0x519000000580] [IMGUTILS @ 0x7fff60c8a9e0] Picture size 0x0 is invalid
+[prosumer @ 0x519000000580] video_get_buffer: image parameters invalid
+[prosumer @ 0x519000000580] get_buffer() failed
+[in#0/avi @ 0x517000000080] Could not find codec parameters for stream 0 (Video: prosumer (BT20 / 0x30325442), yuv411p): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:00.03, start: 0.000000, bitrate: 184 kb/s
+  Stream #0:0: Video: prosumer (BT20 / 0x30325442), yuv411p, 30 fps, 30 tbr, 30 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (prosumer (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[prosumer @ 0x519000001e80] [IMGUTILS @ 0x7f85633ec3a0] Picture size 0x0 is invalid
+[prosumer @ 0x519000001e80] video_get_buffer: image parameters invalid
+[prosumer @ 0x519000001e80] get_buffer() failed
+[vist#0:0/prosumer @ 0x514000000040] [dec:prosumer @ 0x513000000e40] Error submitting packet to decoder: Invalid argument
+[vist#0:0/prosumer @ 0x514000000040] [dec:prosumer @ 0x513000000e40] Decode error rate 1 exceeds maximum 0.666667
+[vist#0:0/prosumer @ 0x514000000040] [dec:prosumer @ 0x513000000e40] Task finished with error: Error number -1145393733 occurred
+[vist#0:0/prosumer @ 0x514000000040] [dec:prosumer @ 0x513000000e40] Terminating thread with error: Error number -1145393733 occurred
+[graph -1 input from stream 0:0 @ 0x511000010300] Invalid size 0x0
+[vf#0:0 @ 0x51a000000680] Error initializing filters!
+[vf#0:0 @ 0x51a000000680] Task finished with error: Invalid argument
+[vf#0:0 @ 0x51a000000680] Terminating thread with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] [enc:wrapped_avframe @ 0x511000000f40] Could not open encoder before EOF
+[vost#0:0/wrapped_avframe @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/null @ 0x511000000a40] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+Conversion failed!
+
+=== ATTEMPT 3: Relaxed pixel limit + strict=-2 ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[prosumer @ 0x519000000580] [IMGUTILS @ 0x7fff0bb5c9b0] Picture size 65536x43692 is invalid
+[in#0/avi @ 0x517000000080] Failed to open codec in avformat_find_stream_info
+[prosumer @ 0x519000000580] [IMGUTILS @ 0x7fff0bb5c470] Picture size 0x0 is invalid
+[prosumer @ 0x519000000580] video_get_buffer: image parameters invalid
+[prosumer @ 0x519000000580] get_buffer() failed
+[in#0/avi @ 0x517000000080] Could not find codec parameters for stream 0 (Video: prosumer (BT20 / 0x30325442), yuv411p): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:00.03, start: 0.000000, bitrate: 184 kb/s
+  Stream #0:0: Video: prosumer (BT20 / 0x30325442), yuv411p, 30 fps, 30 tbr, 30 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (prosumer (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[prosumer @ 0x519000001e80] [IMGUTILS @ 0x7ff15c52b3a0] Picture size 0x0 is invalid
+[prosumer @ 0x519000001e80] video_get_buffer: image parameters invalid
+[prosumer @ 0x519000001e80] get_buffer() failed
+[vist#0:0/prosumer @ 0x514000000040] [dec:prosumer @ 0x5130000011c0] Error submitting packet to decoder: Invalid argument
+[vist#0:0/prosumer @ 0x514000000040] [dec:prosumer @ 0x5130000011c0] Decode error rate 1 exceeds maximum 0.666667
+[vist#0:0/prosumer @ 0x514000000040] [dec:prosumer @ 0x5130000011c0] Task finished with error: Error number -1145393733 occurred
+[vist#0:0/prosumer @ 0x514000000040] [dec:prosumer @ 0x5130000011c0] Terminating thread with error: Error number -1145393733 occurred
+[graph -1 input from stream 0:0 @ 0x511000010300] Invalid size 0x0
+[vf#0:0 @ 0x51a000000680] Error initializing filters!
+[vf#0:0 @ 0x51a000000680] Task finished with error: Invalid argument
+[vf#0:0 @ 0x51a000000680] Terminating thread with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] [enc:wrapped_avframe @ 0x511000000f40] Could not open encoder before EOF
+[vost#0:0/wrapped_avframe @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/null @ 0x511000000a40] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+Conversion failed!
+
+[*] Done.
+EXIT=0

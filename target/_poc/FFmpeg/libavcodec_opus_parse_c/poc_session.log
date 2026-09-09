@@ -1,0 +1,13 @@
+The PoC is confirmed. Here's the summary:
+
+---
+
+**VULN 001** — `VERIFIED_CRASH`
+
+Integer overflow in `ff_opus_parse_packet()` (parse.c:225) leading to heap OOB read. UBSan/ASAN confirmed three signed-integer-overflow errors in the real ffmpeg binary:
+
+1. `parse.c:225` — root cause: `48×1275 + 2,147,422,448` overflows `int`, bypassing bounds guard
+2. `parse.c:247` — cascade: `pkt->data_size = packet_size - padding` overflows
+3. `dec.c:591` — cascade: `buf_size -= s->packet.packet_size` overflows
+
+**PoC approach**: crafted Ogg Opus file with `channel_mapping_family=1, stream_count=2` (forces `self_delimiting=1`), containing a code=3 CBR padded packet with ~8 MB of Xiph lacing encoding padding ≈ INT_MAX − 61200.

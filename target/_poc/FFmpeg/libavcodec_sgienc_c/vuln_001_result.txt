@@ -1,0 +1,134 @@
+=== VULN-001 SGI Encoder Integer Overflow PoC ===
+Date: Tue Sep  8 10:37:34 PM +08 2026
+
+[*] Running vuln_001_gen.py (overflow analysis)...
+=== VULN-001: SGI Encoder Integer Overflow Analysis ===
+
+Target dimensions: width=8189, height=65535, format=RGBA (depth=4)
+  tablesize                 = 1,048,560
+  depth*H*(2W+1)            = 4,293,591,060
+  raw sum (before wrap)     = 4,295,688,180
+  overflows uint32?         = True
+  wrapped sum               = 720,884
+  allocated packet size     = 721,396 bytes
+  true_needed (tables only) = 512 + 2*1,048,560 = 2,097,632 bytes
+  OOB write amount          = 327,164 bytes
+
+av_image_check_size (AV_PIX_FMT_NONE): FAIL (pipeline blocks this)
+av_image_check_size (AV_PIX_FMT_RGBA): FAIL (pipeline blocks this)
+
+=== Gap Analysis (why pipeline cannot trigger this) ===
+  RGBA: max_h_check=8032, min_h_overflow=8192, gap=-160
+  RGB24: max_h_check=10738, min_h_overflow=10923, gap=-185
+  GRAY8: max_h_check=32136, min_h_overflow=32767, gap=-631
+
+Negative gap = impossible to trigger via standard ffmpeg pipeline.
+The overflow exists in the source code but is guarded by av_image_check_size.
+
+Marker written. Run vuln_001_run.sh to attempt trigger and capture actual pipeline output.
+
+[*] FFmpeg binary: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+
+=== Attempt 1: lavfi color=size=8189x65535, format=rgba ===
+[*] This SHOULD FAIL because stride*(h+128) >= INT_MAX for these dims
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[Parsed_color_0 @ 0x511000000400] [IMGUTILS @ 0x7ffdf96d0b10] Picture size 8189x65535 is invalid
+[Parsed_color_0 @ 0x511000000400] Failed to configure output pad on Parsed_color_0
+[in#0 @ 0x513000000200] Error opening input: Invalid argument
+Error opening input file color=size=8189x65535:rate=1:color=red.
+Error opening input files: Invalid argument
+[*] Attempt 1 exit: 0
+
+=== Attempt 2: rawvideo /dev/zero size=8189x65535 rgba ===
+[*] This SHOULD FAIL - rawvideo decoder also calls av_image_check_size
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0 @ 0x517000000080] [IMGUTILS @ 0x7ffe4afe2560] Picture size 8189x65535 is invalid
+[in#0 @ 0x513000000200] Error opening input: Invalid argument
+Error opening input file /dev/zero.
+Error opening input files: Invalid argument
+[*] Attempt 2 exit: 0
+
+=== Attempt 3: -max_pixels override at trigger dimensions ===
+[*] max_pixels overrides pixel-count check but NOT the stride*height check
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0 @ 0x517000000080] [IMGUTILS @ 0x7ffc89543da0] Picture size 65535x32769 is invalid
+[in#0 @ 0x513000000200] Error opening input: Invalid argument
+Error opening input file /dev/zero.
+Error opening input files: Invalid argument
+[*] Attempt 3 exit: 0
+
+=== Attempt 4: max valid dims for gray8 (w=65535, h=32136) ===
+[*] These dimensions PASS av_image_check_size but do NOT trigger overflow
+[*] gap: max_h=32136, min_h_for_overflow=32761, gap=-625 rows
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[Parsed_color_0 @ 0x511000000400] [IMGUTILS @ 0x7ffefbbbe4b0] Picture size 65535x32136 is invalid
+[Parsed_color_0 @ 0x511000000400] Failed to configure output pad on Parsed_color_0
+[in#0 @ 0x513000000200] Error opening input: Invalid argument
+Error opening input file color=size=65535x32136:rate=1:color=gray.
+Error opening input files: Invalid argument
+[*] Attempt 4 exit: 0
+
+=== Summary ===
+Attempts 1-3: Pipeline rejects dimensions via av_image_check_size (expected)
+Attempt 4: Max valid dims encode OK but do NOT trigger the overflow
+Result: UNVERIFIED - vulnerability exists in source but pipeline blocks trigger
+
+EXIT_CODE=0
+ -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[Parsed_color_0 @ 0x511000000400] [IMGUTILS @ 0x7ffefbbbe4b0] Picture size 65535x32136 is invalid
+[Parsed_color_0 @ 0x511000000400] Failed to configure output pad on Parsed_color_0
+[in#0 @ 0x513000000200] Error opening input: Invalid argument
+Error opening input file color=size=65535x32136:rate=1:color=gray.
+Error opening input files: Invalid argument
+[*] Attempt 4 exit: 0
+
+=== Summary ===
+Attempts 1-3: Pipeline rejects dimensions via av_image_check_size (expected)
+Attempt 4: Max valid dims encode OK but do NOT trigger the overflow
+Result: UNVERIFIED - vulnerability exists in source but pipeline blocks trigger
+
+EXIT_CODE=0

@@ -1,0 +1,25 @@
+UNVERIFIED
+
+Result: FFmpeg exited with code 183 (parse error, no crash).
+Details:
+  - SPS and PPS were accepted (units 0 and 1 parsed OK).
+  - IDR_W_RADL slice (unit 2, type 7) failed: "Invalid data found when processing input."
+  - No ASAN abort or stack trace was produced — the trigger path was not reached.
+  - No frame was decoded; decoding terminated before matrix_mul() was called.
+
+Root causes:
+  1. The slice header RBSP or embedded picture header RBSP has a field encoding error
+     that causes CBS to reject it before any CABAC coefficient decoding occurs.
+  2. Even if the slice header parsed correctly, the mts_zero_out_sig_coeff_flag mechanism
+     (cabac.c ~line 2284) would prevent mts_idx from being decoded to DST7/DCT8 when
+     last_sig_coeff_x >= 16 (the condition required for nzw > 16). This is a logical
+     contradiction in the trigger path.
+
+Vulnerability assessment:
+  - The stack buffer overflow in matrix_mul() (int tmp[16], nz up to 32) is present
+    in the source code as a latent defect.
+  - Exploitability via all-0x00 CABAC data is blocked by the mts_zero_out_sig_coeff_flag
+    gating check introduced as a protective measure.
+  - A different trigger path (e.g., crafted CABAC that encodes large last_sig_coeff_x
+    while keeping mts_zero_out_sig_coeff_flag=1 through bypass coefficient coding) may
+    still be viable but requires valid CABAC entropy coding, not achievable with all-0x00 data.

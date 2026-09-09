@@ -1,0 +1,2 @@
+VERIFIED_BEHAVIOR
+UBSan confirmed signed integer overflow at proresenc_kostya_common.c:287:65 — "129793 * 28510 cannot be represented in type 'int'". frame_size_upper_bound wraps from ~3.7 GB to 3,517,478, causing the encoder to allocate a packet ~1000x too small. Consequence observed: prores_ks reports "Packet too small: is 3517478, needs 376512 (slice: 30)".

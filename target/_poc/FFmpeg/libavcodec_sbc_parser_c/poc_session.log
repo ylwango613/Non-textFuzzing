@@ -1,0 +1,5 @@
+**Summary — libavcodec_sbc_parser_c**
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| 001 — sbc_parser heap OOB read (lines 89–94) | **UNVERIFIED** | OOB code path is reached with `-raw_packet_size 1` (1-byte packets force the two-call state machine), but `av_new_packet` appends 64 bytes of `AV_INPUT_BUFFER_PADDING_SIZE` padding after the 1-byte payload, so the 1-byte overread lands inside that padding — ASAN never fires. The anomalous behavior (decode error rate = 1) is visible, but no memory-safety signal is produced under the real binary. |

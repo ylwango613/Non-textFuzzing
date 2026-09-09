@@ -1,0 +1,136 @@
+=== VULN 002: truemotion1_decode_24bit() missing keyframe guard ===
+=== File: libavcodec/truemotion1.c line 783 ===
+
+[1] Generating crafted AVI...
+[*] TM1 packet (9 bytes): 11000a0a0b0f0f0b0b
+[*] header_size = 8
+[*] compression = 10  (10=ALGO_RGB24H)
+[*] vectable    = 1
+[*] xsize (raw) = 4,  avctx_width = 2
+[*] ysize       = 4  (height)
+[*] mb_change_bits_row_size = 1
+[*] s->mb_change_bits = s->buf + 8  (= pkt[8] = 0x0b)
+[*] index_stream_size = 9 - 8 = 1
+
+[*] BUG: line 783 reads mb_change_bits[0] for every row unconditionally.
+[*]      After y=3 the pointer advances by 1 past the packet end.
+[*]      The 16-bit decoder (line 656) guards with: if (!keyframe) ...
+
+[+] Written 241 bytes to /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_truemotion1_c/vuln_002_input.avi
+
+[2] Running ffmpeg (ASAN-enabled build)...
+    Binary: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+    Input:  /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_truemotion1_c/vuln_002_input.avi
+
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Splitting the commandline.
+Reading option '-v' ... matched as option 'v' (set logging level) with argument 'debug'.
+Reading option '-i' ... matched as input url with argument '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_truemotion1_c/vuln_002_input.avi'.
+Reading option '-f' ... matched as option 'f' (force container format (auto-detected otherwise)) with argument 'null'.
+Reading option '-' ... matched as output url.
+Finished splitting the commandline.
+Parsing a group of options: global .
+Applying option v (set logging level) with argument debug.
+Successfully parsed a group of options.
+Parsing a group of options: input url /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_truemotion1_c/vuln_002_input.avi.
+Successfully parsed a group of options.
+Opening an input file: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_truemotion1_c/vuln_002_input.avi.
+[in#0 @ 0x517000000080] Opening '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_truemotion1_c/vuln_002_input.avi' for reading
+[file @ 0x5120000001c0] Setting default whitelist 'file,crypto,data'
+[in#0 @ 0x517000000080] Format avi probed with size=2048 and score=100
+[avi @ 0x510000000340] use odml:1
+[in#0/avi @ 0x517000000080] Before avformat_find_stream_info() pos: 224 bytes read:241 seeks:0 nb_streams:1
+[in#0/avi @ 0x517000000080] parser not found for codec truemotion1, packets or times may be invalid.
+    Last message repeated 1 times
+[truemotion1 @ 0x519000000580]  help! truemotion1 decoder went out of bounds
+[in#0/avi @ 0x517000000080] After avformat_find_stream_info() pos: 241 bytes read:241 seeks:0 frames:1
+Input #0, avi, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_truemotion1_c/vuln_002_input.avi':
+  Duration: 00:00:01.00, start: 0.000000, bitrate: 1 kb/s
+  Stream #0:0, 1, 1/1: Video: truemotion1, 1 reference frame (DUCK / 0x4B435544), bgr0, 2x4 [SAR 2:1 DAR 1:1], 0/1, 1 fps, 1 tbr, 1 tbn
+Successfully opened the file.
+Parsing a group of options: output url -.
+Applying option f (force container format (auto-detected otherwise)) with argument null.
+Successfully parsed a group of options.
+Opening an output file: -.
+[out#0/null @ 0x511000000a40] No explicit maps, mapping streams automatically...
+[vost#0:0/wrapped_avframe @ 0x517000000780] Created video stream from input stream 0:0
+Successfully opened the file.
+Stream mapping:
+  Stream #0:0 -> #0:0 (truemotion1 (native) -> wrapped_avframe (native))
+[vost#0:0/wrapped_avframe @ 0x517000000780] Starting thread...
+[vf#0:0 @ 0x51a000000680] Starting thread...
+[vist#0:0/truemotion1 @ 0x514000000240] [dec:truemotion1 @ 0x513000000900] Starting thread...
+[in#0/avi @ 0x513000000200] Starting thread...
+Press [q] to stop, [?] for help
+[in#0/avi @ 0x513000000200] EOF while reading input
+[in#0/avi @ 0x513000000200] Terminating thread with success
+[truemotion1 @ 0x519000001e80]  help! truemotion1 decoder went out of bounds
+[vist#0:0/truemotion1 @ 0x514000000240] [dec:truemotion1 @ 0x513000000900] Decoder thread received EOF packet
+[vist#0:0/truemotion1 @ 0x514000000240] [dec:truemotion1 @ 0x513000000900] Decoder returned EOF, finishing
+[vist#0:0/truemotion1 @ 0x514000000240] [dec:truemotion1 @ 0x513000000900] Terminating thread with success
+detected 384 logical cores
+[graph -1 input from stream 0:0 @ 0x51100001a440] w:2 h:4 pixfmt:bgr0 tb:1/1 fr:1/1 sar:2/1 csp:unknown range:unknown alpha:unspecified
+Filter 'Parsed_null_0' formats:
+  in[0] 'default':
+    Pixel formats: yuv420p yuyv422 rgb24 bgr24 yuv422p yuv444p yuv410p yuv411p gray monow monob pal8 yuvj420p yuvj422p yuvj444p uyvy422 uyyvyy411 bgr8 bgr4 bgr4_byte rgb8 rgb4 rgb4_byte nv12 nv21 argb rgba abgr bgra gray16be gray16le yuv440p yuvj440p yuva420p rgb48be rgb48le rgb565be rgb565le rgb555be rgb555le bgr565be bgr565le bgr555be bgr555le vaapi yuv420p16le yuv420p16be yuv422p16le yuv422p16be yuv444p16le yuv444p16be dxva2_vld rgb444le rgb444be bgr444le bgr444be ya8 bgr48be bgr48le yuv420p9be yuv420p9le yuv420p10be yuv420p10le yuv422p10be yuv422p10le yuv444p9be yuv444p9le yuv444p10be yuv444p10le yuv422p9be yuv422p9le gbrp gbrp9be gbrp9le gbrp10be gbrp10le gbrp16be gbrp16le yuva422p yuva444p yuva420p9be yuva420p9le yuva422p9be yuva422p9le yuva444p9be yuva444p9le yuva420p10be yuva420p10le yuva422p10be yuva422p10le yuva444p10be yuva444p10le yuva420p16be yuva420p16le yuva422p16be yuva422p16le yuva444p16be yuva444p16le vdpau xyz12le xyz12be nv16 nv20le nv20be rgba64be rgba64le bgra64be bgra64le yvyu422 ya16be ya16le gbrap gbrap16be gbrap16le qsv mmal d3d11va_vld cuda 0rgb rgb0 0bgr bgr0 yuv420p12be yuv420p12le yuv420p14be yuv420p14le yuv422p12be yuv422p12le yuv422p14be yuv422p14le yuv444p12be yuv444p12le yuv444p14be yuv444p14le gbrp12be gbrp12le gbrp14be gbrp14le yuvj411p bayer_bggr8 bayer_rggb8 bayer_gbrg8 bayer_grbg8 bayer_bggr16le bayer_bggr16be bayer_rggb16le bayer_rggb16be bayer_gbrg16le bayer_gbrg16be bayer_grbg16le bayer_grbg16be yuv440p10le yuv440p10be yuv440p12le yuv440p12be ayuv64le ayuv64be videotoolbox_vld p010le p010be gbrap12be gbrap12le gbrap10be gbrap10le mediacodec gray12be gray12le gray10be gray10le p016le p016be d3d11 gray9be gray9le gbrpf32be gbrpf32le gbrapf32be gbrapf32le drm_prime opencl gray14be gray14le grayf32be grayf32le yuva422p12be yuva422p12le yuva444p12be yuva444p12le nv24 nv42 vulkan y210be y210le x2rgb10le x2rgb10be x2bgr10le x2bgr10be p210be p210le p410be p410le p216be p216le p416be p416le vuya rgbaf16be rgbaf16le vuyx p012le p012be y212be y212le xv30be xv30le xv36be xv36le rgbf32be rgbf32le rgbaf32be rgbaf32le p212be p212le p412be p412le gbrap14be gbrap14le d3d12 ayuv uyva vyu444 v30xbe v30xle rgbf16be rgbf16le rgba128be rgba128le rgb96be rgb96le y216be y216le xv48be xv48le gbrpf16be gbrpf16le gbrapf16be gbrapf16le grayf16be grayf16le amf gray32be gray32le yaf32be yaf32le yaf16be yaf16le gbrap32be gbrap32le yuv444p10msbbe yuv444p10msble yuv444p12msbbe yuv444p12msble gbrp10msbbe gbrp10msble gbrp12msbbe gbrp12msble ohcodec cuarray
+    Color spaces: unknown gbr bt709 fcc bt470bg smpte170m smpte240m ycgco bt2020nc bt2020c smpte2085 chroma-derived-nc chroma-derived-c ictcp ipt-c2 ycgco-re ycgco-ro
+    Color ranges: unknown tv pc
+    Alpha modes: unspecified premultiplied straight
+  out[0] 'default':
+    Pixel formats: yuv420p yuyv422 rgb24 bgr24 yuv422p yuv444p yuv410p yuv411p gray monow monob pal8 yuvj420p yuvj422p yuvj444p uyvy422 uyyvyy411 bgr8 bgr4 bgr4_byte rgb8 rgb4 rgb4_byte nv12 nv21 argb rgba abgr bgra gray16be gray16le yuv440p yuvj440p yuva420p rgb48be rgb48le rgb565be rgb565le rgb555be rgb555le bgr565be bgr565le bgr555be bgr555le vaapi yuv420p16le yuv420p16be yuv422p16le yuv422p16be yuv444p16le yuv444p16be dxva2_vld rgb444le rgb444be bgr444le bgr444be ya8 bgr48be bgr48le yuv420p9be yuv420p9le yuv420p10be yuv420p10le yuv422p10be yuv422p10le yuv444p9be yuv444p9le yuv444p10be yuv444p10le yuv422p9be yuv422p9le gbrp gbrp9be gbrp9le gbrp10be gbrp10le gbrp16be gbrp16le yuva422p yuva444p yuva420p9be yuva420p9le yuva422p9be yuva422p9le yuva444p9be yuva444p9le yuva420p10be yuva420p10le yuva422p10be yuva422p10le yuva444p10be yuva444p10le yuva420p16be yuva420p16le yuva422p16be yuva422p16le yuva444p16be yuva444p16le vdpau xyz12le xyz12be nv16 nv20le nv20be rgba64be rgba64le bgra64be bgra64le yvyu422 ya16be ya16le gbrap gbrap16be gbrap16le qsv mmal d3d11va_vld cuda 0rgb rgb0 0bgr bgr0 yuv420p12be yuv420p12le yuv420p14be yuv420p14le yuv422p12be yuv422p12le yuv422p14be yuv422p14le yuv444p12be yuv444p12le yuv444p14be yuv444p14le gbrp12be gbrp12le gbrp14be gbrp14le yuvj411p bayer_bggr8 bayer_rggb8 bayer_gbrg8 bayer_grbg8 bayer_bggr16le bayer_bggr16be bayer_rggb16le bayer_rggb16be bayer_gbrg16le bayer_gbrg16be bayer_grbg16le bayer_grbg16be yuv440p10le yuv440p10be yuv440p12le yuv440p12be ayuv64le ayuv64be videotoolbox_vld p010le p010be gbrap12be gbrap12le gbrap10be gbrap10le mediacodec gray12be gray12le gray10be gray10le p016le p016be d3d11 gray9be gray9le gbrpf32be gbrpf32le gbrapf32be gbrapf32le drm_prime opencl gray14be gray14le grayf32be grayf32le yuva422p12be yuva422p12le yuva444p12be yuva444p12le nv24 nv42 vulkan y210be y210le x2rgb10le x2rgb10be x2bgr10le x2bgr10be p210be p210le p410be p410le p216be p216le p416be p416le vuya rgbaf16be rgbaf16le vuyx p012le p012be y212be y212le xv30be xv30le xv36be xv36le rgbf32be rgbf32le rgbaf32be rgbaf32le p212be p212le p412be p412le gbrap14be gbrap14le d3d12 ayuv uyva vyu444 v30xbe v30xle rgbf16be rgbf16le rgba128be rgba128le rgb96be rgb96le y216be y216le xv48be xv48le gbrpf16be gbrpf16le gbrapf16be gbrapf16le grayf16be grayf16le amf gray32be gray32le yaf32be yaf32le yaf16be yaf16le gbrap32be gbrap32le yuv444p10msbbe yuv444p10msble yuv444p12msbbe yuv444p12msble gbrp10msbbe gbrp10msble gbrp12msbbe gbrp12msble ohcodec cuarray
+    Color spaces: unknown gbr bt709 fcc bt470bg smpte170m smpte240m ycgco bt2020nc bt2020c smpte2085 chroma-derived-nc chroma-derived-c ictcp ipt-c2 ycgco-re ycgco-ro
+    Color ranges: unknown tv pc
+    Alpha modes: unspecified premultiplied straight
+Filter 'graph -1 input from stream 0:0' formats:
+  out[0] 'default':
+    Pixel formats: bgr0
+    Color spaces: unknown gbr bt709 fcc bt470bg smpte170m smpte240m ycgco bt2020nc bt2020c smpte2085 chroma-derived-nc chroma-derived-c ictcp ipt-c2 ycgco-re ycgco-ro
+    Color ranges: unknown tv pc
+    Alpha modes: unspecified premultiplied straight
+Filter 'out_#0:0' formats:
+  in[0] 'default':
+    Pixel formats: yuv420p yuyv422 rgb24 bgr24 yuv422p yuv444p yuv410p yuv411p gray monow monob pal8 yuvj420p yuvj422p yuvj444p uyvy422 uyyvyy411 bgr8 bgr4 bgr4_byte rgb8 rgb4 rgb4_byte nv12 nv21 argb rgba abgr bgra gray16be gray16le yuv440p yuvj440p yuva420p rgb48be rgb48le rgb565be rgb565le rgb555be rgb555le bgr565be bgr565le bgr555be bgr555le vaapi yuv420p16le yuv420p16be yuv422p16le yuv422p16be yuv444p16le yuv444p16be dxva2_vld rgb444le rgb444be bgr444le bgr444be ya8 bgr48be bgr48le yuv420p9be yuv420p9le yuv420p10be yuv420p10le yuv422p10be yuv422p10le yuv444p9be yuv444p9le yuv444p10be yuv444p10le yuv422p9be yuv422p9le gbrp gbrp9be gbrp9le gbrp10be gbrp10le gbrp16be gbrp16le yuva422p yuva444p yuva420p9be yuva420p9le yuva422p9be yuva422p9le yuva444p9be yuva444p9le yuva420p10be yuva420p10le yuva422p10be yuva422p10le yuva444p10be yuva444p10le yuva420p16be yuva420p16le yuva422p16be yuva422p16le yuva444p16be yuva444p16le vdpau xyz12le xyz12be nv16 nv20le nv20be rgba64be rgba64le bgra64be bgra64le yvyu422 ya16be ya16le gbrap gbrap16be gbrap16le qsv mmal d3d11va_vld cuda 0rgb rgb0 0bgr bgr0 yuv420p12be yuv420p12le yuv420p14be yuv420p14le yuv422p12be yuv422p12le yuv422p14be yuv422p14le yuv444p12be yuv444p12le yuv444p14be yuv444p14le gbrp12be gbrp12le gbrp14be gbrp14le yuvj411p bayer_bggr8 bayer_rggb8 bayer_gbrg8 bayer_grbg8 bayer_bggr16le bayer_bggr16be bayer_rggb16le bayer_rggb16be bayer_gbrg16le bayer_gbrg16be bayer_grbg16le bayer_grbg16be yuv440p10le yuv440p10be yuv440p12le yuv440p12be ayuv64le ayuv64be videotoolbox_vld p010le p010be gbrap12be gbrap12le gbrap10be gbrap10le mediacodec gray12be gray12le gray10be gray10le p016le p016be d3d11 gray9be gray9le gbrpf32be gbrpf32le gbrapf32be gbrapf32le drm_prime opencl gray14be gray14le grayf32be grayf32le yuva422p12be yuva422p12le yuva444p12be yuva444p12le nv24 nv42 vulkan y210be y210le x2rgb10le x2rgb10be x2bgr10le x2bgr10be p210be p210le p410be p410le p216be p216le p416be p416le vuya rgbaf16be rgbaf16le vuyx p012le p012be y212be y212le xv30be xv30le xv36be xv36le rgbf32be rgbf32le rgbaf32be rgbaf32le p212be p212le p412be p412le gbrap14be gbrap14le d3d12 ayuv uyva vyu444 v30xbe v30xle rgbf16be rgbf16le rgba128be rgba128le rgb96be rgb96le y216be y216le xv48be xv48le gbrpf16be gbrpf16le gbrapf16be gbrapf16le grayf16be grayf16le amf gray32be gray32le yaf32be yaf32le yaf16be yaf16le gbrap32be gbrap32le yuv444p10msbbe yuv444p10msble yuv444p12msbbe yuv444p12msble gbrp10msbbe gbrp10msble gbrp12msbbe gbrp12msble ohcodec cuarray
+    Color spaces: unknown gbr bt709 fcc bt470bg smpte170m smpte240m ycgco bt2020nc bt2020c smpte2085 chroma-derived-nc chroma-derived-c ictcp ipt-c2 ycgco-re ycgco-ro
+    Color ranges: unknown tv pc
+    Alpha modes: unspecified premultiplied straight
+[AVFilterGraph @ 0x510000020040] query_formats: 3 queried, 8 merged, 0 already done, 0 delayed
+[graph -1 input from stream 0:0 @ 0x51100001a440] video frame properties congruent with link at pts_time: 0
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0, 0, 1/1: Video: wrapped_avframe, 1 reference frame, bgr0(pc, gbr/unknown/unknown, progressive), 2x4 [SAR 2:1 DAR 1:1], 0/1, q=2-31, 200 kb/s, 1 fps, 1 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+[out#0/null @ 0x511000000a40] Starting thread...
+[out_#0:0 @ 0x51100001a6c0] EOF on sink link out_#0:0:default.
+[vf#0:0 @ 0x51a000000680] Filtergraph returned EOF, finishing
+[vf#0:0 @ 0x51a000000680] All consumers returned EOF
+[vost#0:0/wrapped_avframe @ 0x517000000780] [enc:wrapped_avframe @ 0x511000000f40] Encoder thread received EOF
+[vost#0:0/wrapped_avframe @ 0x517000000780] Terminating thread with success
+[vf#0:0 @ 0x51a000000680] Terminating thread with success
+[out#0/null @ 0x511000000a40] All streams finished
+[out#0/null @ 0x511000000a40] Terminating thread with success
+[out#0/null @ 0x511000000a40] Output file #0 (pipe:):
+[out#0/null @ 0x511000000a40]   Output stream #0:0 (video): 1 frames encoded; 1 packets muxed (424 bytes); 
+[out#0/null @ 0x511000000a40]   Total: 1 packets (424 bytes) muxed
+[out#0/null @ 0x511000000a40] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:01.00 bitrate=N/A speed= 107x elapsed=0:00:00.00    
+[in#0/avi @ 0x513000000200] Input file #0 (/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_truemotion1_c/vuln_002_input.avi):
+[in#0/avi @ 0x513000000200]   Input stream #0:0 (video): 1 packets read (9 bytes); 1 frames decoded; 0 decode errors; 
+[in#0/avi @ 0x513000000200]   Total: 1 packets (9 bytes) demuxed
+[AVIOContext @ 0x5130000003c0] Statistics: 241 bytes read, 0 seeks
+
+Exiting with exit code 0
+
+[3] ffmpeg exit code: 0
+[*] ffmpeg exited cleanly (exit code 0)
+EXIT=0

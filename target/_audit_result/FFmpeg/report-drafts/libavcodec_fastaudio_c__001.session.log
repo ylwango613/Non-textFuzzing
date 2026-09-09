@@ -1,0 +1,1 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/libavcodec_fastaudio_c__001.md` has been written. The report covers the incorrect overflow guard in `fastaudio_decode` (wrong divisor `INT_MAX/256` instead of `INT_MAX/1024`), the confirmed DoS (forced `get_buffer()` failure via 84 MB crafted MOFLEX packet), and the potential OOB write on non-hardened builds.

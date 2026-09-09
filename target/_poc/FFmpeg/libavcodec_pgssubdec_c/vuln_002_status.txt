@@ -1,0 +1,31 @@
+VERIFIED_BEHAVIOR
+
+Vulnerability: CWE-125 Out-of-bounds Read in parse_palette_segment()
+File: libavcodec/pgssubdec.c, lines 354-374
+
+Trigger confirmed:
+  - ffprobe -show_frames successfully decoded the malformed PDS segment
+  - Output: [SUBTITLE] num_rects=0 [/SUBTITLE] — decoder ran through the OOB path
+  - ffmpeg PGS->DVBSUB transcode also confirmed the decode path was hit
+
+OOB analysis:
+  - parse_palette_segment() called with buf_size=8 (segment_length=8)
+  - buf_end = buf + 8
+  - After reading palette_id (1 byte) and skipping palette_version (1 byte): 6 bytes remain
+  - Loop iteration 1: reads 5 bytes (color_id + Y + Cr + Cb + alpha) — OK, 1 byte remains
+  - buf < buf_end: TRUE (1 leftover byte satisfies the condition)
+  - Loop iteration 2: 5x bytestream_get_byte calls read 4 bytes PAST buf_end
+
+Why no ASAN heap-buffer-overflow:
+  - FFmpeg always allocates AVPacket data with AV_INPUT_BUFFER_PADDING_SIZE=64 bytes
+    of zero-initialized padding appended (via av_grow_packet/av_buffer_realloc)
+  - Packet logical size = 3 (hdr) + 8 (segment_length) = 11 bytes
+  - Physical allocation = 11 + 64 = 75 bytes
+  - The 4-byte OOB read falls at offset 15 within a 75-byte allocation
+  - ASAN marks the entire 75 bytes as accessible — no redzone violation
+
+The vulnerability is real: reading 4 bytes of unintended data (packet padding zeros)
+that represent no actual palette entry values. In environments without padding
+(e.g., memory-mapped files, custom allocators, embedded targets) this would read
+4 bytes of adjacent memory, which could include sensitive data or cause corruption
+if write-path variants exist.

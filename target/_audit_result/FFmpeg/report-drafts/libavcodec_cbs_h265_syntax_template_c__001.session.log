@@ -1,0 +1,6 @@
+The file has been written to `/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/libavcodec_cbs_h265_syntax_template_c__001.md`. It contains exactly the three required sections:
+
+- **Bug0** title: "Off-by-One OOB Heap Write in HEVC CBS sei_pic_timing via num_decoding_units_minus1"
+- **Summary**: describes the function, the missing upper-bound check on the loop index, and the heap OOB write consequence
+- **PoC**: one-sentence description + self-contained Python script using `poc_input.h265` + bash steps
+- **Result**: inline ASAN error with key call stack frames, no internal paths

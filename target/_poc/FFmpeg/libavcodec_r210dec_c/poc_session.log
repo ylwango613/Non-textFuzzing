@@ -1,0 +1,7 @@
+**Summary:**
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | Integer Overflow in Packet Size Check (decode_frame, r210dec.c:51) | **UNVERIFIED** |
+
+**Reason**: FFmpeg's `av_image_check_size2()` in `libavutil/imgutils.c` rejects dimensions before they reach `decode_frame()`. For GBRP10 (6 bytes/pixel), the pixel-count limit is ~357M pixels, but the overflow in line 51 requires `aligned_width × height > 536M` — a range that `av_image_check_size2()` blocks first. Width/height are reset to 0×0, so the vulnerable arithmetic in line 51 is never executed. No ASAN/UBSAN output was produced.

@@ -1,0 +1,11 @@
+## Summary
+
+**VULN 001** — Heap OOB Read in `parse_speex_extradata` — **UNVERIFIED**
+
+The PoC successfully exercises the vulnerable code path (FFmpeg identifies and decodes the crafted Speex stream, confirming `parse_speex_extradata()` ran with the crafted 80-byte buffer where `"Speex   "` sits at offset 9). However, no ASAN crash fires because FFmpeg's `ff_alloc_extradata()` always appends `AV_INPUT_BUFFER_PADDING_SIZE` (64) zeroed bytes to every extradata allocation. The heap block is actually 144 bytes, so the one-byte over-read at index 80 lands in the padding — invisible to ASAN's shadow memory.
+
+The logic defect is real: the guard `extradata_size >= 80` does not account for a non-zero magic-string offset P, and the final `bytestream_get_le32` reads bytes `[P+68..P+71]` which exceeds the logical 80-byte buffer when P ≥ 9. It simply cannot be triggered to produce an ASAN crash via FFmpeg's normal allocator path.
+
+| VULN # | Description | Status |
+|--------|-------------|--------|
+| 001 | Heap OOB Read in `parse_speex_extradata` | **UNVERIFIED** (code path confirmed; masked by `AV_INPUT_BUFFER_PADDING_SIZE`) |

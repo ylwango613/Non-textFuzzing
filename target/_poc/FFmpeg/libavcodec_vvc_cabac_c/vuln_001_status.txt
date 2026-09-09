@@ -1,0 +1,39 @@
+UNVERIFIED
+
+Summary:
+  The crafted VVC bitstream successfully reaches the CABAC decoder (CTU
+  decoding begins at P(0,0)), confirming all headers were parsed correctly.
+  No ASAN crash or OOB memory access was detected.
+
+Reason (UNVERIFIED rather than VERIFIED_CRASH):
+  The specific OOB trigger requires:
+    log2_zo_tb_width = 0   (1-pixel-wide transform block)
+    log2_zo_tb_height <= 3 (sum with width must be <= 3)
+
+  This condition can only arise when the VVC decoder processes a transform
+  block produced by ISP_VER_SPLIT on a CU where:
+    cb_width = 4, num_intra_subpartitions = 4 → trafo_width = 1
+
+  However, num_intra_subpartitions = 4 requires cb_height >= 16.
+  The smallest valid ISP_VER_SPLIT CU giving width=1 is 4x16, which yields
+  1x16 TUs → log2_zo_tb_height = 4. With sum = 0+4 = 4 > 3, the
+  correction branch at cabac.c line 2114 IS entered, setting log2_sb_w = 0,
+  so the OOB index (log2_zo_tb_width - log2_sb_w = -1) is NOT produced.
+
+  The vulnerable code path (index = -1) therefore cannot be reached through
+  any syntactically valid VVC bitstream. It would only trigger via:
+    1. A non-conformant encoder producing 1x{2,4,8} TBs directly
+    2. Corrupted bitstream data altering the partition tree in flight
+
+Evidence of correct parsing:
+  ffmpeg output shows:
+    "Video: vvc (Main 10), gray(tv), 32x32"  ← SPS/PPS parsed OK
+    "frame 0, P(0,0) failed"                 ← CABAC reached, malformed data fails
+  No ASAN error log generated.
+
+Files:
+  vuln_001_gen.py     - Bitstream generator (Python)
+  vuln_001_run.sh     - Runner script (Shell)
+  vuln_001_input.h266 - Crafted VVC Annex-B bitstream
+  vuln_001_result.txt - ffmpeg output from PoC run
+  vuln_001_notes.md   - Detailed vulnerability analysis

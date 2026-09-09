@@ -1,0 +1,25 @@
+VERIFIED_BEHAVIOR
+The crafted .mov file successfully triggers the OOB read code path in decode_slice_thread()
+at proresdec.c line 665. Evidence:
+
+1. ffmpeg opened and parsed the MOV container (codec detected: prores/apcn, 16x16,
+   yuv422p10le), confirming the container structure is valid.
+
+2. The ProRes decoder was invoked and printed:
+     [prores] invalid plane data size
+   This message is at proresdec.c line 671, which is ONLY reachable after the OOB read
+   at line 665 executes: "if (hdr_size > 7) v_data_size = AV_RB16(buf + 6);"
+
+3. The slice was crafted with data_size=6 and buf[0]=0x40 (hdr_size=8 > 7).
+   AV_RB16(buf+6) reads buf[6..7] which are 2 bytes past the 6-byte slice boundary.
+
+4. No ASAN heap-buffer-overflow crash: FFmpeg appends AV_INPUT_BUFFER_PADDING_SIZE (64)
+   bytes of zero padding to packet data. The 2 bytes at buf+6 fall within this padding
+   region (which is allocated memory), so ASAN does not flag it as a heap overflow.
+   The OOB read is real but ASAN cannot detect it due to the padding.
+
+5. The OOB value (zeros from padding) caused v_data_size=0, then the check
+   hdr_size(8)+y(0)+u(0)+v(0)=8 > data_size(6) triggered the error at line 671.
+
+Verdict: VERIFIED_BEHAVIOR -- OOB read confirmed via observable error consequence.
+To get a crash, reduce AV_INPUT_BUFFER_PADDING_SIZE or use Valgrind memcheck.

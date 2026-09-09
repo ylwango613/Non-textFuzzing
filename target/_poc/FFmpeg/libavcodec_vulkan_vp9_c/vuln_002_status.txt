@@ -1,0 +1,5 @@
+SKIPPED
+Reason: Vulkan hardware acceleration is not available on this system.
+The vulnerability in vk_vp9_start_frame() requires -hwaccel vulkan, which
+depends on actual Vulkan-capable GPU hardware and drivers. No Vulkan device
+was found (ffmpeg -hwaccels returns an empty list).

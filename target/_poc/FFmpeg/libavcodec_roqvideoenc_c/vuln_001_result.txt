@@ -1,0 +1,28 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc[*] Collecting ASAN output...
+[*] Done. Results in vuln_001_result.txt
+rame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:00.07, start: 0.000000, bitrate: 188776 kb/s
+  Stream #0:0: Video: rawvideo, bgr24, 512x512, 30 fps, 30 tbr, 30 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (rawvideo (native) -> roq (roqvideo))
+Press [q] to stop, [?] for help
+[swscaler @ 0x52f00000e400] deprecated pixel format used, make sure you did set range correctly
+Output #0, roq, to 'vuln_001_output.roq':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: roq, yuvj444p(pc, progressive), 512x512, q=2-31, 200 kb/s, 30 fps, 30 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 roqvideo
+frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:01.00    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:01.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:02.00    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:02.50    frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:03.00    frame=    1 fps=0.3 q=-0.0 size=       0KiB time=00:00:00.03 bitrate=   1.9kbits/s speed=0.00952x elapsed=0:00:03.50    frame=    1 fps=0.2 q=-0.0 size=       0KiB time=00:00:00.03 bitrate=   1.9kbits/s speed=0.00833x elapsed=0:00:04.00    frame=    1 fps=0.2 q=-0.0 size=       0KiB time=00:00:00.03 bitrate=   1.9kbits/s speed=0.0074x elapsed=0:00:04.50    frame=    1 fps=0.2 q=-0.0 size=       0KiB time=00:00:00.03 bitrate=   1.9kbits/s speed=0.00666x elapsed=0:00:05.00    frame=    1 fps=0.2 q=-0.0 size=       0KiB time=00:00:00.03 bitrate=   1.9kbits/s speed=0.00606x elapsed=0:00:05.50    frame=    1 fps=0.2 q=-0.0 size=       0KiB time=00:00:00.03 bitrate=   1.9kbits/s speed=0.00555x elapsed=0:00:06.00    [out#0/roq @ 0x511000000a40] video:141KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.005539%
+frame=    2 fps=0.3 q=-0.0 Lsize=     141KiB time=00:00:00.06 bitrate=17332.7kbits/s speed=0.0106x elapsed=0:00:06.27    
+EXIT=0

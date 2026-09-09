@@ -1,0 +1,3 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/libavcodec_argo_c__001.md` 已写入，内容为 `SKIP`。
+
+判定理由：状态文件（vuln_001_status.txt）通过数学证明确认，对所有不是 8 的倍数的偶数帧高度，`decode_mad1()` case-8 的最大溢出行数为 7，而 `libavutil/frame.c` 中 `FFALIGN(h, 32)` 使帧缓冲区对齐到 32 行，额外的填充始终足以吸收溢出写入，ASAN 未报告任何 `heap-buffer-overflow`，实际不存在堆外内存破坏，属于"行为异常但无安全影响"。

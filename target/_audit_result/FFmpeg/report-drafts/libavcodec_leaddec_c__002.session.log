@@ -1,0 +1,1 @@
+`libavcodec_leaddec_c__002.md` written as `SKIP`. The VULN block's CVSS 8.8 analysis assumed `h_align=2`, but the runtime behavior (confirmed by ASAN) shows `h_align=32`, so the luma writes at rows 24–31 land inside the padded allocation. No heap OOB, no crash, no demonstrated security impact — the anomaly is a correctness/padding-corruption issue only.

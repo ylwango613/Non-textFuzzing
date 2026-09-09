@@ -1,0 +1,12 @@
+PoC generation complete. Summary:
+
+| # | Vulnerability | Status |
+|---|---|---|
+| 001 | OOB Heap Read via Unvalidated `header.size` in `qdm2_decode_super_block` | **VERIFIED_BEHAVIOR** |
+
+**Details for VULN-001:**
+- The crafted 601-byte MOV file with a QDM2 audio track was successfully parsed by FFmpeg.
+- The vulnerability code path was confirmed reached: `qdm2_decode_sub_packet_header` read `header.size = 0xFFFF (65535)` from the attacker-controlled stream, and `init_get_bits8(&gb, header.data, 65535)` at line 1192 was called — creating a GetBitContext claiming 524,280 bits backed by only ~65 actual bytes (1008× mismatch).
+- **Why ASAN did not fire**: `AV_INPUT_BUFFER_PADDING_SIZE=64` means every `AVPacket` allocation has 64 extra zeroed bytes appended. The OOB reads land within this padding zone rather than the ASAN redzone, making detection impossible through the standard allocation path.
+- The anomalous behavior is clear: `AVERROR_INVALIDDATA` / "Decode error rate 1 exceeds maximum 0.666667" with 1 packet read and 0 frames decoded.
+- Status: `VERIFIED_BEHAVIOR` — a sanitizer-capable allocator (e.g., guard-page malloc, `-fsanitize=address` with a custom allocator that disables padding) would surface this as a confirmed heap OOB read.

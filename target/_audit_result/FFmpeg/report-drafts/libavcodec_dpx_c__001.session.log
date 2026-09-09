@@ -1,0 +1,3 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/libavcodec_dpx_c__001.md` 已写入，内容为 `SKIP`。
+
+判定依据：整数溢出确实绕过了 `decode_frame()` 第 630 行的边界守卫，但后续 `ff_get_buffer` → `av_image_check_size2` 二级防护在 `unpack_frame()` 被调用前即返回 `AVERROR(EINVAL)`，实际堆越界读取从未发生，无 ASAN 告警、无内存破坏、无 DoS——属于"行为异常但无安全影响"，触发 SKIP 规则。

@@ -1,0 +1,35 @@
+=================================================================
+==2369662==ERROR: AddressSanitizer: SEGV on unknown address 0x51f000000080 (pc 0x51f000000080 bp 0x7f76980f0bd0 sp 0x7f76980f0b18 T20)
+==2369662==The signal is caused by a READ memory access.
+==2369662==Hint: PC is at a non-executable region. Maybe a wild jump?
+    #0 0x51f000000080  (<unknown module>)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (<unknown module>) 
+Thread T20 created by T2 (vf#0:0) here:
+    #0 0x7f76a763c685 in __interceptor_pthread_create ../../../../src/libsanitizer/asan/asan_interceptors.cpp:216
+    #1 0x55de39ede242 in avpriv_slicethread_create2 (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x1440d242)
+    #2 0x55de36203796 in ff_slice_thread_init (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x10732796)
+    #3 0x55de361eaeda in ff_thread_init (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x10719eda)
+    #4 0x55de345dae54 in avcodec_open2 (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xeb09e54)
+    #5 0x55de31d11203 in enc_reopen (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc240203)
+    #6 0x55de31d1179d in enc_open (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc24079d)
+    #7 0x55de31dd4b1d in enc_open (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc303b1d)
+    #8 0x55de31dd65cc in send_to_enc (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc3055cc)
+    #9 0x55de31de15dd in sch_filter_send (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc3105dd)
+    #10 0x55de31d4d247 in fg_output_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc27c247)
+    #11 0x55de31d4f414 in fg_output_step (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc27e414)
+    #12 0x55de31d4fdb8 in read_frames (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc27edb8)
+    #13 0x55de31d5942e in filter_thread (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc28842e)
+    #14 0x55de31de2e5a in task_wrapper (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc311e5a)
+    #15 0x7f76a6bb8ac2 in start_thread nptl/pthread_create.c:442
+
+Thread T2 (vf#0:0) created by T0 here:
+    #0 0x7f76a763c685 in __interceptor_pthread_create ../../../../src/libsanitizer/asan/asan_interceptors.cpp:216
+    #1 0x55de31dbcd4b in task_start (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc2ebd4b)
+    #2 0x55de31dd3b71 in sch_start (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc302b71)
+    #3 0x55de31e59018 in transcode (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc388018)
+    #4 0x55de31e59bdf in main (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc388bdf)
+    #5 0x7f76a6b4dd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+==2369662==ABORTING

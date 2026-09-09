@@ -1,0 +1,18 @@
+The subagent completed. Here is the summary:
+
+---
+
+## PoC Results — libavcodec/sunrast.c
+
+| # | Vulnerability | Status |
+|---|--------------|--------|
+| 001 | Out-of-bounds Read in RT_BYTE_ENCODED RLE Decoder (lines 171-174) | **VERIFIED_BEHAVIOR** |
+
+**Details**: The crafted Sun Rasterfile (4×4, depth=8, type=RT_BYTE_ENCODED, ending RLE payload `0x80 0x01`) successfully triggers the logical OOB read past `buf_end` at line 174. FFmpeg reads `value = *buf++` one byte past the declared packet boundary. However, no ASAN crash fires because FFmpeg's packet allocator appends `AV_INPUT_BUFFER_PADDING_SIZE` (64) zero bytes beyond `avpkt->size` in the same heap allocation — ASAN considers those bytes valid, so the read silently returns 0 and produces incorrect pixel output rather than crashing. A true `heap-buffer-overflow` report would require the buffer to have no padding (e.g., a fuzzer-controlled allocator or `av_packet_from_data()` path with a tight allocation).
+
+Files in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_sunrast_c/`:
+- `vuln_001_gen.py` — generates the malformed `.ras` file
+- `vuln_001_run.sh` — runs ffmpeg with ASAN options
+- `vuln_001_notes.md` — technical explanation
+- `vuln_001_result.txt` — execution output
+- `vuln_001_status.txt` — `VERIFIED_BEHAVIOR`

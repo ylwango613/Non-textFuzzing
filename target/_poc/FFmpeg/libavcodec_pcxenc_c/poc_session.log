@@ -1,0 +1,11 @@
+The subagent completed. Here is the summary:
+
+---
+
+## PoC 汇总
+
+| VULN | 编号 | 状态 | 说明 |
+|------|------|------|------|
+| Integer Overflow in `max_pkt_size` → OOB Heap Write in PCX Encoder | 001 | **UNVERIFIED** | 代码中整数溢出 bug 确实存在（`pcxenc.c:136`），但无法通过 ffmpeg CLI 触发：`av_image_check_size()` 的限制使满足溢出所需的分辨率（width×height > 358M）和其允许的最大分辨率（< 268M）**数学上互斥**；即便绕过该检查，`pcx_rle_encode()` 内部的 `dst_size` 边界检查也会提前返回 `AVERROR(EINVAL)`，阻止实际 OOB 写入。三种触发方式（lavfi、crafted AVI、rawvideo pipe）均输出 `"Picture size 22000x35000 is invalid"`，无 ASAN 报错。 |
+
+**结论**：漏洞审计报告中描述的整数溢出为真实代码缺陷（源码级 bug），但在当前 FFmpeg 构建中受到两层防御（`av_image_check_size` + `pcx_rle_encode` 边界检查）保护，无法通过合法 ffmpeg 命令行入口复现 ASAN crash。状态文件 `vuln_001_status.txt` 第一行为 `UNVERIFIED`。

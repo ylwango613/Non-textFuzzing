@@ -1,0 +1,9 @@
+Subagent complete. Here is the summary:
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| 001 - Integer overflow in `nvdec_hevc_decode_slice()` (lines 282–295) | **SKIPPED** | FFmpeg binary compiled without NVDEC support (no hwaccel methods available); additionally, triggering the overflow requires ~4 GB+ crafted file with 2 GB slices, making practical PoC physically impractical |
+
+Files written to `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_nvdec_hevc_c/`:
+- `vuln_001_status.txt` — `SKIPPED`
+- `vuln_001_notes.md` — detailed explanation of both blocking reasons

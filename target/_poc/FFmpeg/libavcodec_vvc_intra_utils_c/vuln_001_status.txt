@@ -1,0 +1,6 @@
+SKIPPED
+
+Reason: VVC CABAC entropy coding makes it infeasible to craft the specific
+triggering bitstream without a real VVC encoder.
+
+See vuln_001_notes.md for full analysis.

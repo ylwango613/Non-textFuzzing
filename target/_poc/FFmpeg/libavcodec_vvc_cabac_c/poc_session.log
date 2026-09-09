@@ -1,0 +1,12 @@
+## Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| VULN-001 | OOB Read/Write via Negative Scan-Table Index in `init_residual_coding` | **UNVERIFIED** |
+
+**Reason**: The PoC successfully reached the VVC CABAC decoder (FFmpeg parsed SPS/PPS and began CTU decoding), but the specific OOB condition (`log2_zo_tb_width=0`, `log2_zo_tb_height≤3`, sum≤3) cannot be triggered by any syntactically valid VVC bitstream. The analysis found that:
+
+- The only ISP_VER_SPLIT configuration producing `log2_tb_width=0` requires a 4×16 minimum CU, which yields 1×16 TUs → `log2_zo_tb_height=4`, making the sum `0+4=4 > 3`
+- This causes the correction branch at line 2114 to fire, setting `log2_sb_w=0`, so the negative index (`0-1=-1`) is **never produced** via conformant input
+
+The vulnerability, as described in the audit report, would only be reachable via a non-conformant encoder or in-flight bitstream corruption — not through a crafted but syntactically valid media file passed to ffmpeg. All PoC files are in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_vvc_cabac_c/`.

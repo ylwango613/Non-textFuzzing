@@ -1,0 +1,8 @@
+Both subagents have completed. Here is the final summary:
+
+| VULN | Description | Status |
+|------|-------------|--------|
+| 001 | Heap Buffer Overflow in set_pps() via Excessive HEVC Tile Columns (lines 529-533) | **SKIPPED** |
+| 002 | Heap Buffer Overflow in set_pps() via Excessive HEVC Tile Rows (lines 532-533) | **SKIPPED** |
+
+**Reason**: Both vulnerabilities are in the Vulkan hardware acceleration code path (`-hwaccel vulkan`). This system has no Vulkan-capable GPU and no Vulkan ICD present — `ffmpeg -hwaccels` lists no Vulkan backend. Without Vulkan hardware, FFmpeg never enters `set_pps()` regardless of the input file's content, so file-based PoCs cannot trigger either overflow here.

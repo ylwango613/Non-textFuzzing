@@ -1,0 +1,15 @@
+## 汇总结果
+
+| VULN 编号 | 漏洞名称 | 状态 |
+|-----------|----------|------|
+| VULN-001 | do-while-blocks-zero OOB heap read in `pcm_dvd_encode_frame()` | **VERIFIED_CRASH** |
+
+ASAN 确认了堆缓冲区溢出（`heap-buffer-overflow`），触发路径为：
+
+```
+ffmpeg -i vuln_001_input.wav -c:a pcm_dvd -f vob output.vob
+```
+
+- 输入文件：S32LE，6 声道，48kHz，共 29 个采样（最后一帧仅 1 个采样）
+- 触发点：`pcm_dvd_encode_frame()` 中 `blocks=0`，`do {...} while (--blocks)` 首次执行后 `--blocks` 下溢为 `-1`，ASAN 在第一次越界读取时立即报错
+- ASAN 报告：`READ of size 4` at `0x5180000203c0`，位于 832 字节堆区域末端（`0 bytes to the right`）

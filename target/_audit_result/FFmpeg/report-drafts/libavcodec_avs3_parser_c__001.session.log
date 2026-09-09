@@ -1,0 +1,1 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/libavcodec_avs3_parser_c__001.md` has been written with the full report. The vulnerability meets the threshold (confirmed OOB read with DoS and potential info-disclosure impact, CWE-125, CVSS 7.1 High), so SKIP was not applied.

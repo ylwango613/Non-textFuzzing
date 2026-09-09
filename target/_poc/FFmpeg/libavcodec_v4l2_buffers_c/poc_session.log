@@ -1,0 +1,8 @@
+Both subagents have completed. Here is the summary:
+
+| VULN # | Description | Status |
+|--------|-------------|--------|
+| VULN 001 | `v4l2_bufref_to_buf` unsigned-underflow → OOB write past mmap | **SKIPPED** |
+| VULN 002 | `v4l2_buf_to_bufref` overstates AVBufferRef size → OOB read | **SKIPPED** |
+
+**Reason for both SKIPs**: Both vulnerabilities are in the V4L2 M2M (memory-to-memory) hardware codec path. They require actual `/dev/video*` kernel device nodes (e.g., Raspberry Pi VideoCore, Rockchip/AllWinner VPU, or the `vivid` emulation kernel module). This system has no such devices — `ls /dev/video*` returns nothing. Although the ffmpeg binary has v4l2m2m codecs compiled in, they fail at device open (`ENODEV`) before any buffer is allocated or the vulnerable code paths are ever reached. Neither bug can be triggered by passing a crafted media file to ffmpeg on this machine.

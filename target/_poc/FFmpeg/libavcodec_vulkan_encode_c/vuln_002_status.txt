@@ -1,0 +1,2 @@
+SKIPPED
+Reason: Requires GPU driver to report maxDpbSlots > 32, which cannot be controlled by a crafted media file.

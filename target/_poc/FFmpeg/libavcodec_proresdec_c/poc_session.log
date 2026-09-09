@@ -1,0 +1,7 @@
+PoC generation complete. Summary:
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | decode_slice_thread 2-byte OOB Heap Read (proresdec.c:665) | **VERIFIED_BEHAVIOR** |
+
+**VULN 001**: The crafted `.mov` file successfully triggered the OOB read path. The ProRes decoder reached line 665 (`v_data_size = AV_RB16(buf + 6)`) with a 6-byte slice and `buf[0]=0x40` (hdr_size=8 > 7), reading 2 bytes past the slice boundary. FFmpeg's error message `[prores] invalid plane data size` (line 671) — only reachable *after* the OOB read — confirms the code path was hit. No ASAN crash occurred because FFmpeg appends 64-byte zero padding to packets, keeping `buf+6` within allocated memory. The read is real; Valgrind memcheck (logical bounds tracking) would detect it.

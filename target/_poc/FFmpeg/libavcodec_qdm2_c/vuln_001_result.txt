@@ -1,0 +1,69 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 / [*] Result saved to vuln_001_result.txt
+
+=== OUTPUT SUMMARY ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 / [*] Result saved to vuln_001_result.txt
+
+=== OUTPUT SUMMARY ===
+ut.mov':
+  Metadata:
+    major_brand     : M4A 
+    minor_version   : 512
+    compatible_brands: M4A mp42isom
+  Duration: 00:00:00.01, start: 0.000000, bitrate: 414 kb/s
+  Stream #0:0[0x1](und): Audio: qdm2 (QDM2 / 0x324D4451), 44100 Hz, stereo, s16, 96 kb/s (default)
+[out#0/null @ 0x511000000b80] No explicit maps, mapping streams automatically...
+[aost#0:0/pcm_s16le @ 0x517000001200] Created audio stream from input stream 0:0
+Stream mapping:
+  Stream #0:0 -> #0:0 (qdm2 (native) -> pcm_s16le (native))
+[aost#0:0/pcm_s16le @ 0x517000001200] Starting thread...
+[af#0:0 @ 0x51a000000080] Starting thread...
+[aist#0:0/qdm2 @ 0x514000000040] [dec:qdm2 @ 0x513000000900] Starting thread...
+[in#0/mov,mp4,m4a,3gp,3g2,mj2 @ 0x513000000200] Starting thread...
+Press [q] to stop, [?] for help
+[in#0/mov,mp4,m4a,3gp,3g2,mj2 @ 0x513000000200] EOF while reading input
+[in#0/mov,mp4,m4a,3gp,3g2,mj2 @ 0x513000000200] Terminating thread with success
+[aist#0:0/qdm2 @ 0x514000000040] [dec:qdm2 @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[aist#0:0/qdm2 @ 0x514000000040] [dec:qdm2 @ 0x513000000900] Decoder thread received EOF packet
+[aist#0:0/qdm2 @ 0x514000000040] [dec:qdm2 @ 0x513000000900] Decoder returned EOF, finishing
+[aist#0:0/qdm2 @ 0x514000000040] [dec:qdm2 @ 0x513000000900] Decode error rate 1 exceeds maximum 0.666667
+[aist#0:0/qdm2 @ 0x514000000040] [dec:qdm2 @ 0x513000000900] Task finished with error: Error number -1145393733 occurred
+[aist#0:0/qdm2 @ 0x514000000040] [dec:qdm2 @ 0x513000000900] Terminating thread with error: Error number -1145393733 occurred
+[graph_-1_in_0:0 @ 0x511000010300] tb:1/44100 samplefmt:s16 samplerate:44100 chlayout:stereo
+[af#0:0 @ 0x516000000680] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0(und): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000b80] Starting thread...
+[af#0:0 @ 0x51a000000080] Filtergraph returned EOF, finishing
+[af#0:0 @ 0x51a000000080] All consumers returned EOF
+[aost#0:0/pcm_s16le @ 0x517000001200] [enc:pcm_s16le @ 0x511000001080] Encoder thread received EOF
+[aost#0:0/pcm_s16le @ 0x517000001200] Terminating thread with success
+[out#0/null @ 0x511000000b80] All streams finished
+ Input stream #0:0 (audio): 1 packets read (4 bytes); 0 frames decoded; 1 decode errors (0 samples); 
+[in#0/mov,mp4,m4a,3gp,3g2,mj2 @ 0x513000000200]   Total: 1 packets (4 bytes) demuxed
+[AVIOContext @ 0x5130000003c0] Statistics: 601 bytes read, 0 seeks
+Conversion failed!
+
+Exiting with exit code 69
+EXIT=0

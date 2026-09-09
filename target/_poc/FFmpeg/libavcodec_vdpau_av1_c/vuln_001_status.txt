@@ -1,0 +1,6 @@
+SKIPPED
+Reason: VDPAU hardware acceleration is not available in this environment.
+The FFmpeg binary at /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+lists no hardware acceleration methods (confirmed via -hwaccels flag).
+The vdpau_av1_decode_slice() code path requires -hwaccel vdpau and cannot
+be reached without VDPAU runtime support, making CLI-based triggering impossible.

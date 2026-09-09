@@ -1,0 +1,18 @@
+UNVERIFIED
+
+Summary:
+  The PoC MOV file decoded successfully with no ASAN crash or memory error.
+  The guard at qdmc.c:476 prevents the exact off-by-one OOB write:
+    (4079 >> 4) + 1 = 255 which is NOT < 256 (subframe_size), so pos=254 does
+    trigger add_tone(), but the add_wave() loop cannot reach index 16384.
+  The vulnerability is real but requires a different triggering path (outside
+  valid bitstream constraints) to produce an actual OOB write.
+
+FFmpeg run result:
+  Input decoded: 1 frame (8192 samples, 0.19s) without any errors.
+  No ASAN report generated.
+
+Root cause note on implementation (found during development):
+  ff_vlc_init_from_lengths assigns canonical codes in ORIGINAL hufftab array
+  order, NOT sorted by code length.  PoC generator had to be fixed to match
+  this non-standard assignment order.

@@ -1,0 +1,35 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[tiff @ 0x519000000580] [IMGUTILS @ 0x7fff22d64b50] Picture size 107374182x4 is invalid
+[in#0/tiff_pipe @ 0x517000000080] Could not find codec parameters for stream 0 (Video: tiff, rgba): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, tiff_pipe, from 'vuln_001_input.tiff':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: tiff, rgba, 25 fps, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (tiff (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[tiff @ 0x519000002880] [IMGUTILS @ 0x7fc6d7d75410] Picture size 107374182x4 is invalid
+[vist#0:0/tiff @ 0x514000000040] [dec:tiff @ 0x513000000ac0] Decoding error: Invalid argument
+[vist#0:0/tiff @ 0x514000000040] [dec:tiff @ 0x513000000ac0] Decode error rate 1 exceeds maximum 0.666667
+[vist#0:0/tiff @ 0x514000000040] [dec:tiff @ 0x513000000ac0] Task finished with error: Error number -1145393733 occurred
+[vist#0:0/tiff @ 0x514000000040] [dec:tiff @ 0x513000000ac0] Terminating thread with error: Error number -1145393733 occurred
+[graph -1 input from stream 0:0 @ 0x511000010300] Invalid size 0x0
+[vf#0:0 @ 0x51a000000080] Error initializing filters!
+[vf#0:0 @ 0x51a000000080] Task finished with error: Invalid argument
+[vf#0:0 @ 0x51a000000080] Terminating thread with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] [enc:wrapped_avframe @ 0x511000001580] Could not open encoder before EOF
+[vost#0:0/wrapped_avframe @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/null @ 0x511000001080] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+Conversion failed!
+EXIT=0

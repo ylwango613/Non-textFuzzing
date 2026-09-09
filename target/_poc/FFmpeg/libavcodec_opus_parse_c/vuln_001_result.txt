@@ -1,0 +1,38 @@
+=== FFmpeg run output ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+src/libavcodec/opus/parse.c:225:71: runtime error: signed integer overflow: 2147422448 + 61200 cannot be represented in type 'int'
+src/libavcodec/opus/parse.c:247:41: runtime error: signed integer overflow: -2139029224 - 2147422448 cannot be represented in type 'int'
+src/libavcodec/opus/dec.c:591:18: runtime error: signed integer overflow: 8515624 - -2139029224 cannot be represented in type 'int'
+[opus @ 0x519000000580] Error parsing the packet header.
+Input #0, ogg, from 'vuln_001_input.ogg':
+  Duration: 00:00:00.12, start: 0.000000, bitrate: 570177 kb/s
+  Stream #0:0: Audio: opus, 48000 Hz, stereo, fltp
+Stream mapping:
+  Stream #0:0 -> #0:0 (opus (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+[opus @ 0x519000003c80] Error parsing the packet header.
+[aist#0:0/opus @ 0x514000000240] [dec:opus @ 0x513000000900] Error submitting packet to decoder: Invalid data found when processing input
+[aist#0:0/opus @ 0x514000000240] [dec:opus @ 0x513000000900] Decode error rate 1 exceeds maximum 0.666667
+[aist#0:0/opus @ 0x514000000240] [dec:opus @ 0x513000000900] Task finished with error: Error number -1145393733 occurred
+[aist#0:0/opus @ 0x514000000240] [dec:opus @ 0x513000000900] Terminating thread with error: Error number -1145393733 occurred
+[af#0:0 @ 0x516000001580] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000b80] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000000b80] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.04    
+Conversion failed!
+EXIT_CODE=69

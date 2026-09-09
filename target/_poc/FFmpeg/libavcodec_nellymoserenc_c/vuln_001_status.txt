@@ -1,0 +1,2 @@
+VERIFIED_CRASH
+UBSan runtime error confirmed: "index 35768 out of bounds for type 'float [35768]'" at nellymoserenc.c:247, plus cascading OOB reads at lines 294/296 (index -1) caused by heap memory corruption. Binary built with -fsanitize=address,undefined; UBSan fired on the exact OOB index (35768 == OPT_SIZE) matching the described off-by-one.

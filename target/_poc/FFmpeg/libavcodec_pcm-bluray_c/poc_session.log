@@ -1,0 +1,9 @@
+**汇总**
+
+| VULN | 状态 | 原因 |
+|------|------|------|
+| VULN 001 — Heap Buffer Overflow in Big-Endian S16 pcm_bluray Decode | **SKIPPED** | 该漏洞位于 `#if HAVE_BIGENDIAN` 编译分支；目标二进制为 x86-64 little-endian 构建（`config.h` 中 `HAVE_BIGENDIAN 0`），该分支未被编译，无法通过向 ffmpeg 传递畸形媒体文件触发。 |
+
+已生成文件：
+- `vuln_001_status.txt`（第一行：`SKIPPED`）
+- `vuln_001_notes.md`（说明跳过原因及所需平台条件）

@@ -1,0 +1,14 @@
+Both subagents have completed. Here is the final summary:
+
+| VULN | Description | Status |
+|------|-------------|--------|
+| 001 | OOB Heap Read via mb_change_bits in TrueMotion1 interframe (missing size validation) | **VERIFIED_BEHAVIOR** |
+| 002 | OOB Heap Read via unconditional mb_change_bits read in 24-bit keyframe path | **VERIFIED_BEHAVIOR** |
+
+**Key findings:**
+
+- **VULN 001**: The vulnerable interframe path in `truemotion1_decode_header()` is confirmed reached — the code sets `index_stream` requiring ~2048 bytes with no bounds check for xsize=65534 on a 17-byte packet. The runtime soft-guard in `GET_NEXT_INDEX` prints "went out of bounds" before an actual OOB read occurs, preventing a hard ASAN crash in this build. The logical bug is real but the existing runtime guard absorbs it.
+
+- **VULN 002**: The missing `if (!keyframe)` guard on line 783 of `truemotion1_decode_24bit()` is confirmed — the decoder reads `mb_change_bits` unconditionally for keyframes, consuming index stream bytes as change-bit data and triggering the "went out of bounds" guard. No hard ASAN crash because `AV_INPUT_BUFFER_PADDING_SIZE=64` bytes of allocator padding absorbs the small overread (1-byte row size with height=4).
+
+Both vulnerabilities hit the anomalous execution paths described in the audit; neither produced a hard ASAN `heap-buffer-overflow` because existing runtime guards and allocator padding cushion the reads in both cases.

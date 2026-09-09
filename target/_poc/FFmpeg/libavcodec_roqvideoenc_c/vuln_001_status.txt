@@ -1,0 +1,33 @@
+UNVERIFIED
+
+The static buffer-size formula in roq_encode_frame() is definitively wrong: it
+omits 8 bytes for the RoQ_QUAD_CODEBOOK chunk header and 16 bytes for the
+RoQ_INFO chunk on the first frame, creating a theoretical 24-byte under-
+allocation on the first encoded frame and an 8-byte under-allocation on every
+subsequent frame whenever numCB2 > 0.
+
+However, triggering the overflow in practice requires the encoded frame data to
+reach within 24 bytes of the theoretical per-frame maximum
+  ((w*h/64)*138 + 7)/8
+bytes.  This requires that every 8x8 block and every 4x4 sub-cell inside each
+8x8 block is coded with the highest-bit-cost CCC (CB2) mode — a condition that
+the ELBG vector-quantizer never produces in practice, because it initialises
+some centroids from actual block samples, guaranteeing at least a few near-zero
+SLD distortions that prevent the all-CCC outcome.
+
+Best result achieved during PoC development:
+  Resolution:           512x512 (4096 eight-by-eight blocks per frame)
+  Input:                two frames of cryptographic-quality random BGR24 pixels
+  Encoder flags:        -q:v 0.009 (lambda=0), -quake3_compat 0
+  Encoded frame data:   ~69 632 bytes/frame (98.55% of 70 656 byte maximum)
+  Overflow threshold:   70 632 bytes/frame (first frame)
+  Gap:                  ~1 000 bytes (1.45% below threshold)
+  ASAN output:          none
+  Process exit code:    0
+
+The 1.45% gap persists because the ELBG codebook generator — irrespective of
+input entropy or resolution — always produces a small number of CB4 centroids
+that provide dist_SLD <= dist_CCC for some blocks, keeping the encoding well
+below the all-CCC theoretical maximum.  The code defect is real and confirmed
+by code-path analysis, but no PoC input was found that drives the encoder to
+the density required for an observable heap write past the allocation.

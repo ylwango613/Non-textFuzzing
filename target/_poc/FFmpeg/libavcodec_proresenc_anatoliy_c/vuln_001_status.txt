@@ -1,0 +1,29 @@
+VERIFIED_BEHAVIOR
+
+UBSan (Undefined Behavior Sanitizer) confirmed the signed integer overflow at the vulnerable line:
+
+  src/libavcodec/proresenc_anatoliy.c:736:76: runtime error: signed integer overflow:
+  134479872 * 16 cannot be represented in type 'int'
+    #0 in prores_encode_frame (ffmpeg)
+    #1 in ff_encode_encode_cb
+    #2 in worker
+
+The overflow occurs in this expression (line 736):
+  int frame_size = FFALIGN(avctx->width, 16) * FFALIGN(avctx->height, 16)*16 + 500 + FF_INPUT_BUFFER_MIN_SIZE;
+
+With input dimensions 16382x8193:
+  FFALIGN(16382,16) = 16384
+  FFALIGN(8193,16)  = 8208
+  16384 * 8208 = 134,479,872
+  134,479,872 * 16 = 2,151,677,952 > INT_MAX (2,147,483,647) — signed overflow!
+
+The resulting frame_size is negative (-2,143,256,076 after adding +16884), which causes
+ff_alloc_packet to reject the allocation and abort encoding. In this ASAN build and with
+current dimension validation, the integer overflow produces a negative frame_size rather
+than the zero/small value needed for a heap buffer overflow. The theoretical heap overflow
+(wrapping to 0) would require exactly 16384x16384 dimensions, which are blocked by
+av_image_check_size2 in ff_set_dimensions() before the encoder is reached.
+
+Trigger command:
+  BIN -f lavfi -i "color=c=black:s=16382x8193:r=1:d=1" -vf format=yuv422p10 \
+    -c:v prores_aw -frames:v 1 -f mov output.mov

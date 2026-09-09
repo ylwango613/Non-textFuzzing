@@ -1,0 +1,21 @@
+The subagent has completed. Here is the summary:
+
+---
+
+## PoC Generation Results
+
+| VULN # | Title | Status |
+|--------|-------|--------|
+| 001 | Integer Overflow in VC2 Encoder DWT Buffer Allocation (Heap OOB Write) | **UNVERIFIED** |
+
+### Details for VULN 001
+
+The subagent confirmed the vulnerability exists at the source-code level in `ff_vc2enc_init_transforms()` (`vc2enc_dwt.c:266`), but it is **not reachable via the ffmpeg CLI** due to an upstream guard in `ff_set_dimensions()` → `av_image_check_size2()`.
+
+**Why not triggerable:** FFmpeg's internal size validation uses the formula `stride = 8*w + 1024` to pre-check image dimensions. For any width `w` large enough to overflow `(w+1024)*(h+1024)` past `INT_MAX`, the guard expression `(8w+1024)*(h+128)` already exceeds `INT_MAX` first — so `avcodec_open2()` aborts with "Picture size ... is invalid" before `vc2enc` init is ever called. The two constraints are mathematically incompatible for all positive (w, h).
+
+**Test runs confirmed:**
+- `46000×46000` → rejected with "Picture size 46000x46000 is invalid", encoder never initialized
+- `16200×16200` (safe size) → VC2 encoder works normally, no ASAN output
+
+**Status:** `UNVERIFIED` — PoC runs clean, no ASAN errors triggered. The vulnerability's attack surface does not extend to the ffmpeg command-line interface; exploitation would require a direct API caller that bypasses `av_image_check_size2`.

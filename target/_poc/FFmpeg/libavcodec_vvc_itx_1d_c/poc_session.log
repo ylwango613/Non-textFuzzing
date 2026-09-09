@@ -1,0 +1,7 @@
+## Summary
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| VULN_001 | **UNVERIFIED** | FFmpeg rejected the slice NAL (parse error, exit 183); `matrix_mul()` never reached. A deeper contradiction was found: `mts_zero_out_sig_coeff_flag` in `cabac.c` clears the MTS flag whenever a coefficient at x≥16 is seen, forcing DCT2 and preventing the overflow path from being exercised via a simple malformed file. |
+
+**Root cause of UNVERIFIED**: The vulnerability has a structural gating issue — the CABAC decoder's own `mts_zero_out_sig_coeff_flag` logic zeroes out the transform type selection whenever `max_scan_x ≥ 16`, which is precisely the condition needed to overflow `tmp[16]`. This means a bitstream that sets both conditions simultaneously is internally contradictory under the current CABAC parsing logic, making the bug unreachable via a simple malformed media file passed to the real `ffmpeg` binary. A deeper CABAC-level exploit (crafting raw entropy-coded bytes that smuggle a `max_scan_x ≥ 16` past the zero-out check) would be needed — but that requires valid CABAC arithmetic coding, not achievable with struct/bytes alone without an entropy coder.

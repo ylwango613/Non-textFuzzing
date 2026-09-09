@@ -1,0 +1,1 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/libavcodec_dsicinvideo_c__001.md` has been written with the full report. The vulnerability is a confirmed heap OOB read (CWE-125, CVSS 7.1) in `cin_decode_huffman()` — not skipped because it carries real DoS and information-disclosure impact.

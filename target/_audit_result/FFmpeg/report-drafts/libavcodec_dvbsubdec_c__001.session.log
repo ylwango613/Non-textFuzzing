@@ -1,0 +1,1 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/libavcodec_dvbsubdec_c__001.md` has been written with the full report entry covering the heap OOB read in `dvbsub_parse_pixel_data_block` (case 0x22), the self-contained Python PoC, and the verified behavior evidence.

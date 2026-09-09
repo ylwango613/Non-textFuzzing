@@ -1,0 +1,7 @@
+**汇总结果：**
+
+| VULN 编号 | 状态 | 说明 |
+|-----------|------|------|
+| VULN 001 | `UNVERIFIED` | `add_wave()` 的 OOB 触发条件（pos=255）被 `qdmc.c:476` 处的守卫检查 `(freq >> group_bits) + 1 < s->subframe_size` 阻断。PoC 成功解码（FFmpeg 输出 32 KiB 音频，无错误），但 ASAN 无报告。漏洞分析识别了理论上的越界路径，但当前代码中已有防护使其无法经由合法比特流触达。 |
+
+所有 PoC 文件已生成：`vuln_001_gen.py`、`vuln_001_run.sh`、`vuln_001_notes.md`、`vuln_001_status.txt`，位于 `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_qdmc_c/`。

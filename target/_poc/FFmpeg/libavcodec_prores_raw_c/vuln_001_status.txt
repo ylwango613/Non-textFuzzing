@@ -1,0 +1,54 @@
+UNVERIFIED
+
+The PoC file was generated and executed successfully. FFmpeg decoded 1 frame
+and exited with code 0. No ASAN heap-buffer-overflow, no ASAN log files.
+
+--- Why ASAN does not trigger ---
+
+The vulnerability is real: decode_tile() calls bytestream2_get_byteu() twice
+(prores_raw.c lines 262-263) without bounds checking on the tile's
+GetByteContext. With a tile whose size field is 0, the GetByteContext is
+initialised with buffer == buffer_end (zero bytes of tile data). The first
+bytestream2_get_byteu call reads the byte AT buffer_end (avpkt->data[82],
+which is the last declared byte of our 83-byte packet — valid). The second
+call advances one further and reads avpkt->data[83].
+
+HOWEVER: FFmpeg's av_new_packet() always appends AV_INPUT_BUFFER_PADDING_SIZE
+= 64 zero bytes to every packet allocation (libavcodec/defs.h line 40). For
+our 83-byte packet the actual heap allocation is 83 + 64 = 147 bytes. ASAN
+tracks the entire 147-byte block as accessible. The "OOB" read at index 83 is
+only 1 byte past the logical packet boundary but lands squarely within the
+64-byte padding region (indices 83-146 of the allocation). ASAN has no reason
+to complain: the address is within a live, allocated object.
+
+The read therefore succeeds silently, returning 0x00 (the zeroed padding byte).
+In decode_tile() this causes:
+  - header_len = (avpkt->data[82] >> 3) = 0  (our last padding byte = 0x00)
+  - scale       = avpkt->data[83]        = 0  (zero-fill padding byte)
+  - size[0..2]  = 0 (bytestream2_get_be16 returns 0 when buffer exhausted)
+  - size[3]     = 0 - 0 - 0 - 0 - 0 = 0
+  - decode_comp() is called with size=0 → returns immediately (0 bits to decode)
+  - decode_tile() returns 0 (success); frame decoded without error.
+
+--- Conclusion ---
+
+The OOB read at prores_raw.c lines 262-263 EXISTS at the code level and IS
+reachable with our crafted MOV file, as confirmed by the successful 1-frame
+decode. The bug is not detectable by ASAN in a standard FFmpeg build because
+packet buffers are padded by AV_INPUT_BUFFER_PADDING_SIZE = 64 bytes, making
+the 1-byte overshoot fall within the allocated region.
+
+To produce an ASAN crash without changing the source, one would need to:
+  (a) Reduce AV_INPUT_BUFFER_PADDING_SIZE to 0, or
+  (b) Make the tile's bytestream2_get_byteu reads produce non-zero header/scale
+      values that cause decode_comp to be invoked with a comp_start pointer and
+      component size that together extend past avpkt->data + avpkt->size + 64.
+      This is prevented by the size[3] < 0 guard (AVERROR_INVALIDDATA) in
+      decode_tile() whenever header_len > 0.
+
+The vulnerability remains a genuine CWE-125 defect: the code reads outside the
+programmer-intended tile buffer boundaries. In a zero-padding environment (e.g.
+embedded firmware, custom allocators, or a future FFmpeg without padding) it
+would cause a true heap-buffer-overflow. The fix is to add a minimum-size
+check (size >= 2) for the tile before initialising its GetByteContext, or to
+replace bytestream2_get_byteu with the checked bytestream2_get_byte variant.

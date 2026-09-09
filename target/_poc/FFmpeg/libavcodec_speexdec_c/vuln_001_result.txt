@@ -1,0 +1,29 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0/matroska,webm @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+[aist#0:0/speex @ 0x514000000040] Guessed Channel Layout: mono
+Input #0, matroska,webm, from 'vuln_001_input.mkv':
+  Metadata:
+    encoder         : poc
+  Duration: 00:00:00.00, start: 0.000000, bitrate: 608 kb/s
+  Stream #0:0(eng): Audio: speex ([9][161][0][0] / 0xA109), 16000 Hz, mono, flt, 64 kb/s (default)
+Stream mapping:
+  Stream #0:0 -> #0:0 (speex (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0(eng): Audio: pcm_s16le, 16000 Hz, 1 channels, s16, 256 kb/s (default)
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000001940] video:0KiB audio:3KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+size=N/A time=00:00:00.10 bitrate=N/A speed=10.5x elapsed=0:00:00.00    
+EXIT=0

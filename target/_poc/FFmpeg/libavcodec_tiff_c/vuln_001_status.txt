@@ -1,0 +1,5 @@
+UNVERIFIED
+FFmpeg's av_image_check_size2() rejected the crafted image dimensions (107374182x4)
+before reaching the vulnerable code at tiff.c:2215-2219. The dimension guard
+(stride*(h+128) >= INT_MAX) prevents frame allocation for any width large enough to
+trigger the stride*5/4 overflow in AV_PIX_FMT_RGBA. No ASAN/UBSAN report generated.

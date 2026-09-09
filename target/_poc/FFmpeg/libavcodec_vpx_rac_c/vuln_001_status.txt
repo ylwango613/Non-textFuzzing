@@ -1,0 +1,23 @@
+VERIFIED_BEHAVIOR
+
+Trigger path confirmed: the crafted WebM with VP8 frame tag [0x31,0x00,0x00,0x00]
+successfully reaches ff_vpx_init_range_decoder(c, buf, 1), where
+bytestream_get_be24() reads 3 bytes from a 1-byte logical buffer (OOB read of
+2 bytes past the header_size boundary).
+
+ASAN did not produce a heap-buffer-overflow report because FFmpeg allocates
+AVPacket data with AV_INPUT_BUFFER_PADDING_SIZE (64 bytes) of extra zero
+padding appended to every packet buffer.  The 2-byte overread falls within
+this padding and is therefore not caught by ASAN's red-zone mechanism.
+
+Observed abnormal behavior (vuln_001_result.txt):
+  [vp8] Invalid partitions
+  [dec:vp8] Decoding error: Invalid data found when processing input
+  [dec:vp8] Decode error rate 1 exceeds maximum 0.666667
+  Conversion failed!
+
+These errors confirm the vulnerable code path was executed: the range decoder
+was initialised with an undersized buffer (header_size=1, buf_size=1),
+bytestream_get_be24 read past the intended 1-byte boundary, and subsequent
+partition-count parsing produced garbage values causing partition validation
+to fail.

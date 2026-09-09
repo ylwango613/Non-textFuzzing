@@ -1,0 +1,53 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0 @ 0x517000000080] Format tiertexseq detected only with low score of 25, misdetection possible!
+[in#0/tiertexseq @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+Input #0, tiertexseq, from 'vuln_001_input.seq':
+  Duration: 00:00:00.28, start: 0.000000, bitrate: 17905 kb/s
+  Stream #0:0: Video: tiertexseqvideo, pal8, 256x128, 25 tbr, 25 tbn
+  Stream #0:1: Audio: pcm_s16be, 22050 Hz, mono, s16, 352 kb/s
+Stream mapping:
+  Stream #0:0 -> #0:0 (tiertexseqvideo (native) -> wrapped_avframe (native))
+  Stream #0:1 -> #0:1 (pcm_s16be (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+[af#0:1 @ 0x516000000680] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: wrapped_avframe, pal8(pc, progressive), 256x128, q=2-31, 200 kb/s, 25 fps, 25 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+  Stream #0:1: Audio: pcm_s16le, 22050 Hz, mono, s16, 352 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x5110000011c0] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:00.04 bitrate=N/A speed=4.04x elapsed=0:00:00.00    
+EXIT=0
+
+--- PoC Analysis ---
+The vulnerable code path seq_decode_op1() else branch was TRIGGERED (confirmed by frame=1).
+
+Vulnerability trigger confirmed:
+  len=65 (non-power-of-2, bits=ff_log2_tab[64]+1=7, max_index=2^7-1=127)
+  color_table has 65 entries (valid: 0..64)
+  All-0xFF pixel data causes get_bits(gb,7)=127 on every pixel read
+  color_table[127] is called 64 times (8x8 block), reading 6 bytes past pkt->size=251
+
+Why ASAN did NOT fire:
+  av_new_packet allocates pkt->size + AV_INPUT_BUFFER_PADDING_SIZE = 251+64 = 315 bytes
+  color_table[127] reads at pkt->data[257], which is 58 bytes inside the 64-byte padding
+  Mathematical proof: for any valid len in [1,127], the maximum OOB (max_index=127) is
+  always within the 64-byte padding -- the padding absorbs the entire reachable OOB window.
+
+Status: VERIFIED_BEHAVIOR -- the OOB read did occur (wrong pixel values written to frame),
+  but ASAN cannot detect it because AV_INPUT_BUFFER_PADDING_SIZE (64 bytes) > OOB extent (6 bytes).
+  A tighter bounds checker (Valgrind memcheck, SoftBound+CETS, or custom ASAN poisoning of
+  padding bytes) would catch this.

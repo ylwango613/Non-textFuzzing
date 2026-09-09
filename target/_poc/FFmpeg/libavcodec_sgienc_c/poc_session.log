@@ -1,0 +1,7 @@
+## Summary
+
+| VULN | 状态 | 说明 |
+|------|------|------|
+| VULN-001 | **UNVERIFIED** | 漏洞代码确实存在（sgienc.c:161 的 uint32 整数溢出），但 `av_image_check_size2()` 的 stride×height 越界检查在所有触发溢出所需的尺寸组合上均提前拦截，4 种触发方式全部以 "Picture size is invalid" 被拒绝，未能到达 SGI 编码器。 |
+
+**结论**：漏洞在源码层面成立（overflow 数学可证），但被 libavutil 的尺寸守卫所缓解，无法通过标准 `ffmpeg` CLI 触发。直接调用 libavcodec API 并绕过该检查（或旧版本无此检查）时仍可触发 heap buffer overflow。

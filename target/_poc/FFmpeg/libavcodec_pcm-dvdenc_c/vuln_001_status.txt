@@ -1,0 +1,4 @@
+VERIFIED_CRASH
+AddressSanitizer: heap-buffer-overflow in pcm_dvd_encode_frame (pcm-dvdenc.c)
+READ of size 4 at address 0 bytes past end of heap buffer, thread enc0:0:pcm_dvd
+Trigger: 6-channel S32LE 48kHz WAV with 29 samples (frame_size=28; last frame has nb_samples=1 < samples_per_block=4, so blocks=0 causes do-while OOB)

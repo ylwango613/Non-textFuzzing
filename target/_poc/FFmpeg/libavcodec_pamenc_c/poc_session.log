@@ -1,0 +1,7 @@
+## Summary
+
+**VULN 001** — PAM encoder integer overflow (`pamenc.c:102`, CWE-190 → CWE-122): **UNVERIFIED**
+
+The subagent confirmed the vulnerability exists in the code, but the PoC could not trigger ASAN via the `ffmpeg` binary. The root cause is that `av_image_check_size2()` (called by `ff_set_dimensions` during any decoder/demuxer initialization) uses a worst-case stride of `8×w` regardless of actual pixel format. Any dimension combination large enough to cause `n×h` to overflow `int32` also satisfies `(8w+1024)×(h+128) > INT_MAX`, which the size check catches and rejects. The two conditions are mathematically mutually exclusive — the overflow can only be reached through direct libavcodec API calls that bypass the standard size validation, not through any crafted media file fed to the `ffmpeg` binary.
+
+Status written as `FAILED` (effectively UNVERIFIED — no sanitizer triggered despite a real attempt with multiple strategies).

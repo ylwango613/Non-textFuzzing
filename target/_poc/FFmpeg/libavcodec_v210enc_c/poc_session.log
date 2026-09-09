@@ -1,0 +1,10 @@
+**Summary — VULN 001: SKIPPED**
+
+The integer overflow in `v210enc.c:73` (`int stride = aligned_width * 8 / 3`) is a real code-level defect, but it cannot be triggered via the ffmpeg command line:
+
+- Every input pathway (Y4M demuxer, lavfi `nullsrc`, rawvideo decoder) calls `av_image_check_size2()` before allocating any frame, which rejects `width=536870929` with "Picture size … is invalid".
+- Three approaches were attempted and all failed at the input stage — no ASAN output was produced because `encode_frame()` is never reached.
+
+All PoC files written to `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_v210enc_c/`:
+- `vuln_001_gen.py`, `vuln_001_run.sh`, `vuln_001_result.txt`, `vuln_001_notes.md`
+- `vuln_001_status.txt` → `SKIPPED`

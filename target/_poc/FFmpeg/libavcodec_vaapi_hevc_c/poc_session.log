@@ -1,0 +1,12 @@
+Both subagents have completed. Here is the final summary:
+
+| VULN # | Title | Status |
+|--------|-------|--------|
+| 001 | VAAPI HEVC tile column-width OOB heap write | **SKIPPED** |
+| 002 | VAAPI HEVC tile row-height OOB heap write | **SKIPPED** |
+
+**Reason both were skipped:** The vulnerable code path in `vaapi_hevc_start_frame()` is only reachable via `-hwaccel vaapi`, which requires:
+1. A VAAPI-capable GPU with a working `libva` driver (vainfo returned no output despite `/dev/dri/renderD128` and `renderD129` being present)
+2. FFmpeg built with `--enable-vaapi` (the binary at `build_test/ffmpeg` does not list `vaapi` in its `-hwaccels` output)
+
+Neither condition is met on this system, so the vulnerable code is unreachable via any crafted media file passed to the available binary. Status files and notes are written to `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_vaapi_hevc_c/`.

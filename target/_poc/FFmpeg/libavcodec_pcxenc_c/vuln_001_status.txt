@@ -1,0 +1,67 @@
+UNVERIFIED
+
+Vulnerability exists as code-level integer overflow in pcxenc.c:136, but CANNOT
+be triggered through the standard ffmpeg CLI due to two defense-in-depth mitigations.
+
+=== Code-Level Bug Confirmed ===
+File: libavcodec/pcxenc.c:136
+Code: int max_pkt_size = 128 + avctx->height * 2 * line_bytes * nplanes + ...;
+      (max_pkt_size declared as `int` at line 93)
+
+With width=22000, height=35000, RGB24 (nplanes=3):
+  line_bytes = 22000
+  product = 35000 * 2 * 22000 * 3 = 4,620,000,000 > INT_MAX (2,147,483,647)
+  C int overflow wraps to: 325,032,832 (~325 MB)
+  ff_alloc_packet would allocate only ~325 MB instead of ~4.62 GB
+
+=== Why It Cannot Be Triggered via CLI ===
+
+MITIGATION 1 (PRIMARY): av_image_check_size() in libavutil/imgutils.c
+  Called in: lavfi filter initialization, rawvideo demuxer (rawvideodec.c:73),
+             rawvideo decoder (rawdec.c:238), av_frame_get_buffer (frame.c:86),
+             ff_set_dimensions (utils.c:93) used by all decoders.
+
+  Check: stride = 8*width + 1024; if (stride * (height+128) >= INT_MAX) REJECT
+  For 22000x35000: 177024 * 35128 = 6,218,499,072 >= INT_MAX → REJECTED
+
+  Mathematical proof of impossibility:
+    PCX overflow requires: 6 * w * h > INT_MAX → w*h > 357,913,941
+    av_image_check_size allows: 8 * w * h < INT_MAX → w*h < 268,435,455
+    Since 8*w*h > 6*w*h for all positive w,h:
+      8*w*h < INT_MAX ⟹ 6*w*h < INT_MAX ⟹ NO OVERFLOW
+    These constraints are MUTUALLY EXCLUSIVE for any (w, h) with any pixel format.
+
+MITIGATION 2 (SECONDARY): pcx_rle_encode() bounds check at pcxenc.c:54
+  Code: if (dst_size < 2LL * src_plane_size * nplanes || src_plane_size <= 0)
+            return AVERROR(EINVAL);
+  Even if Mitigation 1 were bypassed, this check prevents actual OOB writes
+  by returning AVERROR(EINVAL) before writing past the allocated buffer.
+  The caller (pcx_encode_frame) then returns AVERROR_BUG (line 172-173).
+
+=== PoC Execution Results ===
+Approach A (lavfi color source s=22000x35000):
+  → "[IMGUTILS] Picture size 22000x35000 is invalid" at lavfi filter init
+  → Exit code 234 (AVERROR(EINVAL))
+
+Approach B (crafted AVI container with 22000x35000 BITMAPINFOHEADER):
+  → Python struct error (width exceeds int16 field); AVI file not created
+  → rawvideo decoder would call av_image_check_size anyway
+
+Approach C (rawvideo demuxer -s 22000x35000 from pipe):
+  → "[IMGUTILS] Picture size 22000x35000 is invalid" at rawvideodec.c:73
+  → Exit code 234 (AVERROR(EINVAL))
+
+No ASAN errors observed in any approach. No heap-buffer-overflow triggered.
+
+=== Assessment ===
+The integer overflow BUG EXISTS in the source code at pcxenc.c:136. The code is
+theoretically incorrect and should use int64_t for the computation. However, the
+specific exploitable behavior (heap OOB write) is blocked by existing guards.
+
+The vulnerability would be exploitable:
+  - Via a fuzzer directly calling the pcx_encode_frame() function with a crafted
+    AVCodecContext and AVFrame bypassing the standard FFmpeg pipeline checks
+  - In hypothetical scenarios where av_image_check_size is not called before
+    feeding frames to the encoder
+
+Status: UNVERIFIED (code bug confirmed, crash not triggerable via CLI approach)

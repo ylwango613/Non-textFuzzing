@@ -1,0 +1,1 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/libavcodec_dnxhddec_c__001.md` has been written with the full report entry. The vulnerability — off-by-one strict `<` check in `dnxhd_decode_header()` at line 344 — has verified heap OOB read impact (CWE-125), so it did not meet the SKIP criteria.

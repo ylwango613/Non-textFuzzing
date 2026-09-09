@@ -1,0 +1,9 @@
+The subagent has completed. Here is the summary:
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| vuln_001 — VVC intra_pred_angle_derive OOB read (mode −15/−16) | **SKIPPED** | VVC CABAC entropy coding makes it infeasible to craft the specific triggering bitstream (4×128 ISP CU with intra mode 51/52) using pure Python struct manipulation. No existing VVC test vectors with the required CU configuration exist in the repo. Triggering requires a real VVC encoder (e.g., VTM reference software). |
+
+Files written to `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_vvc_intra_utils_c/`:
+- `vuln_001_status.txt` (first line: `SKIPPED`)
+- `vuln_001_notes.md` (detailed rationale)

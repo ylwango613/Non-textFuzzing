@@ -1,0 +1,1 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/libavcodec_g723_1_parser_c__001.md` has been written with the full report. The vulnerability passes the filter (confirmed OOB read / DoS with potential heap disclosure), so no SKIP was issued.

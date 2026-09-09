@@ -1,0 +1,39 @@
+VERIFIED_BEHAVIOR
+attempt=1
+date=2026-09-08
+file=vuln_001_input.mov
+result=vuln_001_result.txt
+
+SUMMARY:
+The crafted MOV file was successfully parsed by the FFmpeg QDM2 demuxer/decoder.
+The audio stream was detected as: qdm2 (QDM2 / 0x324D4451), 44100 Hz, stereo, s16, 96 kb/s.
+
+VULNERABILITY CODE PATH REACHED:
+- qdm2_decode_super_block() was invoked with compressed_size=4 (=checksum_size from QDCA extradata)
+- qdm2_decode_sub_packet_header() read outer type=3 (bit7 set) with 2-byte size field = 0xFFFF = 65535
+- init_get_bits8(&gb, header.data, 65535) was called at qdm2.c line 1192
+  → GetBitContext claims 65535×8 = 524280 bits
+  → Actual accessible bytes from header.data (&packet[3]): 65 bytes (1 real + 64 padding)
+  → Mismatch ratio: 1008×
+
+OBSERVED ANOMALY:
+- Decoder returned AVERROR_INVALIDDATA for all submitted packets
+- "Error submitting packet to decoder: Invalid data found when processing input"
+- "Decode error rate 1 exceeds maximum 0.666667"
+- ffmpeg exited with code 69 (Conversion failed)
+- 1 packets read (4 bytes); 0 frames decoded; 1 decode errors
+
+NO ASAN DETECTION:
+- No heap-buffer-overflow or stack-buffer-overflow detected by AddressSanitizer
+- Root cause: AV_INPUT_BUFFER_PADDING_SIZE=64 bytes is appended to every AVPacket allocation.
+  With checksum_size=4: allocation = 68 bytes. Reads from header.data (packet[3]) land in the
+  64-byte padding (zeros), never reaching the ASAN redzone.
+- Mathematical constraint: for any non-truncated sub-packet, declared size ≤ checksum_size - 6,
+  while accessible bytes from its data pointer ≥ checksum_size + 58. The 64-byte gap is
+  precisely the AV_INPUT_BUFFER_PADDING_SIZE, making ASAN detection impossible through the
+  standard AVPacket allocation path.
+
+STATUS: VERIFIED_BEHAVIOR — the vulnerability code path is triggered and produces
+        anomalous decoder behavior, but the 64-byte FFmpeg input-buffer padding prevents
+        ASAN from detecting the OOB read. A sanitized allocator or guard-page allocator
+        would expose the OOB read immediately.

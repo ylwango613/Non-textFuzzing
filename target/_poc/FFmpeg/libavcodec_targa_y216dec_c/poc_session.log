@@ -1,0 +1,13 @@
+Subagent completed. Here is the summary:
+
+---
+
+**VULN 001** — Integer Overflow in Size Check → OOB Read in `y216_decode_frame()`
+**Status: `UNVERIFIED`**
+
+The bug at `targa_y216dec.c:42` is real in isolation, but `avcodec_open2()` contains a defense-in-depth guard (`av_image_check_size2`) that fires before the decoder is ever invoked: when width=height=23171, the stride × (h+128) product exceeds INT_MAX, so FFmpeg resets dimensions to 0×0. All subsequent calls to `y216_decode_frame` see width=height=0, the overflow multiplication produces zero, and `ff_get_buffer` rejects the 0×0 frame — the inner OOB-read loop at lines 54-66 is never reached.
+
+Mathematically, the two conditions are mutually exclusive: triggering the overflow requires `h×w > 536M`, but passing the `avcodec_open2` dimension check requires `h×w < 268M`. Via the `ffmpeg` CLI, there is no way to bypass that guard — the vulnerability is only reachable through direct library API calls that skip `avcodec_open2`.
+
+All deliverables are in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_targa_y216dec_c/`:
+- `vuln_001_gen.py`, `vuln_001_run.sh`, `vuln_001_input.avi`, `vuln_001_result.txt`, `vuln_001_notes.md`, `vuln_001_status.txt`

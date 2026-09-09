@@ -1,0 +1,124 @@
+=== Step 1: Generate crafted WAV input ===
+Generated vuln_001_input.wav: 740 bytes
+  29 samples, 6 channels, 48000 Hz, S32LE
+  Frame 1 (28 samples): blocks=7, normal
+  Frame 2 (1 sample):   blocks=0, triggers do-while OOB bug
+
+=== Step 2: Encode with pcm_dvd (primary: -f vob) ===
+Primary run exited non-zero (expected for crash/timeout)
+
+=== Step 3: Fallback — try -f dvd if no crash yet ===
+
+=== Results ===
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[aist#0:0/pcm_s32le @ 0x514000000040] Guessed Channel Layout: 5.1
+Input #0, wav, from 'vuln_001_input.wav':
+  Duration: 00:00:00.00, bitrate: 9801 kb/s
+  Stream #0:0: Audio: pcm_s32le ([1][0][0][0] / 0x0001), 48000 Hz, 5.1, s32, 9216 kb/s
+Stream mapping:
+  Stream #0:0 -> #0:0 (pcm_s32le (native) -> pcm_dvd (native))
+Press [q] to stop, [?] for help
+Output #0, vob, to 'vuln_001_output.vob':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Audio: pcm_dvd, 48000 Hz, 5.1(side), s32, 6912 kb/s
+    Metadata:
+      encoder         : Lavc63.11.100 pcm_dvd
+=================================================================
+==1247086==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5180000203c0 at pc 0x558e1cdc3080 bp 0x7f0768ca32c0 sp 0x7f0768ca32b0
+READ of size 4 at 0x5180000203c0 thread T1 (enc0:0:pcm_dvd)
+    #0 0x558e1cdc307f in pcm_dvd_encode_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x105d307f)
+    #1 0x558e1bc1ec97 in ff_encode_encode_cb (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf42ec97)
+    #2 0x558e1bc1fd19 in encode_simple_internal (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf42fd19)
+    #3 0x558e1bc1ff2a in encode_simple_receive_packet (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf42ff2a)
+    #4 0x558e1bc2089b in encode_receive_packet_internal (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf43089b)
+    #5 0x558e1bc22197 in avcodec_send_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf432197)
+    #6 0x558e18a36ab5 in encode_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc246ab5)
+    #7 0x558e18a3a9ac in frame_encode (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc24a9ac)
+    #8 0x558e18a3c60e in encoder_thread (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc24c60e)
+    #9 0x558e18b01e5a in task_wrapper (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc311e5a)
+    #10 0x7f076ddbfac2 in start_thread nptl/pthread_create.c:442
+    #11 0x7f076de518cf  (/lib/x86_64-linux-gnu/libc.so.6+0x1268cf)
+
+0x5180000203c0 is located 0 bytes to the right of 832-byte region [0x518000020080,0x5180000203c0)
+allocated by thread T2 (af#0:0) here:
+    #0 0x7f076e8a057c in __interceptor_posix_memalign ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:226
+    #1 0x558e208cb77b in av_malloc (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x140db77b)
+    #2 0x558e20826818 in av_buffer_alloc (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x14036818)
+    #3 0x558e208706cd in get_audio_buffer (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x140806cd)
+    #4 0x558e208714e1 in av_frame_get_buffer (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x140814e1)
+    #5 0x558e18b1e147 in receive_samples (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc32e147)
+    #6 0x558e18b1fb4a in receive_for_stream (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc32fb4a)
+    #7 0x558e18b20655 in receive_internal (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc330655)
+    #8 0x558e18b207dd in sq_receive (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc3307dd)
+    #9 0x558e18af4cf6 in send_to_enc_sq (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc304cf6)
+    #10 0x558e18af57ae in send_to_enc (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc3057ae)
+    #11 0x558e18b005dd in sch_filter_send (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc3105dd)
+    #12 0x558e18a6ac48 in close_output (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc27ac48)
+    #13 0x558e18a6cbbc in fg_output_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc27cbbc)
+    #14 0x558e18a6d056 in fg_output_step (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc27d056)
+    #15 0x558e18a6edb8 in read_frames (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc27edb8)
+    #16 0x558e18a7842e in filter_thread (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc28842e)
+    #17 0x558e18b01e5a in task_wrapper (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc311e5a)
+    #18 0x7f076ddbfac2 in start_thread nptl/pthread_create.c:442
+
+Thread T1 (enc0:0:pcm_dvd) created by T0 here:
+    #0 0x7f076e843685 in __interceptor_pthread_create ../../../../src/libsanitizer/asan/asan_interceptors.cpp:216
+    #1 0x558e18adbd4b in task_start (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc2ebd4b)
+    #2 0x558e18af298a in sch_start (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc30298a)
+    #3 0x558e18b78018 in transcode (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc388018)
+    #4 0x558e18b78bdf in main (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc388bdf)
+    #5 0x7f076dd54d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Thread T2 (af#0:0) created by T0 here:
+    #0 0x7f076e843685 in __interceptor_pthread_create ../../../../src/libsanitizer/asan/asan_interceptors.cpp:216
+    #1 0x558e18adbd4b in task_start (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc2ebd4b)
+    #2 0x558e18af2b71 in sch_start (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc302b71)
+    #3 0x558e18b78018 in transcode (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc388018)
+    #4 0x558e18b78bdf in main (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc388bdf)
+    #5 0x7f076dd54d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x105d307f) in pcm_dvd_encode_frame
+Shadow bytes around the buggy address:
+  0x0a307fffc020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a307fffc030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a307fffc040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a307fffc050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0a307fffc060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x0a307fffc070: 00 00 00 00 00 00 00 00[fa]fa fa fa fa fa fa fa
+  0x0a307fffc080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a307fffc090: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a307fffc0a0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a307fffc0b0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a307fffc0c0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==1247086==ABORTING
+EXIT=0

@@ -1,0 +1,7 @@
+## 汇总结果
+
+| 编号 | 漏洞 | 状态 |
+|------|------|------|
+| VULN 001 | Heap Buffer Overflow via Integer Overflow in five_planes Allocation (PHOTOMETRIC_SEPARATED TIFF) | **UNVERIFIED** |
+
+**原因**：漏洞代码路径（`stride * 5 / 4` 整数溢出，位于 `decode_frame()` 第 2217 行）在执行前被 `av_image_check_size2()` 的预检查拦截。触发溢出所需的宽度（>107M 像素，RGBA 模式下 linesize > 429MB）必然触发 `stride_check * (h + 128) >= INT_MAX` 这个防护条件，导致 ffmpeg 提前报错退出 (`Picture size 107374182x4 is invalid`)，无法到达易受攻击的代码行。两个条件在数学上互斥，无法通过合法的 ffmpeg 命令行调用同时满足。漏洞属于真实的潜在 UB，但在当前代码版本中不可通过外部文件触发。

@@ -1,0 +1,43 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  [*] Primary attempt output:
+cat: vuln_001_result.txt: input file is output file
+[truemotion2 @ 0x519000000580] [IMGUTILS @ 0x7ffec3b46900] Picture size 131072x131072 is invalid
+[in#0/avi @ 0x517000000080] Failed to open codec in avformat_find_stream_info
+[truemotion2 @ 0x519000000580] [IMGUTILS @ 0x7ffec3b46270] Picture size 0x0 is invalid
+[truemotion2 @ 0x519000000580] video_get_buffer: image parameters invalid
+[truemotion2 @ 0x519000000580] get_buffer() failed
+[truemotion2 @ 0x519000000580] reget_buffer() failed
+[in#0/avi @ 0x517000000080] Could not find codec parameters for stream 0 (Video: truemotion2 (TM20 / 0x30324D54), bgr24): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:00.03, start: 0.000000, bitrate: 79 kb/s
+  Stream #0:0: Video: truemotion2 (TM20 / 0x30324D54), bgr24, 30 fps, 30 tbr, 30 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (truemotion2 (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[truemotion2 @ 0x519000001e80] [IMGUTILS @ 0x7fcfb0e7c250] Picture size 0x0 is invalid
+[truemotion2 @ 0x519000001e80] video_get_buffer: image parameters invalid
+[truemotion2 @ 0x519000001e80] get_buffer() failed
+[truemotion2 @ 0x519000001e80] reget_buffer() failed
+[vist#0:0/truemotion2 @ 0x514000000040] [dec:truemotion2 @ 0x513000000c80] Error submitting packet to decoder: Invalid argument
+[vist#0:0/truemotion2 @ 0x514000000040] [dec:truemotion2 @ 0x513000000c80] Decode error rate 1 exceeds maximum 0.666667
+[vist#0:0/truemotion2 @ 0x514000000040] [dec:truemotion2 @ 0x513000000c80] Task finished with error: Error number -1145393733 occurred
+[vist#0:0/truemotion2 @ 0x514000000040] [dec:truemotion2 @ 0x513000000c80] Terminating thread with error: Error number -1145393733 occurred
+[graph -1 input from stream 0:0 @ 0x511000010440] Invalid size 0x0
+[vf#0:0 @ 0x51a000000680] Error initializing filters!
+[vf#0:0 @ 0x51a000000680] Task finished with error: Invalid argument
+[vf#0:0 @ 0x51a000000680] Terminating thread with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] [enc:wrapped_avframe @ 0x5110000011c0] Could not open encoder before EOF
+[vost#0:0/wrapped_avframe @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/null @ 0x511000000cc0] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+Conversion failed!
+EXIT=1

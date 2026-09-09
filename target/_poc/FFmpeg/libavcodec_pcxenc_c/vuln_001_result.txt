@@ -1,0 +1,99 @@
+[*] VULN 001: Integer Overflow in max_pkt_size -> OOB Heap Write (PCX Encoder)
+[*] File: libavcodec/pcxenc.c:136
+[*] Binary: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+
+[*] Running overflow analysis...
+[*] PCX Encoder Integer Overflow - Theoretical Analysis
+    Target dimensions: 22000x35000 RGB24 (nplanes=3)
+
+[*] PCX max_pkt_size overflow calculation:
+    line_bytes = 22000
+    height * 2 * line_bytes * 3 = 4,620,000,000 (4.620 GB)
+    INT_MAX = 2,147,483,647
+    Overflow: True
+    C int wrap: 325,032,832 bytes (325 MB)
+    True needed size: 4.620 GB
+
+[*] Mitigation analysis:
+    av_image_check_size stride = 8*22000 + 1024 = 177024
+    stride * (h + 128) = 6,218,499,072 vs INT_MAX=2,147,483,647
+    Size check PASSES: False
+    => All dimensions that trigger PCX overflow are REJECTED by av_image_check_size
+
+[!] Could not create crafted AVI: short format requires (-0x7fff - 1) <= number <= 0x7fff
+
+==========================================
+[Approach A] lavfi color source s=22000x35000
+==========================================
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[Parsed_color_0 @ 0x511000000400] [IMGUTILS @ 0x7ffeb06ad200] Picture size 22000x35000 is invalid
+[Parsed_color_0 @ 0x511000000400] Failed to configure output pad on Parsed_color_0
+[in#0 @ 0x513000000200] Error opening input: Invalid argument
+Error opening input file color=c=black:s=22000x35000:r=1.
+Error opening input files: Invalid argument
+[Approach A] Exit code: 234
+
+==========================================
+[Approach B] Crafted AVI file claiming 22000x35000
+==========================================
+Traceback (most recent call last):
+  File "<stdin>", line 18, in <module>
+struct.error: short format requires (-0x7fff - 1) <= number <= 0x7fff
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0 @ 0x513000000200] Error opening input: No such file or directory
+Error opening input file /tmp/poc_crafted.avi.
+Error opening input files: No such file or directory
+[Approach B] Exit code: 254
+
+==========================================
+[Approach C] rawvideo demuxer with 22000x35000
+==========================================
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0 @ 0x517000000080] [IMGUTILS @ 0x7ffd70ef04e0] Picture size 22000x35000 is invalid
+[in#0 @ 0x513000000200] Error opening input: Invalid argument
+Error opening input file pipe:0.
+Error opening input files: Invalid argument
+[Approach C] Exit code: 234
+
+==========================================
+[Summary]
+  Approach A (lavfi): Exit=234
+  Approach B (AVI):   Exit=254
+  Approach C (raw):   Exit=234
+
+[!] The vulnerability INTEGER OVERFLOW exists in pcxenc.c:136
+    but is blocked by av_image_check_size() in ALL tested code paths.
+    The overflow would require width*height>357M but av_image_check_size
+    limits to width*height<268M (8w*h < INT_MAX) - mutually exclusive.
+
+    Additionally, pcx_rle_encode() bounds check (pcxenc.c:54) provides
+    a second layer of protection even if the first were bypassed.
+==========================================
+EXIT=0

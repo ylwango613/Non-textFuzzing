@@ -142,8 +142,9 @@ if [ -d "$POC_BASE" ]; then
                 CANDIDATES+=("${tag}|${nnn}|CRASH")
             fi
         elif [ "$first_line" = "VERIFIED_BEHAVIOR" ]; then
-            [ -s "$result_file" ] || continue
-            CANDIDATES+=("${tag}|${nnn}|BEHAVIOR")
+            if grep -qE "AddressSanitizer|ERROR: LeakSanitizer|UndefinedBehaviorSanitizer|runtime error:" "$result_file"; then
+                CANDIDATES+=("${tag}|${nnn}|BEHAVIOR")
+            fi
         fi
     done < <(find "$POC_BASE" -name 'vuln_*_status.txt' | sort)
 fi

@@ -1,0 +1,9 @@
+## Summary
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| VULN 001 — Heap OOB Read in `decode_tile()` (prores_raw.c:262-263) | **UNVERIFIED** | PoC generated and executed successfully. FFmpeg decoded 1 frame with exit 0 and no ASAN report. |
+
+**Why UNVERIFIED:** The bug is a genuine CWE-125 at the code level — `bytestream2_get_byteu()` unconditionally dereferences past the tile's zero-size buffer. However, FFmpeg allocates every packet with `AV_INPUT_BUFFER_PADDING_SIZE = 64` extra zeroed bytes appended. The 1-byte overshoot at `avpkt->data[83]` falls within this padding region (bytes 83–146 of a 147-byte allocation), so ASAN sees no violation and reports nothing.
+
+The vulnerability would produce a true ASAN `heap-buffer-overflow` only in environments without that padding (custom allocators, embedded firmware, or a build with `AV_INPUT_BUFFER_PADDING_SIZE=0`). All PoC files are at `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_prores_raw_c/`.

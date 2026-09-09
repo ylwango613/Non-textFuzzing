@@ -1,0 +1,16 @@
+Both subagents have completed. Here is the final summary:
+
+---
+
+## PoC Results — `libavcodec/tiertexseqv.c`
+
+| VULN | Description | Status |
+|------|-------------|--------|
+| 001 | `seq_decode_op1` OOB Read via non-power-of-two color table length (lines 112–120) | **VERIFIED_BEHAVIOR** |
+| 002 | `seqvideo_decode` missing initial packet size check (lines 165–174) | **VERIFIED_BEHAVIOR** |
+
+### Notes
+
+**VULN 001** — The OOB read is confirmed to execute (color table index 127 is accessed when `color_table` has only 65 entries), and incorrect pixel values are written to the output frame. No ASAN crash fires because the OOB offset lands within the mandatory 64-byte `AV_INPUT_BUFFER_PADDING_SIZE` padding that `av_new_packet` always appends — the read is physically safe by design in this code path.
+
+**VULN 002** — The vulnerable function `seqvideo_decode` is reached, but three independent guards in the ffmpeg CLI stack prevent a true 0-byte packet from reaching the decoder: (1) the SEQ demuxer always prepends a 1-byte flags field; (2) `av_get_packet` with size=0 yields a null packet; (3) the ffmpeg CLI skips zero-size packets. The shortest achievable packet via CLI is 2 bytes, which is enough to trigger `AVERROR_INVALIDDATA` but not the missing bounds check at line 174.

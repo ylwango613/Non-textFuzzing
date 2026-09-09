@@ -1,0 +1,3 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/libavcodec_aacsbr_fixed_c__002.md` 已写入，内容为 `SKIP`。
+
+**理由**：实际运行（ASAN+UBSan）未触发任何崩溃或内存安全错误。当前代码中 `sbr_make_f_master()` 存在 `max_qmf_subbands=48` 保护，将 `m[1]` 限制在恰好 48，循环访问索引 0..47 完全合法。无实际内存破坏，属于"行为异常但无安全影响"。

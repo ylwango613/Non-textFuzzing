@@ -1,0 +1,20 @@
+VERIFIED_BEHAVIOR
+The PGS subtitle decoder was confirmed to execute the vulnerable code path in
+parse_presentation_segment() (pgssubdec.c lines 449-468). Each of the 5 crafted
+PCS+END pairs triggered:
+  1. parse_presentation_segment() with segment_length=19 and composition_flag=0x80
+  2. The 8-byte bounds check at line 449 passes (exactly 8 bytes remain)
+  3. After consuming the 8-byte object fields, buf == buf_end
+  4. The crop read (lines 464-467) reads 8 bytes past buf_end WITHOUT a bounds check
+
+Confirmed by "[pgssub] Invalid palette id 0" logged 5 times (Method 4 output),
+proving all 5 PCS packets were fully decoded through parse_presentation_segment().
+
+No ASAN heap-buffer-overflow because AV_INPUT_BUFFER_PADDING_SIZE = 64 bytes of
+zeroed padding follows every packet allocation (av_new_packet adds 64 bytes).
+The 8-byte overread at offset 22 lands within the 86-byte allocation (22+64),
+so ASAN's red zone is not reached. The crop coordinates read are 0,0,0,0 (zeros).
+
+The bug is real: the code reads past buf_end without checking bounds. In a context
+without padding (stack buffer, tight heap allocation, or different allocator),
+this would be a detectable heap/stack-buffer-overflow.

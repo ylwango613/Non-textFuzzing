@@ -1,0 +1,19 @@
+The subagent completed. Here is the summary:
+
+---
+
+## PoC Results — `libavcodec/tiffenc.c`
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | Integer Overflow in DEFLATE zbuf Allocation (Heap Buffer Overflow) | **SKIPPED** |
+
+**Reason for SKIP:** The vulnerability cannot be practically triggered via a crafted media file. There are two dead ends:
+
+1. **Negative `zlen` path** (product overflows int32 but stays < 2³²): `av_malloc` receives a huge `size_t`, returns NULL, which is immediately caught by an existing NULL check — safe ENOMEM, no OOB write.
+
+2. **Small positive `zlen` path** (product ≥ 2³²): Would require the input frame to carry at least **4.3 GB of raw pixel data** (because `bytes_per_row × height ≥ 2³²` means total frame bytes ≥ 4.3 GB). This is infeasible — the system cannot allocate the AVFrame before the encoder is even reached.
+
+Status files written to `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_tiffenc_c/`:
+- `vuln_001_status.txt` → `SKIPPED`
+- `vuln_001_notes.md` → detailed analysis

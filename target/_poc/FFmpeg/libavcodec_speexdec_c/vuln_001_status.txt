@@ -1,0 +1,37 @@
+UNVERIFIED
+Code path exercised: parse_speex_extradata() was called with the crafted 80-byte
+extradata buffer (confirmed by FFmpeg identifying the stream as
+"speex ([9][161][0][0] / 0xA109), 16000 Hz, mono" and decoding 3 KiB of audio).
+
+No ASAN heap-buffer-overflow was reported because FFmpeg's ff_alloc_extradata()
+always pads every extradata buffer with AV_INPUT_BUFFER_PADDING_SIZE (64) extra
+zeroed bytes. The actual heap allocation is 80 + 64 = 144 bytes, and ASAN only
+places a red zone after that full allocation. The OOB read of byte[80] (the 4th
+byte of the extra_headers LE32 read by bytestream_get_le32 at offset 77..80)
+lands inside the zeroed padding region and is therefore invisible to ASAN's
+shadow memory.
+
+The logic defect is real:
+  - parse_speex_extradata finds "Speex   " at P=9 (not 0).
+  - It advances buf by 28 → extradata+37, then performs ten 4-byte reads plus
+    one 4-byte skip, consuming bytes [37..80].
+  - The only guard in speex_decode_init is extradata_size >= 80, which permits
+    P=9, making the final bytestream_get_le32 read bytes [77..80] — one byte
+    past the 80-byte logical buffer.
+  - All earlier validation checks (rate, mode, bitstream_version, nb_channels,
+    frame_size, frames_per_packet) were satisfied by the crafted values in the
+    buffer, so execution reaches the out-of-bounds read.
+
+To produce an ASAN crash from this vulnerability, extradata would need to be
+allocated without the 64-byte padding (e.g., via a custom memory allocator or
+a direct av_malloc(80) call). In FFmpeg's production allocator the padding masks
+the one-byte read-past-end.
+
+Approach used:
+  - Matroska (.mkv) file with CodecID "A_MS/ACM" and a WAVEFORMATEX header
+    (wFormatTag=0xA109, cbSize=0) followed by the crafted 80-byte Speex header.
+  - ff_get_wav_header maps 0xA109 → AV_CODEC_ID_SPEEX; with cbSize=0 it does
+    not set extradata itself, so the matroska demuxer copies the 80 bytes after
+    the 18-byte WAVEFORMATEX as the codec's extradata.
+  - speex_decode_init sees extradata_size==80 >= 80 and calls
+    parse_speex_extradata, which reads the OOB byte.

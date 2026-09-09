@@ -1,0 +1,1 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/libavcodec_j2kenc_c__001.md` has been written with the full report entry covering the CWE-190 signed integer overflow in `j2kenc.c:1482`.

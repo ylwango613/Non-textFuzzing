@@ -1,0 +1,2 @@
+SKIPPED
+Reason: The target FFmpeg binary was not built with VDPAU support; -hwaccel vdpau is unavailable at runtime.

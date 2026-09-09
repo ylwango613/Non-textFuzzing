@@ -1,0 +1,63 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0/rawvideo @ 0x517000000080] Estimating duration from bitrate, this may be inaccurate
+Input #0, rawvideo, from 'vuln_001_input.yuv':
+  Duration: 00:00:00.04, start: 0.000000, bitrate: 4915 kb/s
+  Stream #0:0: Video: rawvideo (I420 / 0x30323449), yuv420p, 128x128, 4915 kb/s, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (rawvideo (native) -> dirac (vc2))
+Press [q] to stop, [?] for help
+[vc2 @ 0x519000001980] Format does not strictly comply with VC2 specs
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: dirac, yuv420p(tv, progressive), 128x128, q=2-31, 600000 kb/s, 25 fps, 25 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 vc2
+AddressSanitizer:DEADLYSIGNAL
+AddressSanitizer:DEADLYSIGNAL
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==2369662==ERROR: AddressSanitizer: SEGV on unknown address 0x51f000000080 (pc 0x51f000000080 bp 0x7f76980f0bd0 sp 0x7f76980f0b18 T20)
+==2369662==The signal is caused by a READ memory access.
+==2369662==Hint: PC is at a non-executable region. Maybe a wild jump?
+    #0 0x51f000000080  (<unknown module>)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (<unknown module>) 
+Thread T20 created by T2 (vf#0:0) here:
+    #0 0x7f76a763c685 in __interceptor_pthread_create ../../../../src/libsanitizer/asan/asan_interceptors.cpp:216
+    #1 0x55de39ede242 in avpriv_slicethread_create2 (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x1440d242)
+    #2 0x55de36203796 in ff_slice_thread_init (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x10732796)
+    #3 0x55de361eaeda in ff_thread_init (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x10719eda)
+    #4 0x55de345dae54 in avcodec_open2 (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xeb09e54)
+    #5 0x55de31d11203 in enc_reopen (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc240203)
+    #6 0x55de31d1179d in enc_open (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc24079d)
+    #7 0x55de31dd4b1d in enc_open (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc303b1d)
+    #8 0x55de31dd65cc in send_to_enc (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc3055cc)
+    #9 0x55de31de15dd in sch_filter_send (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc3105dd)
+    #10 0x55de31d4d247 in fg_output_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc27c247)
+    #11 0x55de31d4f414 in fg_output_step (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc27e414)
+    #12 0x55de31d4fdb8 in read_frames (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc27edb8)
+    #13 0x55de31d5942e in filter_thread (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc28842e)
+    #14 0x55de31de2e5a in task_wrapper (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc311e5a)
+    #15 0x7f76a6bb8ac2 in start_thread nptl/pthread_create.c:442
+
+Thread T2 (vf#0:0) created by T0 here:
+    #0 0x7f76a763c685 in __interceptor_pthread_create ../../../../src/libsanitizer/asan/asan_interceptors.cpp:216
+    #1 0x55de31dbcd4b in task_start (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc2ebd4b)
+    #2 0x55de31dd3b71 in sch_start (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc302b71)
+    #3 0x55de31e59018 in transcode (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc388018)
+    #4 0x55de31e59bdf in main (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xc388bdf)
+    #5 0x7f76a6b4dd8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+==2369662==ABORTING
+EXIT=0

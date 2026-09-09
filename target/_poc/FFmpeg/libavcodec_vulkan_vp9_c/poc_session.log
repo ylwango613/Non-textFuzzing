@@ -1,0 +1,8 @@
+Both subagents have completed. Here is the final summary:
+
+| VULN # | Description | Status |
+|--------|-------------|--------|
+| VULN 001 | NULL deref of `hwaccel_picture_private` at line 155 (`vk_vp9_start_frame`) | **SKIPPED** |
+| VULN 002 | NULL deref of `hwaccel_picture_private` at line 283 (`vk_vp9_start_frame`) | **SKIPPED** |
+
+**Reason for both SKIPs**: The test binary `/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg` was compiled without Vulkan support (`-hwaccels` returns an empty list, no `--enable-vulkan` in build config), and no Vulkan-capable GPU/ICD is present on this host. Both vulnerabilities are gated behind `-hwaccel vulkan` — without that hardware/driver stack, `vk_vp9_start_frame()` is never entered regardless of crafted input content. A media file alone cannot bypass the missing hardware requirement.

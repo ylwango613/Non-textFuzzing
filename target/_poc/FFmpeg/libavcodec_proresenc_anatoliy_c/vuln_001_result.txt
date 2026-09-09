@@ -1,0 +1,103 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, lavfi, from 'color=c=black:s=16382x8193:r=1:d=1':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Video: wrapped_avframe, yuv420p, 16382x8193 [SAR 1:1 DAR 16382:8193], 1 fps, 1 tbr, 1 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> prores (prores_aw))
+Press [q] to stop, [?] for help
+[prores_aw @ 0x519000014080] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000014580] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000014a80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000014f80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000015480] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000015980] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000015e80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000016380] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000016880] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000016d80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000017280] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000017780] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000017c80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000018180] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000018680] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000018b80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000019080] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000019580] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000019a80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000019f80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001a480] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001a980] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001ae80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001b380] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001b880] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001bd80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001c280] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001c780] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001cc80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001d180] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001d680] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001db80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001e080] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001e580] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001ea80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001ef80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001f480] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001f980] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x51900001fe80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000020380] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000020880] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000020d80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000021280] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000021780] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000021c80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000022180] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000022680] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000022b80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000023080] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000023580] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000023a80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000023f80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000024480] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000024980] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000024e80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000025380] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000025880] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000025d80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000026280] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000026780] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000026c80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000027180] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000027680] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000027b80] encoding with ProRes standard (apcn) profile
+[prores_aw @ 0x519000002380] encoding with ProRes standard (apcn) profile
+Output #0, mov, to 'vuln_001_output.mov':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0: Video: prores (Standard) (apcn / 0x6E637061), yuv422p10le(tv, progressive), 16382x8193 [SAR 1:1 DAR 16382:8193], q=2-31, 200 kb/s, 1 fps, 16384 tbn
+    Metadata:
+      encoder         : Lavc63.11.100 prores_aw
+src/libavcodec/proresenc_anatoliy.c:736:76: runtime error: signed integer overflow: 134479872 * 16 cannot be represented in type 'int'
+    #0 0x557d34ad5fa2 in prores_encode_frame (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0x106dafa2)
+    #1 0x557d33829c97 in ff_encode_encode_cb (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf42ec97)
+    #2 0x557d33b0f390 in worker (/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg+0xf714390)
+    #3 0x7f3d426fcac2 in start_thread nptl/pthread_create.c:442
+    #4 0x7f3d4278e8cf  (/lib/x86_64-linux-gnu/libc.so.6+0x1268cf)
+
+[prores_aw @ 0x519000014080] Invalid minimum required packet size -2143256076 (max allowed is 2147483583)
+[vost#0:0/prores_aw @ 0x517000000780] [enc:prores_aw @ 0x511000002840] Error submitting video frame to the encoder
+[vost#0:0/prores_aw @ 0x517000000780] [enc:prores_aw @ 0x511000002840] Error flushing encoder: Invalid argument
+[vost#0:0/prores_aw @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/prores_aw @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/mov @ 0x511000002340] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/mov @ 0x511000002340] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:01.19    
+Conversion failed!

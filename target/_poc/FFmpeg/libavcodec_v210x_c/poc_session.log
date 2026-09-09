@@ -1,0 +1,16 @@
+## 결과 요약
+
+| VULN # | 제목 | 상태 |
+|--------|------|------|
+| VULN 001 | Heap OOB Read via Integer Truncation (v210x decoder) | **UNVERIFIED** |
+
+### 분석
+
+VULN 001은 **소스 코드 상에서 취약점이 실재**하지만, CLI를 통해 ASAN을 트리거하는 것은 불가능한 것으로 확인되었습니다:
+
+- `decode_frame()` 48행의 정수 나눗셈 truncation 버그 자체는 존재함
+- `width=2, height % 3 == 1` 조건에서 OOB = **정확히 3 바이트**
+- **문제**: FFmpeg은 모든 `AVPacket` 버퍼를 `AV_INPUT_BUFFER_PADDING_SIZE = 64` 바이트의 안전 패딩과 함께 할당함
+- 3 바이트의 OOB 읽기는 항상 이 64 바이트 패딩 영역 내에 완전히 포함되어, ASAN redzone에 도달하지 못함
+- height 값을 아무리 크게 해도 OOB 크기는 height와 무관하게 **최대 3 바이트** (수학적으로 증명됨)
+- CLI + 표준 ffmpeg 바이너리로는 ASAN crash를 유발 불가 — 커스텀 harness 없이는 검증 불가

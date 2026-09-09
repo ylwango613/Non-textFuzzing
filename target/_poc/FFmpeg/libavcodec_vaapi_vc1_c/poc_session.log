@@ -1,0 +1,5 @@
+Subagent completed. Here is the summary:
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| 001 - Missing size>=4 Guard in vaapi_vc1_decode_slice | **SKIPPED** | VAAPI hardware acceleration is not available on this system (not compiled in / no GPU device). The vulnerable function is only reached when `-hwaccel vaapi` is active; without it, `hwaccel->decode_slice` is never set to `vaapi_vc1_decode_slice`, so lines 480-483 are never executed regardless of how the media file is crafted. |

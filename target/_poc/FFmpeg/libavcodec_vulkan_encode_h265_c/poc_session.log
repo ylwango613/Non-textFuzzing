@@ -1,0 +1,5 @@
+Subagent complete. Summary:
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| 001 – OOB Write in `base_unit_to_vk()` | **SKIPPED** | Encoder-path bug requiring Vulkan GPU hardware/drivers; triggered by `-tiles 21x1` encoding flags, not by a crafted malformed input media file |

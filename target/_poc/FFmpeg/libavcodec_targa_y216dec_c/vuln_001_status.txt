@@ -1,0 +1,25 @@
+UNVERIFIED
+
+The integer overflow (CWE-190) at targa_y216dec.c:42 exists in the source code
+and the crafted AVI container is parsed correctly (Y216 fourcc routes to targa_y216
+decoder via -c:v targa_y216). However, the OOB read (CWE-125) at lines 55-59
+could NOT be triggered through the standard ffmpeg CLI.
+
+Root cause of non-triggering: avcodec_open2() in libavcodec/avcodec.c (lines
+241-246) calls av_image_check_size2(width, height, ..., AV_PIX_FMT_NONE) BEFORE
+the codec init function runs. For width=height=23171, the stride safety check
+  stride*(h+128) = (8*23171+1024)*(23171+128) ≈ 4.35 billion >= INT_MAX
+fails, causing avcodec_open2 to silently reset avctx->width/height to 0 via
+ff_set_dimensions(avctx, 0, 0). As a result, y216_decode_frame is always called
+with avctx->width=0/height=0 and the 4*height*aligned_width product at line 42
+is 0 — no overflow, guard evaluates correctly, and ff_get_buffer rejects width=0
+before the loop (lines 54-66) is reached.
+
+Mathematical proof that no valid dimensions can bypass both checks simultaneously:
+- Overflow at line 42 requires: 4*h*w > INT_MAX  →  h*w > 536,870,912
+- avcodec_open2 check requires: (8*w+1024)*(h+128) < INT_MAX  ≈  h*w < 268,435,456
+These are mutually exclusive; no (h,w) combination satisfies both.
+
+The vulnerability is exploitable only via direct API use (calling avcodec_send_packet
+after avcodec_open2 and then overwriting avctx->width/avctx->height, or in an
+older/differently-built FFmpeg that lacks the dimension reset at avcodec_open2).

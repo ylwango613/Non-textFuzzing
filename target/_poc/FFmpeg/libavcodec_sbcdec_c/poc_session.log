@@ -1,0 +1,5 @@
+## Summary
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| 001 — Off-by-One OOB Heap Read in `sbc_unpack_frame` | **UNVERIFIED** | Bug is real (line 176: `>` should be `>=`), but unreachable via `ffmpeg` CLI for two reasons: (1) the SBC parser's EOF-flush path discards truncated frames before they reach the decoder; (2) FFmpeg allocates packets with 64 bytes of `AV_INPUT_BUFFER_PADDING_SIZE` padding, so `data[len]` is valid memory — ASAN has no way to flag it. |

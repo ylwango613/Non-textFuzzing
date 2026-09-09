@@ -1,0 +1,9 @@
+UNVERIFIED
+The vulnerable memcpy (sbc_parser.c:90-91) IS exercised by the PoC:
+  - Approach: ffmpeg -f sbc -raw_packet_size 1 -i vuln_001_input.sbc -f null -
+  - The OOB read (2 bytes from 1-byte buf) reads into AV_INPUT_BUFFER_PADDING_SIZE (64 bytes)
+  - av_new_packet(pkt, 1) allocates 65 bytes; buf[1] is within the allocation
+  - ASAN red-zone starts after byte 65; the 1-byte-past-buf_size read is not flagged
+  - The read of unintended data causes: Decode error rate 1 exceeds maximum (spurious EINVAL)
+  - No ASAN heap-buffer-overflow or similar report produced across all 6 approaches
+  - Status: code-path activated, logic bug confirmed, ASAN detection blocked by padding contract

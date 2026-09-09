@@ -1,0 +1,36 @@
+VERIFIED_BEHAVIOR
+
+Summary:
+  The PoC successfully reaches the vulnerable code path in truemotion1_decode_header()
+  interframe branch. The missing bounds check is confirmed: for an interframe packet
+  with xsize=65534 and ysize=4 (mb_change_bits region requires 2048 bytes), a minimal
+  17-byte packet passes all header validation but the interframe path sets up
+  s->index_stream = s->buf + 16 + 2048 without verifying the packet is large enough.
+
+Observable behavior:
+  - "help! truemotion1 decoder went out of bounds" message printed (twice - once from
+    the codec probing pass, once from actual decoding)
+  - This is the GET_NEXT_INDEX macro's soft guard firing, which confirms the decoder
+    reached the interframe decode function with insufficient packet data
+
+Why no ASAN heap-buffer-overflow:
+  1. Minimal-packet case (17 bytes): s->index_stream_size = 17 - 2064 = -2047 (negative
+     int). The GET_NEXT_INDEX check `0 >= -2047` evaluates TRUE (signed comparison),
+     causing the decode function to return immediately before any mb_change_bits read.
+  2. Properly-sized packet: if packet is large enough for index_stream_size > 0, the
+     entire mb_change_bits region (2048 bytes for xsize=65534, ysize=4) is within the
+     packet bounds - no OOB possible.
+
+The vulnerability root cause is confirmed:
+  truemotion1_decode_header() interframe branch (libavcodec/truemotion1.c ~line 455-459)
+  has NO bounds check equivalent to the keyframe branch's check at line 453.
+  The GET_NEXT_INDEX macro is a secondary soft guard for the index stream only;
+  mb_change_bits reads in the decode functions have no direct protection. In older
+  FFmpeg versions without GET_NEXT_INDEX or under different conditions, this missing
+  check would result in heap-buffer-overflow.
+
+Files:
+  vuln_001_gen.py        - generates vuln_001_input.avi
+  vuln_001_run.sh        - runs ffmpeg on the crafted input
+  vuln_001_result.txt    - ffmpeg output (shows "went out of bounds" soft-guard)
+  vuln_001_notes.md      - detailed technical explanation

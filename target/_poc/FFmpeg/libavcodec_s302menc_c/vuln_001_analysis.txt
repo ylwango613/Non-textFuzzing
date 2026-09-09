@@ -1,0 +1,8 @@
+nb_samples = 536870912
+nb_channels = 2
+bits_per_raw_sample = 16
+factor = 21474836480
+factor_mod_2pow32 = 0
+computed_buf_size = 4
+actual_needed_bytes = 2684354564
+frame_data_bytes = 2147483648

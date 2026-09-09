@@ -1,0 +1,24 @@
+UNVERIFIED
+The code vulnerability exists in libavcodec/prosumer.c (lines 339-345): the unsigned
+multiplication s->size = avctx->height * s->stride overflows uint32 for dimensions
+65536x43692 (stride=98304, product=4,295,098,368 wraps to 131,072). This would cause
+vertical_predict() to write ~4.3 GB past a 128 KB heap buffer.
+
+However, in this FFmpeg build, ff_set_dimensions() (called from avcodec_open2() in
+libavcodec/avcodec.c:233-238) internally calls av_image_check_size2()
+(libavutil/imgutils.c:301) which rejects the dimensions before decode_init() runs:
+
+  stride*(h+128) >= INT_MAX  =>  (8*65536 + 1024)*(43692+128) = 23,019,171,840 >= 2^31
+
+Additionally, max_pixels defaults to INT_MAX and 65536*43692 = 2,863,388,912 > INT_MAX.
+
+This constraint is mathematically impossible to circumvent: any (w,h) pair where
+h*(3w/2) > 2^32 (needed for prosumer overflow) also satisfies
+(8w)*(h) > (16/3)*2^32 >> 2^31 (which fails av_image_check_size2).
+
+Observed behavior: FFmpeg logs "Picture size 65536x43692 is invalid", resets dims to
+0x0, opens the codec with 0x0 (bypassing the dimension checks since both are zero),
+and calls decode_frame with stride=0/height=0 -- no overflow, no crash.
+
+All three command-line attempts resulted in "Conversion failed!" with exit code 0.
+No ASAN output was generated.

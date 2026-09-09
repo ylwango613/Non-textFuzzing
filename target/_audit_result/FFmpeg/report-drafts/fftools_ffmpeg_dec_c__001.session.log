@@ -1,0 +1,1 @@
+Report written to `/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/fftools_ffmpeg_dec_c__001.md`. The status was `VERIFIED_BEHAVIOR` with a UBSAN-confirmed secondary integer overflow in `dvbsubdec.c:1192` that bypasses the pixel-buffer constraint check, so a full report was produced rather than SKIP.

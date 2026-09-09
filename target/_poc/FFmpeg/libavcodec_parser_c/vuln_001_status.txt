@@ -1,0 +1,16 @@
+UNVERIFIED
+Reason: FFmpeg processed the crafted MKV file but no ASAN heap OOB read was triggered.
+The HEVC decoder rejected the codec_private data early ("Invalid NAL unit size: 320 > 23"),
+preventing execution from reaching the ff_combine_frame() path in libavcodec/parser.c.
+The Matroska demuxer successfully parsed the container structure, and the HEVC stream
+was identified (64x64 video), but NAL unit splitting failed before the parser's
+hevc_find_frame_end() could return a negative `next` value.
+No ASAN log files were generated (no memory safety violation detected).
+Exit code: 0 (ffmpeg exited with "Conversion failed!" but no crash/signal).
+
+Key observations:
+- MKV container was valid and accepted by the Matroska demuxer
+- HEVC codec_private bytes were misinterpreted as length-prefixed NAL records
+- The 3-byte first_hevc_packet and VPS second_hevc_packet were delivered to the decoder
+  but rejected at the NAL splitting stage before reaching ff_combine_frame
+- The vulnerable code path (parser.c lines 283-285) was not reached

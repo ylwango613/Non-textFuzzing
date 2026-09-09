@@ -1,0 +1,24 @@
+UNVERIFIED
+
+Reason: The crafted AVI (width=23170, height=23170, R210 stream, 4-byte frame) was
+parsed by ffmpeg, but FFmpeg's av_image_check_size() in libavutil/imgutils.c
+rejected the dimensions as invalid ("Picture size 23170x23170 is invalid") during
+avformat_find_stream_info probing, BEFORE decode_frame() was invoked.
+
+As a result, avctx->width/height were reset to 0x0 by the time the codec received
+the first packet. With width=0 and height=0 the expression `4 * aligned_width *
+avctx->height` evaluates to 0 (no overflow), and ff_get_buffer(0x0) fails normally
+with "image parameters invalid".
+
+The integer overflow at r210dec.c line 51 was never executed; no ASAN/UBSAN report
+was generated.
+
+Root cause of unverifiability: FFmpeg uses a pixel-format-aware size limit in
+av_image_check_size2(). For GBRP10 (3 planes * 2 bytes/pixel = 6 bytes/pixel) the
+effective pixel-count limit is approximately INT_MAX/6 ≈ 357M pixels. Any w*h
+combination that would cause the decode_frame overflow (aligned_w * h > 536M) also
+requires w*h > 357M, which the imgutils guard blocks. Defence-in-depth prevents the
+vulnerable path from being reached on an unmodified build.
+
+Binary: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+Build flags: -fsanitize=address,undefined (ASAN + UBSAN enabled, no hit)

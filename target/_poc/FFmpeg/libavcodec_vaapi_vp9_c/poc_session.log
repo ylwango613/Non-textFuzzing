@@ -1,0 +1,7 @@
+## Summary
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| VULN-001: NULL ptr dereference in `vaapi_vp9_start_frame` (lines 45-56) | **SKIPPED** | The ASAN build binary was compiled without VAAPI hardware acceleration support (`ffmpeg -hwaccels` returns empty list), so `vaapi_vp9_start_frame()` is never reachable regardless of input file. |
+
+The vulnerability is real in the source code, but cannot be exercised through the test binary — it requires a VAAPI-enabled FFmpeg build and compatible GPU hardware.

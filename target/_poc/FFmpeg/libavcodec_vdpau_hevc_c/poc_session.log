@@ -1,0 +1,9 @@
+## Summary
+
+| VULN # | Title | Status |
+|--------|-------|--------|
+| VULN 001 | VDPAU HEVC Tile Array Heap OOB Write (vdpau_hevc_start_frame) | **SKIPPED** |
+
+**Reason**: The system has an NVIDIA GPU and VDPAU library installed, but the target FFmpeg binary at `/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg` was compiled **without `--enable-vdpau`**. The `ffmpeg -hwaccels` command returns an empty list, confirming the VDPAU hardware decoder is not linked in. The vulnerable function `vdpau_hevc_start_frame()` is therefore dead code in this build and cannot be reached by any crafted input file.
+
+Files written: `vuln_001_status.txt` (SKIPPED) and `vuln_001_notes.md`.

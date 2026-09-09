@@ -1,0 +1,5 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/libavcodec_dcadec_c__002.md` has been written with the three-section structure (`## Bug0:` / `### Summary` / `### PoC` / `### Result`). The file contains:
+
+- **Summary**: describes the 28-element `dca2wav_norm`/`dca2wav_wide` arrays being read at indices 28–29 when XXCH sets those mask bits, with `-channel_order coded`.
+- **PoC**: self-contained Python script (output renamed to `poc_input.dca`, no hardcoded absolute paths) plus a bash block with the standard three commands.
+- **Result**: key ASAN finding inline — `global-buffer-overflow` READ of size 1 in `ff_dca_set_channel_layout()`, 0 bytes after `dca2wav_norm[28]`, via `ff_dca_core_filter_frame` → `dcadec_decode_frame`.

@@ -1,0 +1,7 @@
+## Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | OOB Write in vaapi_av1_start_frame via tile_cols/tile_rows=64 | **SKIPPED** |
+
+**Reason**: The test binary at `/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg` was compiled **without VAAPI support** (`-hwaccels` returns empty). Although `/dev/dri/renderD128` exists on the host, the vulnerable function `vaapi_av1_start_frame()` is not linked into the binary — passing `-hwaccel vaapi` cannot reach it. The vulnerability is real in the source code but cannot be triggered via a crafted media file through this binary.

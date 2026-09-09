@@ -1,0 +1,68 @@
+=== VULN 001 PoC: v210enc Integer Overflow ===
+Binary: /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+
+=== Approach 1: Y4M sparse file ===
+Generating Y4M input...
+Attempting to create sparse Y4M file: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_v210enc_c/vuln_001_input.y4m
+  width=536870929, height=1
+  frame_size=1073741859 bytes (~1.07 GB)
+  Total file size (header+frame): ~1.07 GB (sparse)
+Created /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_v210enc_c/vuln_001_input.y4m: logical size=1073741907 bytes
+Running ffmpeg with Y4M input (width=536870929)...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[IMGUTILS @ 0x7fff76491f40] Picture size 536870929x1 is invalid
+[in#0 @ 0x513000000200] Error opening input: Device or resource busy
+Error opening input file /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_v210enc_c/vuln_001_input.y4m.
+Error opening input files: Device or resource busy
+--- ASAN log (y4m) ---
+(no ASAN log)
+
+=== Approach 2: lavfi nullsrc ===
+Running ffmpeg with nullsrc filter (width=536870929)...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[Parsed_nullsrc_0 @ 0x511000000400] [IMGUTILS @ 0x7ffd1b6429a0] Picture size 536870929x1 is invalid
+[in#0 @ 0x513000000200] Error opening input: Invalid argument
+Error opening input file nullsrc=size=536870929x1:rate=1.
+Error opening input files: Invalid argument
+--- ASAN log (lavfi) ---
+(no ASAN log)
+
+=== Approach 3: rawvideo pipe ===
+Running ffmpeg with rawvideo demuxer (width=536870929)...
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0 @ 0x517000000080] [IMGUTILS @ 0x7fff05c1d740] Picture size 536870929x1 is invalid
+[in#0 @ 0x513000000200] Error opening input: Invalid argument
+Error opening input file /dev/zero.
+Error opening input files: Invalid argument
+--- ASAN log (rawvideo) ---
+(no ASAN log)
+
+=== Done ===
+EXIT=0

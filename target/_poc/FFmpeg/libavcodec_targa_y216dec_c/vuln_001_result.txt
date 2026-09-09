@@ -1,0 +1,42 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame[*] Done. Results in vuln_001_result.txt
+ress,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[targa_y216 @ 0x519000000580] [IMGUTILS @ 0x7fffeb14c010] Picture size 23171x23171 is invalid
+[in#0/avi @ 0x517000000080] Failed to open codec in avformat_find_stream_info
+[targa_y216 @ 0x519000000580] [IMGUTILS @ 0x7fffeb14bb30] Picture size 0x0 is invalid
+[targa_y216 @ 0x519000000580] video_get_buffer: image parameters invalid
+[targa_y216 @ 0x519000000580] get_buffer() failed
+[in#0/avi @ 0x517000000080] Could not find codec parameters for stream 0 (Video: targa_y216 (Y216 / 0x36313259), yuv422p16le(14 bpc)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, avi, from 'vuln_001_input.avi':
+  Duration: 00:00:00.03, start: 0.000000, bitrate: 301 kb/s
+  Stream #0:0: Video: targa_y216 (Y216 / 0x36313259), yuv422p16le(14 bpc), 30 fps, 30 tbr, 30 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (targa_y216 (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+[targa_y216 @ 0x519000002380] [IMGUTILS @ 0x7f521f493400] Picture size 0x0 is invalid
+[targa_y216 @ 0x519000002380] video_get_buffer: image parameters invalid
+[targa_y216 @ 0x519000002380] get_buffer() failed
+[vist#0:0/targa_y216 @ 0x514000000040] [dec:targa_y216 @ 0x513000000c80] Error submitting packet to decoder: Invalid argument
+[vist#0:0/targa_y216 @ 0x514000000040] [dec:targa_y216 @ 0x513000000c80] Decode error rate 1 exceeds maximum 0.666667
+[vist#0:0/targa_y216 @ 0x514000000040] [dec:targa_y216 @ 0x513000000c80] Task finished with error: Error number -1145393733 occurred
+[vist#0:0/targa_y216 @ 0x514000000040] [dec:targa_y216 @ 0x513000000c80] Terminating thread with error: Error number -1145393733 occurred
+[graph -1 input from stream 0:0 @ 0x511000010300] Invalid size 0x0
+[vf#0:0 @ 0x51a000000680] Error initializing filters!
+[vf#0:0 @ 0x51a000000680] Task finished with error: Invalid argument
+[vf#0:0 @ 0x51a000000680] Terminating thread with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] [enc:wrapped_avframe @ 0x511000000f40] Could not open encoder before EOF
+[vost#0:0/wrapped_avframe @ 0x517000000780] Task finished with error: Invalid argument
+[vost#0:0/wrapped_avframe @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/null @ 0x511000000a40] Nothing was written into output file, because at least one of its streams received no packets.
+frame=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+Conversion failed!
+EXIT=0

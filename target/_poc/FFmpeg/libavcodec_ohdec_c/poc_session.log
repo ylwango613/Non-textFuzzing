@@ -1,0 +1,13 @@
+**汇总结果：**
+
+| VULN 编号 | 漏洞名称 | 状态 |
+|-----------|----------|------|
+| VULN 001 | OOB Read via TOCTOU Race in oh_decode_wrap_sw_buffer | **SKIPPED** |
+
+**跳过原因**：
+1. `h264_ohcodec` 解码器是 OpenHarmony OS 专属硬件编解码器，标准 Linux FFmpeg 构建中不包含该解码器（二进制检查确认）
+2. 即使编解码器可用，该漏洞本质是 CWE-362 竞态条件（`oh_decode_on_stream_changed` 与 `oh_decode_wrap_sw_buffer` 之间的 TOCTOU），无法仅凭构造媒体文件可靠触发
+
+已生成文件：
+- `vuln_001_status.txt`（首行：`SKIPPED`）
+- `vuln_001_notes.md`（详细说明跳过原因）

@@ -1,0 +1,9 @@
+All three subagents have completed. Here is the final summary:
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | Signed Integer Overflow in max_pkt_size (heap underallocation) | **SKIPPED** |
+| 002 | OOB Write on ctx->slots[32] when maxDpbSlots > 32 | **SKIPPED** |
+| 003 | Unchecked GPU Query Feedback used as memcpy length | **SKIPPED** |
+
+**Root cause for all three**: This FFmpeg build has no Vulkan support (`-hwaccels` returns empty; no Vulkan encoders registered). All vulnerabilities in `vulkan_encode.c` sit entirely behind the Vulkan code path (`h264_vulkan`, `hevc_vulkan` encoders) which is unreachable without a GPU and a Vulkan-enabled build. Additionally, VULNs 002 and 003 require GPU driver-returned values that a crafted media file cannot influence regardless of hardware availability.

@@ -1,0 +1,5 @@
+The subagent has completed. Here is the summary:
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| 001 — `qsv_export_film_grain` OOB Write | **SKIPPED** | Requires Intel QSV hardware (`av1_qsv` decoder). This FFmpeg build has no QSV codecs or hardware accelerators registered — no Intel GPU or oneVPL/MFX runtime available. The vulnerable code path in `qsv_export_film_grain()` is unreachable via any software decoder. |

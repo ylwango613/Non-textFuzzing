@@ -1,0 +1,7 @@
+**Summary — 1 vulnerability processed:**
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| 001 — Integer Overflow → Heap Buffer Overflow in `prores_encode_frame` | **VERIFIED_BEHAVIOR** | UBSan confirmed the signed integer overflow at `proresenc_anatoliy.c:736` with dimensions 16382×8193. The exact wrap-to-zero case (16384×16384) is blocked upstream by `av_image_check_size2`/`ff_set_dimensions`, preventing the heap buffer overflow from manifesting at runtime. The integer overflow itself is confirmed live. |
+
+**Key finding detail**: With dimensions 16382×8193, `FFALIGN(16382,16)*FFALIGN(16382,16)*16 = 16384*8208*16 = 2,151,677,952` overflows `INT_MAX`, producing a negative `frame_size`. UBSan reports this at the exact line cited in the audit. The theoretically exploitable case (wrap-to-0 producing a tiny allocation) requires exactly 16384×16384, which is blocked by a dimension check in `ff_set_dimensions()` — a partial mitigation that prevents the heap overflow but does not fix the underlying integer overflow.

@@ -1,0 +1,58 @@
+[*] Running overflow analysis generator...
+Overflow analysis:
+  nb_samples = 536870912
+  nb_channels = 2
+  bits_per_raw_sample = 16
+  factor = 21474836480
+  factor_mod_2pow32 = 0
+  computed_buf_size = 4
+  actual_needed_bytes = 2684354564
+  frame_data_bytes = 2147483648
+
+Analysis written to: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_s302menc_c/vuln_001_analysis.txt
+
+No separate input file is required — trigger uses 'anullsrc' lavfi source.
+Run vuln_001_run.sh to attempt the crash.
+
+[*] Checking available memory...
+               total        used        free      shared  buff/cache   available
+Mem:           1.0Ti        48Gi       268Gi       347Mi       690Gi       952Gi
+Swap:           31Gi       1.6Gi        30Gi
+
+[*] Attempting to trigger integer overflow in s302m_encode2_frame()...
+    Using: anullsrc lavfi source -> asetnsamples=536870912 -> s302m encoder
+    (Requires ~2 GB RAM; will OOM on low-memory systems)
+
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+Input #0, lavfi, from 'anullsrc=cl=stereo:r=48000':
+  Duration: N/A, start: 0.000000, bitrate: 768 kb/s
+  Stream #0:0: Audio: pcm_u8, 48000 Hz, stereo, u8, 768 kb/s
+Stream mapping:
+  Stream #0:0 -> #0:0 (pcm_u8 (native) -> s302m (native))
+Press [q] to stop, [?] for help
+[abuffer @ 0x511000020340] 100 buffers queued in graph_-1_in_0:0, something may be wrong.
+[abuffer @ 0x511000020340] 1000 buffers queued in graph_-1_in_0:0, something may be wrong.
+[abuffer @ 0x511000020340] 10000 buffers queued in graph_-1_in_0:0, something may be wrong.
+[abuffer @ 0x511000020340] 100000 buffers queued in graph_-1_in_0:0, something may be wrong.
+[af#0:0 @ 0x51a000000080] Error while filtering: Cannot allocate memory
+[af#0:0 @ 0x51a000000080] Task finished with error: Cannot allocate memory
+[af#0:0 @ 0x51a000000080] Terminating thread with error: Cannot allocate memory
+[aost#0:0/s302m @ 0x517000000780] [enc:s302m @ 0x511000001440] Could not open encoder before EOF
+[aost#0:0/s302m @ 0x517000000780] Task finished with error: Invalid argument
+[aost#0:0/s302m @ 0x517000000780] Terminating thread with error: Invalid argument
+[out#0/null @ 0x511000000f40] Nothing was written into output file, because at least one of its streams received no packets.
+size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:11.43    
+Conversion failed!
+
+[*] Appending any ASAN log output...
+(no ASAN log files found)
+EXIT=0

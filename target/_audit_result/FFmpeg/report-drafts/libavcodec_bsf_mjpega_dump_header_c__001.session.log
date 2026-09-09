@@ -1,0 +1,1 @@
+Report written to `/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/libavcodec_bsf_mjpega_dump_header_c__001.md`. The vulnerability passes the filter (confirmed heap OOB read with information disclosure and potential DoS impact), so a full report entry was produced.

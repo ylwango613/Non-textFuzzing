@@ -1,0 +1,7 @@
+Files verified. Here is the summary:
+
+---
+
+**VULN 001** — `wbmp_encode_frame()` integer overflow (lines 53–70) → **SKIPPED**
+
+**Reason:** The overflow requires `height × width > ~17 billion`, but `av_image_check_size` (called for all decoded frames and encoder init paths) enforces `height × width ≤ INT_MAX ≈ 2.1 billion`. These conditions are mutually exclusive — no standard ffmpeg CLI input path can simultaneously pass size validation and have dimensions large enough to trigger the int32 overflow. The vulnerability is only reachable via direct C API usage that bypasses `av_image_check_size`.

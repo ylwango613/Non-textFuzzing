@@ -1,0 +1,8 @@
+两个 subagent 均已完成。汇总如下：
+
+| VULN | 函数 | 状态 | 说明 |
+|------|------|------|------|
+| 001 | `parse_presentation_segment` (crop OOB) | **VERIFIED_BEHAVIOR** | 漏洞代码路径已确认执行，composition_flag=0x80 触发越界读取，但 `AV_INPUT_BUFFER_PADDING_SIZE` 64字节填充吸收了8字节越界，ASAN 未崩溃 |
+| 002 | `parse_palette_segment` (palette OOB) | **VERIFIED_BEHAVIOR** | PDS segment_length=8 成功触发调色板解析循环越界，4字节 OOB 读同样被64字节填充吸收，ASAN 未崩溃 |
+
+**共同结论**：两个漏洞的越界读取字节数（分别为 8 和 4）均小于 FFmpeg 对每个 AVPacket 追加的 `AV_INPUT_BUFFER_PADDING_SIZE = 64` 字节零填充，因此 ASAN 构建下不触发崩溃。在无此填充的环境（内存映射文件、自定义分配器、嵌入式目标）中漏洞可实际触发 SIGSEGV。PoC 文件均已生成在 `_poc/FFmpeg/libavcodec_pgssubdec_c/`。

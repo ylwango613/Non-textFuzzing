@@ -1,0 +1,10 @@
+[+] Generated: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_vvc_cabac_c/vuln_001_input.h266
+[+] Total size: 211 bytes
+    SPS RBSP:   18 bytes
+    PPS RBSP:   7 bytes
+    Slice RBSP: 130 bytes
+
+[*] Target vulnerability: ff_vvc_diag_scan_x[-1][...] OOB
+[*] Requires: log2_tb_width=0 AND log2_zo_tb_height<=3 (sum<=3)
+[*] Nearest valid config: ISP_VER_SPLIT 4x16 → 1x16 TUs (h=4, sum=4>3)
+[*] Crafted CABAC payload exercises ISP/residual code paths

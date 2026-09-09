@@ -1,0 +1,13 @@
+## VULN: Off-by-one OOB Write in sei_pic_timing num_decoding_units_minus1 loop
+- **漏洞类别**: memory-safety
+- **函数**: FUNC(sei_pic_timing)() / `cbs_h265_read_sei_pic_timing` (instantiated from cbs_h265_syntax_template.c included into cbs_h265.c)
+- **行号**: 1997-2010 (cbs_h265_syntax_template.c)
+- **CWE**: CWE-787 (Out-of-bounds Write)
+- **CVSS v3.1**: 5.3 (AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:L/A:L)
+- **严重程度**: Medium
+- **攻击向量**: crafted HEVC media file (SEI prefix NAL unit containing a pic_timing message)
+- **外部触发路径**: `ffmpeg -i <crafted.hevc> -f null -` → `avformat_open_input()` → demuxer reads HEVC bitstream → `ff_cbs_read_fragment()` → `cbs_h265_read_nal_unit()` [HEVC_NAL_SEI_PREFIX] → `cbs_h265_read_sei()` → `ff_cbs_sei_read_message_list()` → `cbs_h265_read_sei_pic_timing()` → OOB write at `num_nalus_in_du_minus1[600]`
+- **描述**: 在 `sei_pic_timing` 的读路径中，`num_decoding_units_minus1` 的上界被约束为 `HEVC_MAX_SLICE_SEGMENTS`（600），而后续循环 `for (i = 0; i <= current->num_decoding_units_minus1; i++)` 在 i=600 时写入 `current->num_nalus_in_du_minus1[600]`。该数组声明为 `uint16_t num_nalus_in_du_minus1[HEVC_MAX_SLICE_SEGMENTS]`，有效下标范围是 [0, 599]。当 `num_decoding_units_minus1=600` 时，循环在下标 600 处发生越界写入，将 2 字节攻击者可控值（范围 [0, 600]）写入紧随其后的 `du_cpb_removal_delay_increment_minus1[0]` 的低 16 位（两者在结构体内连续无填充）。该写入停留在 `H265RawSEIPicTiming` 结构体的堆分配范围内，属于结构体内 OOB 写，导致相邻字段数据污染。若下游代码（例如其他解析器实现）将 `du_cpb_removal_delay_increment_minus1[0]` 用于进一步计算，则可能引发间接的整数溢出或数组越界。
+- **触发条件**: 构造一个 HEVC 码流，在 SEI prefix NAL 单元中包含 pic_timing SEI 消息，并使以下条件同时成立：① SPS 的 VUI 开启 HRD（`vui_hrd_parameters_present_flag=1`），HRD 中 `sub_pic_hrd_params_present_flag=1` 且 `sub_pic_cpb_params_in_pic_timing_sei_flag=1`；② pic_timing SEI 中 `num_decoding_units_minus1` 字段设为 600（即 `HEVC_MAX_SLICE_SEGMENTS`，Exp-Golomb 编码后写入码流）。
+- **安全影响**: 攻击者可向 `H265RawSEIPicTiming` 结构体相邻字段注入 2 字节可控数据（[0,600] 范围的 uint16_t）。最坏情况下，若该污染值被其他解析逻辑用于分配大小或数组索引计算，可进一步升级为越界读或越界写（DoS / 潜在 RCE）；当前代码路径本身的直接后果为数据损坏和潜在的解析行为异常（DoS）。
+

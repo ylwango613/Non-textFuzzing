@@ -1,0 +1,36 @@
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libav[*] Done. Check vuln_001_result.txt for output.
+   63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0/mov,mp4,m4a,3gp,3g2,mj2 @ 0x517000000080] Could not find codec parameters for stream 0 (Video: prores_raw (RAW HQ) (aprh / 0x68727061), none(unknown/unknown/linear, progressive), 16x16, 16 kb/s): unspecified pixel format
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'vuln_001_input.mov':
+  Metadata:
+    major_brand     : qt  
+    minor_version   : 0
+    compatible_brands: qt  
+  Duration: 00:00:00.04, start: 0.000000, bitrate: 136 kb/s
+  Stream #0:0[0x1](eng): Video: prores_raw (RAW HQ) (aprh / 0x68727061), none(unknown/unknown/linear, progressive), 16x16, 16 kb/s, 25 fps, 25 tbr, 25 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+[vost#0:0/wrapped_avframe @ 0x517000000780] Discarding stream metadata 'vendor_id' because the stream is being re-encoded. Use '-keep_metadata vendor_id' to keep it.
+Stream mapping:
+  Stream #0:0 -> #0:0 (prores_raw (native) -> wrapped_avframe (native))
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf63.6.100
+  Stream #0:0(eng): Video: wrapped_avframe, bayer_rggb16le(pc, gbr/unknown/linear, progressive), 16x16, q=2-31, 200 kb/s, 25 fps, 25 tbn (default)
+    Metadata:
+      encoder         : Lavc63.11.100 wrapped_avframe
+      handler_name    : VideoHandler
+[out#0/null @ 0x511000000b80] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:00.04 bitrate=N/A speed=6.53x elapsed=0:00:00.00    
+EXIT=0

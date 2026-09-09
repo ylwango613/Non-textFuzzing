@@ -1,0 +1,7 @@
+## 汇总
+
+| VULN 编号 | 漏洞 | 状态 |
+|-----------|------|------|
+| VULN 001 | Heap OOB Read in `get_slice_data_byte_offset` (vaapi_vvc.c:484-507) | **SKIPPED** |
+
+**跳过原因**：该漏洞触发路径需要 `-hwaccel vaapi` 及 VAAPI 硬件加速支持。经检测，目标二进制 `/data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg` 编译时未包含 VAAPI 支持（`ffmpeg -hwaccels` 返回空列表，`ldd` 无 `libva*.so`），且本机无 VAAPI 可用硬件。漏洞函数 `get_slice_data_byte_offset()` 仅由 `vaapi_vvc_decode_slice()` 调用，无法通过向 ffmpeg 传递畸形媒体文件的方式触发，因此按规则直接 SKIPPED。

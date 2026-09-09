@@ -1,0 +1,9 @@
+The subagent has completed. Here is the summary:
+
+| VULN | Status | Reason |
+|------|--------|--------|
+| VULN-001 (tile_info Heap OOB Write in vdpau_av1_decode_slice) | **SKIPPED** | VDPAU hardware acceleration stack not available in this environment — the FFmpeg binary reports no hwaccels, so `-hwaccel vdpau` fails at init and `vdpau_av1_decode_slice()` is never reached. NVIDIA GPU devices are present (`/dev/nvidia0/1`) but the VDPAU runtime libraries (`libvdpau.so`, `libvdpau_nvidia.so`) are missing. |
+
+Files written to `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_vdpau_av1_c/`:
+- `vuln_001_status.txt` — `SKIPPED`
+- `vuln_001_notes.md` — full explanation

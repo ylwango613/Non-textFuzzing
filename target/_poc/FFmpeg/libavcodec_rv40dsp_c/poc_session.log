@@ -1,0 +1,13 @@
+## Summary
+
+**VULN-001: OOB Read in rv40_strong_loop_filter via dmode Array Overrun** — `UNVERIFIED`
+
+The PoC successfully constructed a valid RealMedia (.rm) file with an RV40 video stream (160×120, 80 INTRA16x16 macroblocks) and ran it through the ASAN-instrumented ffmpeg binary. The file was decoded cleanly with no ASAN errors.
+
+**Root cause of UNVERIFIED**: Code analysis during PoC development revealed the vulnerability as described in the audit report is not actually reachable:
+
+- The strong filter (`edge=1`) is only called when `dmode ≤ 12` (top-edge: `i*4` max 12; left-edge: `j` max 12)
+- The `dmode=15` case (j=12, i=3) only occurs in the ordinary filter path (`edge=0`), where `rv40_loop_filter_strength()` immediately returns 0, preventing the strong filter from being called
+- Maximum valid index `dmode + i = 12 + 3 = 15` is the last valid index of the 16-element arrays — no OOB occurs
+
+The audit report's vulnerability appears to be a false positive based on a misreading of the control flow in `rv40_loop_filter()`.

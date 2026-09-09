@@ -1,0 +1,10 @@
+UNVERIFIED
+The crafted RV40 file was successfully parsed and decoded by FFmpeg (1 frame, 160x120, I-frame with 80 INTRA16x16 macroblocks). The strong deblocking loop filter was triggered for all macroblock boundaries (mb_strong=1 for all rows). No ASAN errors were reported.
+
+Code analysis finding: The vulnerability description claims dmode=15 reaches the strong loop filter, but in rv40_loop_filter() the strong filter (edge=1) is only called in two conditions:
+  1. Top-edge filter (!j): dither = i*4, max dmode = 12 (i=3)
+  2. Left-edge filter (!i): dither = j ? j : 0, max dmode = 12 (j=12)
+
+The dmode=15 case (j=12, i=3) only occurs in the ORDINARY filter path (edge=0), where rv40_loop_filter_strength() immediately returns 0 ("if (!edge) return 0"), preventing the strong filter from being invoked.
+
+Maximum array index accessed in rv40_strong_loop_filter: dmode + i = 12 + 3 = 15, which is the LAST valid index (arrays rv40_dither_l[16] and rv40_dither_r[16] have valid indices 0-15). No out-of-bounds access occurs in this code version.

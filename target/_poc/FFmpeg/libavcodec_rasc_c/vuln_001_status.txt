@@ -1,0 +1,7 @@
+UNVERIFIED
+No ASAN crash detected. ffmpeg reports "Picture size 32100x44600 is invalid" because
+ff_set_dimensions / av_image_check_size2 (libavutil/imgutils.c) always estimates stride
+as 8*w (using AV_PIX_FMT_NONE), causing stride*(h+128) ≈ 11.5B to exceed INT_MAX and
+reject the required dimensions before any OOB access can occur. The vulnerability logic
+(3*w*h 32-bit overflow in decode_mous, unchecked cursor index in draw_cursor) is present
+in the source code but is blocked by the size-validation barrier in this build.

@@ -1,0 +1,15 @@
+## Summary
+
+**VULN 001** — Heap OOB Write in `ff_vp3dsp_set_bounding_values` via VP56 Context
+
+| # | Status | Details |
+|---|--------|---------|
+| 001 | **VERIFIED_BEHAVIOR** | OOB write confirmed to execute. The crafted VP6F FLV (quantizer=63) triggers the full call chain `vp6_parse_header → ff_vp56_init_dequant → ff_vp3dsp_set_bounding_values`, which unconditionally writes to `bounding_values_array[256..259]` (4 ints past the 256-element boundary). ASAN does not fire because the overflow stays within the same `VP56Context` heap allocation (intra-struct overflow into `coeff_ctx`), crossing no allocation boundary. Frame decoded successfully (frame=1 confirmed). |
+
+**Files produced** in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_vp3dsp_c/`:
+- `vuln_001_gen.py` — builds a 166-byte VP6F FLV with quantizer=63
+- `vuln_001_input.flv` — the crafted input
+- `vuln_001_run.sh` — shell runner via ASAN ffmpeg
+- `vuln_001_result.txt` — full run output
+- `vuln_001_notes.md` — technical explanation
+- `vuln_001_status.txt` — `VERIFIED_BEHAVIOR`

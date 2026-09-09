@@ -1,0 +1,9 @@
+## PoC Generation Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | Integer Overflow in decode_init → Heap Buffer Overflow (prosumer decoder) | **UNVERIFIED** |
+
+**Root cause of UNVERIFIED**: The subagent confirmed the bug exists in `prosumer.c` (lines 339–340, unsigned 32-bit `s->size = avctx->height * s->stride` wraps for width=65536/height=43692), and the FourCC is `BT20`. However, FFmpeg's generic `av_image_check_size2()` — called inside `avcodec_open2()` before `decode_init()` runs — rejects the overflow-triggering dimensions with "Picture size 65536x43692 is invalid". The geometry is mathematically self-defeating: any `(w, h)` pair large enough to overflow ProSumer's `h × (3w/2) > 2^32` also satisfies the condition `(8w) × h >> INT_MAX` that trips the generic guard. FFmpeg then resets dimensions to 0×0 and the decoder runs without hitting the vulnerable code path.
+
+**Conclusion**: This vulnerability is not reachable from the `ffmpeg` command line via a crafted AVI file — the generic dimension sanity check acts as an unintentional mitigation, making the bug unexploitable through the standard decoding path. The audit report's CVSS 8.8 rating may be overstated given this effective guard.

@@ -1,0 +1,1 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/libavcodec_4xm_c__001.md` has been written with the full report entry. The vulnerability meets the threshold for a complete report (confirmed heap OOB read with DoS and potential information-disclosure impact), so no SKIP was applied.

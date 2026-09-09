@@ -1,0 +1,17 @@
+UNVERIFIED
+
+Analysis:
+The vulnerability description claims that line 338 of psd.c:
+    s->line_size = s->width + 7 >> 3;
+parses as s->width + (7 >> 3) = s->width (wrong). However, in C, the
+addition operator (+) has HIGHER precedence than the right-shift operator (>>),
+so this expression actually evaluates correctly as (s->width + 7) >> 3 =
+ceil(width/8). For width=64, s->line_size = 8, which matches the AVFrame
+MONOWHITE linesize exactly (ceil(64/8) = 8 bytes). Therefore no overflow occurs.
+
+The PoC was run with width=64, 128, and 256 against an ASAN-instrumented FFmpeg
+build. All runs completed successfully (exit code 0) with no heap-buffer-overflow
+or any other ASAN error reported.
+
+The bug description has the operator precedence direction reversed: it is not a
+real heap overflow in the version of the code examined.

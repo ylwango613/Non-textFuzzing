@@ -1,0 +1,36 @@
+UNVERIFIED
+
+Reason: The integer overflow in sgienc.c encode_frame() (CWE-190 -> CWE-122) is confirmed to
+exist in the source code at lines 156-161, but cannot be triggered via the standard ffmpeg
+command-line pipeline in this build due to a hard size guard in av_image_check_size2().
+
+Vulnerability confirmed in source: YES
+Crash observed via ffmpeg CLI: NO
+All trigger attempts blocked by: av_image_check_size2() in libavutil/imgutils.c line 301
+
+Mathematical proof of blockage (for all supported formats):
+  Required condition for overflow: h * (depth*(2*w+1) + 8*depth) > 2^32
+  Required condition to pass size check: stride * (h+128) < INT_MAX
+    where stride = bpp*w + 1024 (bpp = bytes per pixel for the format)
+
+  These two constraints are mutually exclusive for all valid (w,h,format) combinations.
+  The minimum gap (closest approach) is -160 rows for RGBA format at w=65535:
+    max_h that passes check = 8032
+    min_h needed for overflow = 8192
+    gap = -160 (unreachable)
+
+  For gray8 (most lenient format) at w=65535:
+    max_h that passes check = 32136
+    min_h needed for overflow = 32767
+    gap = -631 (unreachable)
+
+Exploitability via libavcodec API: POSSIBLE if caller bypasses av_image_check_size,
+  e.g., by setting avctx->width/height after avcodec_open2(), or through a patched
+  or older version without the stride*height overflow guard.
+
+Files attempted:
+  - Attempt 1: lavfi color=size=8189x65535 -> REJECTED (Picture size invalid)
+  - Attempt 2: rawvideo /dev/zero 8189x65535 -> REJECTED (Picture size invalid)
+  - Attempt 3: -max_pixels override + gray8 65535x32769 -> REJECTED (stride*h >= INT_MAX)
+  - Attempt 4: lavfi gray 65535x32136 (max valid) -> REJECTED (lavfi uses rgba stride)
+  - Confirmed: SGI encoder encodes successfully at small valid dimensions (100x100 gray8)

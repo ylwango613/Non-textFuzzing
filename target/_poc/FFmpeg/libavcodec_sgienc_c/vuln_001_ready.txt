@@ -1,0 +1,3 @@
+VULN-001 analysis complete.
+Overflow confirmed: allocated=721396, oob_bytes=327164
+Pipeline blocks: av_image_check_size fails for trigger dimensions

@@ -1,0 +1,11 @@
+**Summary:**
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| VULN-001 | **UNVERIFIED** | Code defect confirmed by static analysis; runtime trigger not achieved |
+
+**VULN-001 — Heap Buffer Overflow in `roq_encode_frame`:**
+- The allocation formula under-counts by 8 bytes (non-first frame) or 24 bytes (first frame) because it omits the `RoQ_QUAD_CODEBOOK` chunk header (8 bytes) and `RoQ_INFO` chunk (16 bytes).
+- The PoC crafts a 512×512 2-frame random-noise BGR24 AVI and encodes it to RoQ via `ffmpeg -c:v roqvideo`.
+- ASAN ran without crashing — encoding density reached ~98.55% of the threshold needed to overflow, but the RoQ ELBG vector quantizer structurally avoids full CCC-mode saturation (initial centroids are sampled from actual blocks, giving those blocks zero distortion and selecting a cheaper mode). The overflow requires ≥99.9% of 8×8 sub-cells to use CCC mode, which is not reachable from a real-world frame even with maximal entropy input.
+- All PoC files are at `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_roqvideoenc_c/`.

@@ -1,0 +1,7 @@
+## 汇总
+
+| 编号 | 漏洞 | 状态 |
+|------|------|------|
+| VULN 001 | Off-by-one OOB Read on Opcodes Buffer in `decode_0` (line 234) | **VERIFIED_BEHAVIOR** |
+
+**说明：** PoC 成功触发了漏洞的行为特征——构造 width=8, height=8、`opcode_size=1` 的畸形 PAF 文件后，FFmpeg 在 `op == opcode_size == 1` 时越过边界读取 `opcodes[1]`（正确实现应返回 `AVERROR_INVALIDDATA`），却正常解码出 1 帧并退出码 0。ASAN 未报 `heap-buffer-overflow` 是因为 `av_new_packet` 会附加 64 字节 `AV_INPUT_BUFFER_PADDING_SIZE` 零填充，越界的 1 字节仍在堆分配范围内，所以读取不触发 ASAN 报警，但行为异常已清晰证明漏洞存在。

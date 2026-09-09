@@ -1,0 +1,27 @@
+UNVERIFIED
+
+Result: The crafted TXD file (width=4, height=1, DXT1) was parsed and decoded successfully with
+no crash, no ASAN heap-overflow report, and exit code 0.
+
+Root cause analysis: The overflow described in VULN 001 does NOT trigger in the current codebase
+because txd_decode_frame() explicitly sets:
+
+  avctx->coded_width  = FFALIGN(w, 4);   // line 97
+  avctx->coded_height = FFALIGN(h, 4);   // line 98
+
+Then ff_get_buffer() (decode.c:1794-1795) allocates the frame buffer as:
+
+  frame->height = FFMAX(avctx->height, AV_CEIL_RSHIFT(avctx->coded_height, avctx->lowres))
+                = FFMAX(1, 4) = 4
+
+So for h=1, the buffer is allocated with 4 rows, not 1. The dxt1_block_internal() function
+writes exactly 4 rows per block, which fits precisely within the allocated buffer regardless
+of whether h is a multiple of 4. For any h, FFALIGN(h,4) rows are allocated and at most
+FFALIGN(h,4) rows are written (the loop iterates ceil(h/4) blocks × 4 rows each =
+FFALIGN(h,4) rows total).
+
+The FFALIGN protection in txd.c acts as an effective mitigation: the buffer always has
+exactly as many rows as the DXT decoder will write. No overflow is possible with the current code.
+
+The vulnerability as described may refer to an older version of the code before lines 97-98
+were added, or to a hypothetical scenario where coded_height is not explicitly aligned.

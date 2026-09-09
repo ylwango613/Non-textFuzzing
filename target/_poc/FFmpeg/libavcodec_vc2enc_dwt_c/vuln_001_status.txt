@@ -1,0 +1,30 @@
+UNVERIFIED
+
+Summary: The integer overflow in ff_vc2enc_init_transforms() (vc2enc_dwt.c:266)
+exists in the source code but cannot be triggered via the standard ffmpeg CLI.
+
+The vulnerability requires avctx->width and avctx->height ~= 46000 each so that
+  (FFALIGN(w,32) + 1024) * (FFALIGN(h,16) + 1024) > INT_MAX (= 2,147,483,647).
+
+However, avcodec_open2() calls ff_set_dimensions() which internally calls
+av_image_check_size2(..., AV_PIX_FMT_NONE, ...) using stride = 8*w + 1024.
+For w=46000: stride = 369024, and 369024*(46000+128) = 17022339072 >= INT_MAX.
+This causes ff_set_dimensions() to return AVERROR(EINVAL), and avcodec_open2()
+aborts with "goto free_and_end" BEFORE the vc2enc init callback is invoked.
+
+Mathematical proof: no (w,h) with w,h > 0 satisfies both:
+  (8*w + 1024) * (h + 128) < INT_MAX  [av_image_check_size2 passes]
+  (w + 1024)   * (h + 1024) > INT_MAX  [vc2enc overflow fires]
+simultaneously. The guard uses stride=8*w (not the actual pixel format stride),
+making it ~8x more restrictive than the overflow threshold.
+
+Approach A (MKV 46000x46000): Rejected at "Picture size 46000x46000 is invalid".
+  vc2 encoder was never opened. No ASAN output.
+Approach B (lavfi 16200x16200): Encoder opened successfully, frame encoded, no ASAN.
+  At max valid dims, (16224+1024)*(16256+1024)*4 = 298M*4 bytes -- well below overflow.
+
+No heap-buffer-overflow, stack-buffer-overflow, heap-use-after-free, or other
+ASAN errors were observed in any run. The vulnerability is a theoretical code-level
+issue (integer overflow at line 266 exists in the arithmetic) but the av_image_check_size2
+guard in ff_set_dimensions() acts as a protective pre-condition that prevents dimensions
+large enough to trigger the overflow from reaching ff_vc2enc_init_transforms().

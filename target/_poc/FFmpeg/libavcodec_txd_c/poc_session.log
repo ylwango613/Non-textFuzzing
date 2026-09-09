@@ -1,0 +1,20 @@
+The subagent has completed. Here is the final summary:
+
+---
+
+## PoC Summary — `libavcodec/txd.c`
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | Heap OOB Write in DXT1/DXT3 Decode for Non-Multiple-of-4 Height | **UNVERIFIED** |
+
+**Reason**: The audit report's premise is incorrect. `txd_decode_frame()` explicitly calls `FFALIGN(h, 4)` before passing dimensions to `ff_get_buffer()` (lines 97–98 of txd.c):
+
+```c
+avctx->coded_width  = FFALIGN(w, 4);
+avctx->coded_height = FFALIGN(h, 4);
+```
+
+This means the frame buffer is always allocated for a multiple-of-4 rows, regardless of the raw `h` from the file. When `h=1`, the buffer gets 4 rows — exactly what `dxt1_block_internal` writes. No overflow can occur. The ASAN-instrumented ffmpeg processed the crafted `4×1` TXD file cleanly (exit 0, no ASAN output).
+
+All PoC files are written to `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_txd_c/` with `vuln_001_status.txt` = `UNVERIFIED`.

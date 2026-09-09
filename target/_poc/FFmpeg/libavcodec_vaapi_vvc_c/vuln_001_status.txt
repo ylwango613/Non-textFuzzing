@@ -1,0 +1,6 @@
+SKIPPED
+Reason: VAAPI hardware acceleration is not available on this machine.
+The ffmpeg binary at /data/ylwang/non-textfuzz/target/FFmpeg/build_test/ffmpeg
+was compiled without VAAPI support (no hwaccels listed, no libva linked).
+The vulnerable code path (vaapi_vvc_decode_slice -> get_slice_data_byte_offset)
+requires -hwaccel vaapi which cannot be invoked without VAAPI support.

@@ -1,0 +1,7 @@
+## 汇总结果
+
+| 编号 | 漏洞 | 状态 |
+|------|------|------|
+| VULN 001 | decode_mous Integer Overflow (`3*w*h`) → Heap OOB Read in draw_cursor | **UNVERIFIED** |
+
+**说明**：漏洞代码逻辑是真实的 — `rasc.c:569` 中 `3 * w * h`（w=32100, h=44600）发生 32-bit 无符号整数环绕，得到 12704，通过相等性检查，仅分配 ~12768 字节 cursor 缓冲区，但 `draw_cursor()` 会访问 `cursor[4,294,883,700]`。然而，在实际触发路径中，`ff_set_dimensions()` / `av_image_check_size2()` 会先用 `AV_PIX_FMT_NONE` 估算 `stride = 8*w`，对于 `w=32100, h=44600` 得到 stride×(h+128) ≈ 11.5B > INT_MAX，因此 FFmpeg 在进入解码逻辑之前就拒绝了这些尺寸（报 `"Picture size 32100x44600 is invalid"`）。整数溢出所需的 `w×h > 1.43B` 条件与尺寸校验的 INT_MAX 上限数学上不兼容，无法同时满足，该 PoC 无法在此构建中触发 ASAN 崩溃。

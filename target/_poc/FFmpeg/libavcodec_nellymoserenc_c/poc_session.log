@@ -1,0 +1,11 @@
+## 汇总
+
+| VULN 编号 | 漏洞名称 | 状态 |
+|-----------|----------|------|
+| VULN-001 | `get_exponent_dynamic` off-by-one heap OOB write (nellymoserenc.c:260-278) | **VERIFIED_CRASH** |
+
+UBSan 在真实执行路径中确认触发：
+- `nellymoserenc.c:247` — `index 35768 out of bounds for type 'float [35768]'`（即 `idx == OPT_SIZE`，越界写入）
+- `nellymoserenc.c:294/296` — `index -1 out of bounds`（OOB 写入导致 `best_idx` 被破坏，进一步触发级联越界读）
+
+PoC 文件位于 `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_nellymoserenc_c/`，通过向 `ffmpeg -i vuln_001_input.wav -c:a nellymoser -trellis 1 -f flv /dev/null` 传入含 ±1×10⁶ 幅值 PCM_F32LE 样本的 WAV 文件成功复现。

@@ -1,0 +1,6 @@
+VERIFIED_BEHAVIOR
+The crafted PAF file triggers the off-by-one in decode_0() (line 234: `op > opcode_size` vs `op >= opcode_size`).
+With opcode_size=1 and a 2x2 block grid, op reaches 1 at block 3: check (1>1)=false (bug), and opcodes[1] is read 1 byte past the valid region.
+FFmpeg decoded 1 frame successfully (exit 0, "frame=1" in output) instead of returning AVERROR_INVALIDDATA as the corrected check would require.
+No ASAN heap-buffer-overflow: the OOB byte lands within av_new_packet's 64-byte AV_INPUT_BUFFER_PADDING_SIZE zero-fill, which is within the heap allocation, so ASAN does not raise an error.
+The behavioral evidence of the vulnerability is that the decoder accepts and processes an invalid frame rather than rejecting it with an error.

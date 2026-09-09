@@ -1,0 +1,8 @@
+## Summary
+
+| VULN | Status | Notes |
+|------|--------|-------|
+| 001 — ff_vpx_init_range_decoder OOB Read | **VERIFIED_BEHAVIOR** | Trigger path confirmed: `header_size=1` craft reaches `bytestream_get_be24()` with 1-byte buffer; ASAN padding absorbs the 2-byte overread, but decoder output shows garbage propagation (`Invalid partitions`, `Decode error rate 1 exceeds maximum`). No heap-buffer-overflow report due to FFmpeg's 64-byte `AV_INPUT_BUFFER_PADDING_SIZE` absorbing the short overread. |
+
+All files are in `/data/ylwang/non-textfuzz/target/_poc/FFmpeg/libavcodec_vpx_rac_c/`:
+- `vuln_001_gen.py`, `vuln_001_run.sh`, `vuln_001_notes.md`, `vuln_001_result.txt`, `vuln_001_status.txt`

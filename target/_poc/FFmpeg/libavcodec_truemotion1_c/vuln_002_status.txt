@@ -1,0 +1,31 @@
+VERIFIED_BEHAVIOR
+
+Bug confirmed active at truemotion1.c line 783:
+  truemotion1_decode_24bit() reads mb_change_bits[mb_change_index++]
+  unconditionally for every row, including keyframes.
+  The 16-bit sibling (truemotion1_decode_16bit, line 656) guards
+  this with `if (!keyframe)`.
+
+Observable evidence from running vuln_002_input.avi through the ASAN-
+enabled ffmpeg binary:
+
+  [truemotion1] help! truemotion1 decoder went out of bounds
+
+  (message appears twice — once during avformat_find_stream_info and
+   once during decode).
+
+The "help!" message originates from GET_NEXT_INDEX (line 532) and fires
+prematurely because the missing keyframe guard at line 783 consumes index
+stream bytes as mb_change_bits data, exhausting the 1-byte index stream
+after the initial read rather than after proper decoding.
+
+No ASAN heap-buffer-overflow was triggered.  Structural analysis shows
+this is not reachable with the current codebase because GET_NEXT_INDEX
+(which has its own bounds check) returns the function before mb_change_bits
+can advance past the ASAN red-zone (AV_INPUT_BUFFER_PADDING_SIZE = 64 bytes).
+The mb_change_bits advancement rate (1 byte per 4 rows for avctx_width=2)
+is always exceeded by the index-stream consumption needed to survive those
+rows, so the pointer never reaches the unprotected region.
+
+Verdict: logic/state-corruption bug confirmed; direct ASAN heap-buffer-
+overflow not achieved with minimal-packet approach.

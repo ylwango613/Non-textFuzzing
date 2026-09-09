@@ -1,0 +1,5 @@
+**Summary**: 1 vulnerability found and processed.
+
+| VULN | Status | Description |
+|------|--------|-------------|
+| 001 | **VERIFIED_BEHAVIOR** | Integer overflow in `frame_size_upper_bound` triggered — UBSan reported `signed integer overflow: 129793 * 28510 cannot be represented in type 'int'` at `proresenc_kostya_common.c:287`, confirmed via ProRes encoder init with a crafted 16224×16224 RGBA MOV input using `-c:v prores_ks -profile:v 4444`. |

@@ -1,0 +1,1 @@
+`/data/ylwang/non-textfuzz/target/_audit_result/FFmpeg/report-drafts/libavcodec_bitpacked_dec_c__001.md` has been written with the full report. The vulnerability passes the filter (confirmed CWE-125 OOB read with CVSS 7.1 High, verified behavior showing 8,176 bytes beyond `avpkt->size` consumed as valid pixels), so the complete three-section report was produced rather than SKIP.

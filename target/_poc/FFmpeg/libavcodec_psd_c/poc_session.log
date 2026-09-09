@@ -1,0 +1,7 @@
+## Summary
+
+| VULN | Title | Status |
+|------|-------|--------|
+| 001 | Heap Overflow in PSD BITMAP Decode — Operator Precedence Bug in `line_size` | **UNVERIFIED** |
+
+**Reason**: The audit report's claim that `s->width + 7 >> 3` parses as `s->width + (7 >> 3)` is incorrect — in standard C, `+` has **higher** precedence than `>>`, so the expression correctly evaluates to `(s->width + 7) >> 3 = ceil(width/8)`. The PoC was run against the ASAN-instrumented binary with multiple width/height combinations (64×64, 128×128, 256×256) and all processed cleanly with exit 0 and no ASAN output. The described vulnerability does not exist in the compiled code.

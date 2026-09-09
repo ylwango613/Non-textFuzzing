@@ -1,0 +1,7 @@
+## 汇总结果
+
+| VULN 编号 | 漏洞名称 | 状态 |
+|-----------|---------|------|
+| VULN 001 | Integer Overflow in decode_init Leading to Heap Under-Allocation and OOB Write | **UNVERIFIED** |
+
+**VULN 001 说明**：漏洞代码本身存在（`truemotion2.c:974` 处 `w * h` 的 int32 溢出），但在当前 FFmpeg 构建中被上游维度检查拦截。`ff_set_dimensions()` → `av_image_check_size2()` 在 `avcodec_open2` 阶段就拒绝了 width=height=131072 这样的超大尺寸（`stride*(h+128) ≥ INT_MAX`），导致 `decode_init` 从未以大维度被调用。能触发溢出所需的最小维度（≥ 46,341）与能通过尺寸检查的最大维度（~16,383）之间存在无法跨越的矛盾，因此通过标准 `ffmpeg` 命令行路径无法触达该漏洞。PoC 文件均已生成在 `_poc/FFmpeg/libavcodec_truemotion2_c/`。
